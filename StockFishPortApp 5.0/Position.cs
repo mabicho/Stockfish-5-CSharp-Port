@@ -19,7 +19,7 @@ using Rank = System.Int32;
 using CastlingSide = System.Int32;
 
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     /// The checkInfo struct is initialized at c'tor time and keeps info used
     /// to detect if a move gives check.

@@ -9,7 +9,7 @@ using Move = System.Int32;
 using Depth = System.Int32;
 using PieceType = System.Int32;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     /// The Stats struct stores moves statistics. According to the template parameter
     /// the class can store History, Gains and Countermoves. History records how often

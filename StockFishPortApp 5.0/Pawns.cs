@@ -11,7 +11,7 @@ using Rank = System.Int32;
 using Value = System.Int32;
 using V = System.Int32;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public sealed class Pawns
     {

@@ -12,7 +12,7 @@ using Color = System.Int32;
 using NodeType = System.Int32;
 using Square = System.Int32;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public sealed class StateStackPtr : Stack<StateInfo>
     {

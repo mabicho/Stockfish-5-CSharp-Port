@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 using Move = System.Int32;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public sealed partial class Uci
     {
         // FEN string of the initial position, normal chess
         public const string StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         //public const string StartFEN = "1k3b2/p6r/1q1n1P1p/2p1N3/1pB2QPR/8/PP3K2/8 w - - 2 35";
-        //519834                                        
-        
-
+        //
         /// Keep a track of the position keys along the setup moves (from the start position
         // to the position just before the search starts). This is needed by the repetition
         // draw detection code.
@@ -23,7 +21,7 @@ namespace StockFishPortApp_5._0
         public static void on_eval(Option o) { Eval.init();}
         public static void on_threads(Option o) { Engine.Threads.read_uci_options();}
         public static void on_hash_size(Option o) {Engine.TT.resize((UInt32)o.getInt());}
-        public static void on_clear_hash(Option o) { Engine.TT.clear();}        
+        public static void on_clear_hash(Option o) { Engine.TT.clear();}
 
         /// init() initializes the UCI options to their hard-coded default values
         public static void init(Dictionary<string, Option> o)
@@ -141,8 +139,7 @@ namespace StockFishPortApp_5._0
                 else if (token == "mate") limits.mate = int.Parse(stack.Pop());
                 else if (token == "infinite") limits.infinite = 1;
                 else if (token == "ponder") limits.ponder = 1;
-            }            
-
+            }
             Engine.Threads.start_thinking(pos, limits, SetupStates);
         }
 
@@ -155,13 +152,13 @@ namespace StockFishPortApp_5._0
             Position pos = new Position(StartFEN, 0, Engine.Threads.main()); // The root position
             string token = "", cmd = "";
 
-            for (int i = 0; i < argv.Length; ++i)      
-                cmd += argv[i] + " ";   
+            for (int i = 0; i < argv.Length; ++i)
+                cmd += argv[i] + " ";
 
             do
             {
                 if (argv.Length == 0 && String.IsNullOrEmpty(cmd = Engine.inOut.ReadLine())) // Block here waiting for input
-                    cmd = "quit";                
+                    cmd = "quit";
 
                 Stack<string> stack = Misc.CreateStack(cmd);
                 token = stack.Pop();

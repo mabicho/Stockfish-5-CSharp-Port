@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public enum MutexAction
     {

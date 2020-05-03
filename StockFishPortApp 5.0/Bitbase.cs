@@ -9,7 +9,7 @@ using Bitboard = System.UInt64;
 
 
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public enum Result
     {

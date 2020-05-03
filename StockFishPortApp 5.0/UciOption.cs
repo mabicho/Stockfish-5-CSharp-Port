@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace StockFishPortApp_5._0
+namespace StockFish 
 {
     public delegate void OnChangeOption(Option opt);
 
@@ -78,7 +78,7 @@ namespace StockFishPortApp_5._0
             //Debug.Assert(type == "string");
             return currentValue;
         }
-        
+
         /// operator=() updates currentValue and triggers on_change() action. It's up to
         /// the GUI to check for option's limits, but we could receive the new value from
         /// the user by console window, so let's check the bounds anyway.
@@ -102,7 +102,7 @@ namespace StockFishPortApp_5._0
     }
 
     public sealed partial class Uci
-    {                
+    {
         /// operator<<() is used to print all the options default values in chronological
         /// insertion order (the idx field) and in the format defined by the UCI protocol.
         public static string ToString(Dictionary<string, Option> o)

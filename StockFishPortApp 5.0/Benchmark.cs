@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public sealed partial class Engine
     {

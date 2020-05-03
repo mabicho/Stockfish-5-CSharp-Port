@@ -10,7 +10,7 @@ using Key = System.UInt64;
 
 
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     /// The TTEntry is the 14 bytes transposition table entry, defined as below:
     ///
@@ -47,10 +47,10 @@ namespace StockFishPortApp_5._0
             generation8 = 0;
             value16 = 0;
             depth16 = 0;
-            evalValue = 0;            
+            evalValue = 0;
         }
 
-        public Move  move() { return (Move )move16; }
+        public Move move() { return (Move)move16; }
         public Bound bound() { return (Bound)bound8; }
         public Value value() { return (Value)value16; }
         public Depth depth() { return (Depth)depth16; }
@@ -67,7 +67,7 @@ namespace StockFishPortApp_5._0
         public const uint ClusterSize = 4;
         private UInt32 hashMask;
         public TTEntry[] table;
-        private byte generation; // Size must be not bigger than TTEntry::generation8         
+        private byte generation; // Size must be not bigger than TTEntry::generation8
         //void* mem;
 
         public void new_search() { ++generation; }
@@ -75,9 +75,9 @@ namespace StockFishPortApp_5._0
         /// TranspositionTable::first_entry() returns a pointer to the first entry of
         /// a cluster given a position. The lowest order bits of the key are used to
         /// get the index of the cluster.
-        #if AGGR_INLINE
+#if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        #endif
+#endif
         public int first_entry(Key key)
         {
             return (int)((UInt32)key & hashMask);
@@ -93,8 +93,8 @@ namespace StockFishPortApp_5._0
 
             uint size = ClusterSize << BitBoard.msb((mbSize << 20) / 64);
 
-            if (hashMask == size - ClusterSize)            
-                return;            
+            if (hashMask == size - ClusterSize)
+                return;
 
             hashMask = size - ClusterSize;
 
@@ -152,7 +152,7 @@ namespace StockFishPortApp_5._0
         /// to be more valuable than a TTEntry t2 if t1 is from the current search and t2
         /// is from a previous search, or if the depth of t1 is bigger than the depth of t2.
         public void store(Key key, Value v, Bound b, Depth d, Move m, Value statV)
-        {            
+        {
             int tteInd, replaceInd;
             TTEntry tte, replace;
             UInt32 key32 = (UInt32)(key >> 32); // Use the high 32 bits as key inside the cluster
@@ -168,16 +168,14 @@ namespace StockFishPortApp_5._0
                     // Preserve any existing ttMove
                     if (m == 0)
                         m = tte.move();// Preserve any existing ttMove
-                    
                     replace = tte;
                     break;
                 }
-                
                 // Implement replace strategy
-                if (((tte.generation8 == generation || tte.bound() == BoundS.BOUND_EXACT)?1:0)
-                    - ((replace.generation8 == generation)?1:0)
-                    - ((tte.depth16 < replace.depth16)?1:0) < 0)
-                    replace = tte;                
+                if (((tte.generation8 == generation || tte.bound() == BoundS.BOUND_EXACT) ? 1 : 0)
+                    - ((replace.generation8 == generation) ? 1 : 0)
+                    - ((tte.depth16 < replace.depth16) ? 1 : 0) < 0)
+                    replace = tte;
             }
 
             replace.save(key32, v, b, d, m, generation, statV);

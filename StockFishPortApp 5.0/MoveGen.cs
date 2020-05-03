@@ -12,7 +12,7 @@ using PieceType = System.Int32;
 using Piece = System.Int32;
 
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public struct GenTypeS
     {

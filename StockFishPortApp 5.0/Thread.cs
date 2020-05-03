@@ -9,7 +9,7 @@ using Value = System.Int32;
 using Move = System.Int32;
 
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public sealed class Mutex
     {

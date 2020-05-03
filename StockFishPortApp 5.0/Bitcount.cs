@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 using Bitboard = System.UInt64;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public sealed class Bitcount
     {

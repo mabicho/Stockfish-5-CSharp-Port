@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     /// RKISS is our pseudo random number generator (PRNG) used to compute hash keys.
     /// George Marsaglia invented the RNG-Kiss-family in the early 90's. This is a
@@ -30,7 +30,6 @@ namespace StockFishPortApp_5._0
         {
             return (x << k) | (x >> (64 - k));
         }
-        
         public UInt64 rand64()
         {
             UInt64 e = a - rotate_L(b, 7);

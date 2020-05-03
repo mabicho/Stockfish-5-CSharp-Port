@@ -4,7 +4,7 @@ using TimeType = System.Int32;
 using Color = System.Int32;
 
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public sealed class TimeTypeS
     {

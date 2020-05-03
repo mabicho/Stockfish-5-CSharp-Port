@@ -19,7 +19,7 @@ using MoveType = System.Int32;
 using CastlingRight = System.Int32;
 
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     /// A move needs 16 bits to be stored
     ///
@@ -117,7 +117,7 @@ namespace StockFishPortApp_5._0
         public const int VALUE_MATED_IN_MAX_PLY = -VALUE_MATE + Types.MAX_PLY;
 
         public const int VALUE_ENSURE_INTEGER_SIZE_P = Int32.MaxValue;
-        public const int VALUE_ENSURE_INTEGER_SIZE_N = Int32.MinValue;        
+        public const int VALUE_ENSURE_INTEGER_SIZE_N = Int32.MinValue;
 
         public const int PawnValueMg = 198, PawnValueEg = 258;
         public const int KnightValueMg = 817, KnightValueEg = 846;
@@ -146,7 +146,6 @@ namespace StockFishPortApp_5._0
     public struct DepthS
     {
         public const int ONE_PLY = 2;
-
         public const int DEPTH_ZERO          =  0 * ONE_PLY;
         public const int DEPTH_QS_CHECKS     =  0 * ONE_PLY;
         public const int DEPTH_QS_NO_CHECKS  = -1 * ONE_PLY;
@@ -166,14 +165,11 @@ namespace StockFishPortApp_5._0
         public const int SQ_A7 = 48, SQ_B7 = 49, SQ_C7 = 50, SQ_D7 = 51, SQ_E7 = 52, SQ_F7 = 53, SQ_G7 = 54, SQ_H7 = 55;
         public const int SQ_A8 = 56, SQ_B8 = 57, SQ_C8 = 58, SQ_D8 = 59, SQ_E8 = 60, SQ_F8 = 61, SQ_G8 = 62, SQ_H8 = 63;
         public const int SQ_NONE = 64;
-
         public const int SQUARE_NB = 64;
-
         public const int DELTA_N = 8;
         public const int DELTA_E = 1;
         public const int DELTA_S = -8;
         public const int DELTA_W = -1;
-
         public const int DELTA_NN = DELTA_N + DELTA_N;
         public const int DELTA_NE = DELTA_N + DELTA_E;
         public const int DELTA_SE = DELTA_S + DELTA_E;
@@ -227,7 +223,6 @@ namespace StockFishPortApp_5._0
     public sealed class Types
     {
         public static string newline = System.Environment.NewLine;
-
         public const int MAX_MOVES = 256;
         public const int MAX_PLY = 120;
         public const int MAX_PLY_PLUS_6 = MAX_PLY + 6;
@@ -242,7 +237,7 @@ namespace StockFishPortApp_5._0
             v.full = 0;
             v.half_mg = (Int16)(mg - ((UInt16)(eg) >> 15));
             v.half_eg = (Int16)eg;
-            return (Score)(v.full);            
+            return (Score)(v.full);
         }
 
         #if AGGR_INLINE
@@ -502,8 +497,4 @@ namespace StockFishPortApp_5._0
             return new String(ch);
         }
     }
-
-    
-
-    
 }

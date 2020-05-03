@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Key = System.UInt64;
 using Move = System.Int32;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public class HashTable<Entry>
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     class Program
     {

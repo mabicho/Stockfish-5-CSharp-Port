@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace StockFishPortApp_5._0
+namespace StockFish
 {
     public sealed partial class Engine : IDisposable
     {
