@@ -17,7 +17,7 @@ namespace StockFish
     {
         public static Score S(int mg, int eg)
         {
-            return Types.make_score(mg, eg);
+            return Types.Make_score(mg, eg);
         }
 
         public sealed class Table : HashTable<Pawns.Entry>
@@ -134,24 +134,24 @@ namespace StockFish
                 Color Them = (Us == ColorS.WHITE ? ColorS.BLACK : ColorS.WHITE);
 
                 Value safety = Pawns.MaxSafetyBonus;
-                Bitboard b = pos.pieces_piecetype(PieceTypeS.PAWN) & (BitBoard.in_front_bb(Us, Types.rank_of(ksq)) | BitBoard.rank_bb_square(ksq));
+                Bitboard b = pos.pieces_piecetype(PieceTypeS.PAWN) & (BitBoard.In_front_bb(Us, Types.Rank_of(ksq)) | BitBoard.Rank_bb_square(ksq));
                 Bitboard ourPawns = b & pos.pieces_color(Us);
                 Bitboard theirPawns = b & pos.pieces_color(Them);
                 Rank rkUs, rkThem;
-                File kf = Math.Max(FileS.FILE_B, Math.Min(FileS.FILE_G, Types.file_of(ksq)));                
+                File kf = Math.Max(FileS.FILE_B, Math.Min(FileS.FILE_G, Types.File_of(ksq)));                
 
                 for (File f = kf - 1; f <= kf + 1; ++f)
                 {
 
-                    b = ourPawns & BitBoard.file_bb_file(f);
-                    rkUs = b != 0 ? Types.relative_rank_square(Us, BitBoard.backmost_sq(Us, b)) : RankS.RANK_1;
+                    b = ourPawns & BitBoard.File_bb_file(f);
+                    rkUs = b != 0 ? Types.Relative_rank_square(Us, BitBoard.Backmost_sq(Us, b)) : RankS.RANK_1;
 
-                    b = theirPawns & BitBoard.file_bb_file(f);
-                    rkThem = b != 0 ? Types.relative_rank_square(Us, BitBoard.frontmost_sq(Them, b)) : RankS.RANK_1;
+                    b = theirPawns & BitBoard.File_bb_file(f);
+                    rkThem = b != 0 ? Types.Relative_rank_square(Us, BitBoard.Frontmost_sq(Them, b)) : RankS.RANK_1;
 
-                    if ((MiddleEdges & BitBoard.SquareBB[Types.make_square(f, rkThem)])!=0
-                        && Types.file_of(ksq) == f
-                        && Types.relative_rank_square(Us, ksq) == rkThem - 1)
+                    if ((MiddleEdges & BitBoard.SquareBB[Types.Make_square(f, rkThem)])!=0
+                        && Types.File_of(ksq) == f
+                        && Types.Relative_rank_square(Us, ksq) == rkThem - 1)
                         safety += 200;
                     else
                         safety -= ShelterWeakness[rkUs]
@@ -173,19 +173,19 @@ namespace StockFish
                 if (pawns != 0)
                     while (0==(BitBoard.DistanceRingsBB[ksq][minKPdistance[Us]++] & pawns)) { }
 
-                if (Types.relative_rank_square(Us, ksq) > RankS.RANK_4)
-                    return Types.make_score(0, -16 * minKPdistance[Us]);
+                if (Types.Relative_rank_square(Us, ksq) > RankS.RANK_4)
+                    return Types.Make_score(0, -16 * minKPdistance[Us]);
 
                 Value bonus = shelter_storm(pos, ksq, Us);
 
                 // If we can castle use the bonus after the castle if is bigger
                 if (pos.can_castle_castleright((new MakeCastlingS(Us, CastlingSideS.KING_SIDE)).right) != 0)
-                    bonus = Math.Max(bonus, shelter_storm(pos, Types.relative_square(Us, SquareS.SQ_G1), Us));
+                    bonus = Math.Max(bonus, shelter_storm(pos, Types.Relative_square(Us, SquareS.SQ_G1), Us));
 
                 if (pos.can_castle_castleright((new MakeCastlingS(Us, CastlingSideS.QUEEN_SIDE)).right) != 0)
-                    bonus = Math.Max(bonus, shelter_storm(pos, Types.relative_square(Us, SquareS.SQ_C1), Us));
+                    bonus = Math.Max(bonus, shelter_storm(pos, Types.Relative_square(Us, SquareS.SQ_C1), Us));
 
-                return Types.make_score(bonus, -16 * minKPdistance[Us]);
+                return Types.Make_score(bonus, -16 * minKPdistance[Us]);
             }            
         }
 
@@ -203,7 +203,7 @@ namespace StockFish
                 for (File f = FileS.FILE_A; f <= FileS.FILE_H; ++f)
                 {
                     bonus = r * (r - 1) * (r - 2) + bonusesByFile[f] * (r / 2 + 1);
-                    Connected[f][r] = Types.make_score(bonus, bonus);
+                    Connected[f][r] = Types.Make_score(bonus, bonus);
                 }
         }
 
@@ -229,42 +229,42 @@ namespace StockFish
             e.passedPawns[Us] = e.candidatePawns[Us] = 0;
             e.kingSquares[Us] = SquareS.SQ_NONE;
             e.semiopenFiles[Us] = 0xFF;
-            e.pawnAttacks[Us] = BitBoard.shift_bb(ourPawns, Right) | BitBoard.shift_bb(ourPawns, Left);
-            e.pawnsOnSquares[Us][ColorS.BLACK] = Bitcount.popcount_Max15(ourPawns & BitBoard.DarkSquares);
+            e.pawnAttacks[Us] = BitBoard.Shift_bb(ourPawns, Right) | BitBoard.Shift_bb(ourPawns, Left);
+            e.pawnsOnSquares[Us][ColorS.BLACK] = Bitcount.Popcount_Max15(ourPawns & BitBoard.DarkSquares);
             e.pawnsOnSquares[Us][ColorS.WHITE] = pos.count(Us, PieceTypeS.PAWN) - e.pawnsOnSquares[Us][ColorS.BLACK];
 
             // Loop through all pawns of the current color and score each pawn
             while ((s = pl[plPos++]) != SquareS.SQ_NONE)
             {
-                Debug.Assert(pos.piece_on(s) == Types.make_piece(Us, PieceTypeS.PAWN));
+                Debug.Assert(pos.piece_on(s) == Types.Make_piece(Us, PieceTypeS.PAWN));
 
-                f = Types.file_of(s);
+                f = Types.File_of(s);
 
 
                 // This file cannot be semi-open
                 e.semiopenFiles[Us] &= ~(1 << f);
 
                 // Previous rank
-                p = BitBoard.rank_bb_square(s - Types.pawn_push(Us));
+                p = BitBoard.Rank_bb_square(s - Types.Pawn_push(Us));
 
                 // Our rank plus previous one
-                b = BitBoard.rank_bb_square(s) | p;
+                b = BitBoard.Rank_bb_square(s) | p;
 
                 // Flag the pawn as passed, isolated, doubled,
                 // unsupported or connected (but not the backward one).
-                connected = (ourPawns & BitBoard.adjacent_files_bb(f) & b)!=0;
-                unsupported = (0==(ourPawns & BitBoard.adjacent_files_bb(f) & p));
-                isolated = (0==(ourPawns & BitBoard.adjacent_files_bb(f)));
-                doubled = ourPawns & BitBoard.forward_bb(Us, s);
-                opposed = (theirPawns & BitBoard.forward_bb(Us, s))!=0;
-                passed = (0==(theirPawns & BitBoard.passed_pawn_mask(Us, s)));
+                connected = (ourPawns & BitBoard.Adjacent_files_bb(f) & b)!=0;
+                unsupported = (0==(ourPawns & BitBoard.Adjacent_files_bb(f) & p));
+                isolated = (0==(ourPawns & BitBoard.Adjacent_files_bb(f)));
+                doubled = ourPawns & BitBoard.Forward_bb(Us, s);
+                opposed = (theirPawns & BitBoard.Forward_bb(Us, s))!=0;
+                passed = (0==(theirPawns & BitBoard.Passed_pawn_mask(Us, s)));
 
                 // Test for backward pawn.
                 // If the pawn is passed, isolated, or connected it cannot be
                 // backward. If there are friendly pawns behind on adjacent files
                 // or if it can capture an enemy pawn it cannot be backward either.
                 if ((passed | isolated | connected)
-                    || (ourPawns & BitBoard.pawn_attack_span(Them, s))!=0
+                    || (ourPawns & BitBoard.Pawn_attack_span(Them, s))!=0
                     || (pos.attacks_from_pawn(s, Us) & theirPawns)!=0)
                     backward = false;
                 else
@@ -273,23 +273,23 @@ namespace StockFish
                     // pawn on adjacent files. We now check whether the pawn is
                     // backward by looking in the forward direction on the adjacent
                     // files, and picking the closest pawn there.
-                    b = BitBoard.pawn_attack_span(Us, s) & (ourPawns | theirPawns);
-                    b = BitBoard.pawn_attack_span(Us, s) & BitBoard.rank_bb_square(BitBoard.backmost_sq(Us, b));
+                    b = BitBoard.Pawn_attack_span(Us, s) & (ourPawns | theirPawns);
+                    b = BitBoard.Pawn_attack_span(Us, s) & BitBoard.Rank_bb_square(BitBoard.Backmost_sq(Us, b));
 
                     // If we have an enemy pawn in the same or next rank, the pawn is
                     // backward because it cannot advance without being captured.
-                    backward = ((b | BitBoard.shift_bb(b, Up)) & theirPawns)!=0;
+                    backward = ((b | BitBoard.Shift_bb(b, Up)) & theirPawns)!=0;
                 }
 
-                Debug.Assert(opposed | passed | (BitBoard.pawn_attack_span(Us, s) & theirPawns)!=0);
+                Debug.Assert(opposed | passed | (BitBoard.Pawn_attack_span(Us, s) & theirPawns)!=0);
 
                 // A not-passed pawn is a candidate to become passed, if it is free to
                 // advance and if the number of friendly pawns beside or behind this
                 // pawn on adjacent files is higher than or equal to the number of
                 // enemy pawns in the forward direction on the adjacent files.
                 candidate = !(opposed | passed | backward | isolated)
-                         && (b = BitBoard.pawn_attack_span(Them, s + Types.pawn_push(Us)) & ourPawns) != 0
-                         && Bitcount.popcount_Max15(b) >= Bitcount.popcount_Max15(BitBoard.pawn_attack_span(Us, s) & theirPawns);
+                         && (b = BitBoard.Pawn_attack_span(Them, s + Types.Pawn_push(Us)) & ourPawns) != 0
+                         && Bitcount.Popcount_Max15(b) >= Bitcount.Popcount_Max15(BitBoard.Pawn_attack_span(Us, s) & theirPawns);
 
                 // Passed pawns will be properly scored in evaluation because we need
                 // full attack info to evaluate passed pawns. Only the frontmost passed
@@ -305,17 +305,17 @@ namespace StockFish
                     value -= UnsupportedPawnPenalty;
 
                 if (doubled!=0)
-                    value -= Types.divScore(Doubled[f], BitBoard.rank_distance(s, BitBoard.lsb(doubled)));
+                    value -= Types.DivScore(Doubled[f], BitBoard.Rank_distance(s, BitBoard.Lsb(doubled)));
 
                 if (backward)
                     value -= Backward[opposed ? 1 : 0][f];
 
                 if (connected)
-                    value += Connected[f][Types.relative_rank_square(Us, s)];
+                    value += Connected[f][Types.Relative_rank_square(Us, s)];
 
                 if (candidate)
                 {
-                    value += CandidatePassed[Types.relative_rank_square(Us, s)];
+                    value += CandidatePassed[Types.Relative_rank_square(Us, s)];
 
                     if (0==doubled)
                         e.candidatePawns[Us] |= BitBoard.SquareBB[s];
@@ -327,7 +327,7 @@ namespace StockFish
             if (pos.count(Us, PieceTypeS.PAWN) > 1)
             {
                 b = (Bitboard)(e.semiopenFiles[Us] ^ 0xFF);
-                value += PawnsFileSpan * (BitBoard.msb(b) - BitBoard.lsb(b));
+                value += PawnsFileSpan * (BitBoard.Msb(b) - BitBoard.Lsb(b));
             }
 
             return value;

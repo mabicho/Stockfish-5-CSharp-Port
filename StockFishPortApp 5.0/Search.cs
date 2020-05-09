@@ -14,231 +14,6 @@ using Square = System.Int32;
 
 namespace StockFish
 {
-    public sealed class StateStackPtr : Stack<StateInfo>
-    {
-    }
-
-    /// The LimitsType struct stores information sent by GUI about available time
-    /// to search the current move, maximum depth/time, if we are in analysis mode
-    /// or if we have to ponder while it's our opponent's turn to move.
-    public sealed class LimitsType
-    {
-        public List<Move> searchmoves= new List<Move>();
-        public int[] time = new int[ColorS.COLOR_NB], inc = new int[ColorS.COLOR_NB];
-        public int movestogo, depth, nodes, movetime, mate, infinite, ponder;
-
-        public bool use_time_management() { return 0==(mate | movetime | depth | nodes | infinite); }               
-    };
-
-    /// The Stack struct keeps track of the information we need to remember from
-    /// nodes shallower and deeper in the tree during the search. Each search thread
-    /// has its own array of Stack objects, indexed by the current ply.
-    public sealed class Stack
-    {
-        public SplitPoint splitPoint;
-        public int ply;
-        public Move currentMove;
-        public Move ttMove;
-        public Move excludedMove;
-        public Move killers0;
-        public Move killers1;
-        public Depth reduction;
-        public Value staticEval;        
-        public int skipNullMove;        
-
-
-        public void clear()
-        {
-            //    splitPoint = null;
-            ply = 0;
-            currentMove = 0;
-            ttMove = 0;
-            excludedMove = 0;
-            killers0 = 0;
-            killers1 = 0;
-            reduction = 0;
-            staticEval = 0;            
-            skipNullMove = 0;            
-        }
-
-        public void copyFrom(Stack s)
-        {
-            //    splitPoint = s.splitPoint;
-            ply = s.ply;
-            currentMove = s.currentMove;
-            ttMove = s.ttMove;
-            excludedMove = s.excludedMove;
-            killers0 = s.killers0;
-            killers1 = s.killers1;
-            reduction = s.reduction;
-            staticEval = s.staticEval;            
-            skipNullMove = s.skipNullMove;            
-        }                
-    }
-
-    /// The SignalsType struct stores volatile flags updated during the search
-    /// typically in an async fashion e.g. to stop the search by the GUI.
-    public struct SignalsType
-    {
-        public volatile bool stop, stopOnPonderhit, firstRootMove, failedLowAtRoot;
-    };
-
-    // Different node types, used as template parameter
-    public struct NodeTypeS
-    {
-        public const int Root = 0, PV = 1, NonPV = 2;
-    };
-
-    public sealed partial class Skill : IDisposable
-    {
-        public int level;
-        public Move best;
-        public static RKISS rk = new RKISS();
-
-        public Skill(int l)
-        {
-            level = l;
-            best = MoveS.MOVE_NONE;
-        }
-
-        public void Dispose()
-        {
-            if (enabled())// Swap best PV line with the sub-optimal one                              
-            {
-                int bestpos = Search.find(Search.RootMoves, 0, Search.RootMoves.Count, best != 0 ? best : pick_move());
-                RootMove temp = Search.RootMoves[0];
-                Search.RootMoves[0] = Search.RootMoves[bestpos];
-                Search.RootMoves[bestpos] = temp;
-            }
-        }
-
-        public bool enabled() { return level < 20; }
-        public bool time_to_pick(int depth) { return depth == 1 + level; }
-
-        // When playing with a strength handicap, choose best move among the MultiPV
-        // set using a statistical rule dependent on 'level'. Idea by Heinz van Saanen.
-        public Move pick_move()
-        {
-            // PRNG sequence should be not deterministic
-            for (int i = (int)Time.now() % 50; i > 0; --i)
-                rk.rand32();
-
-            // RootMoves are already sorted by score in descending order
-            int variance = Math.Min(Search.RootMoves[0].score - Search.RootMoves[Search.MultiPV - 1].score, ValueS.PawnValueMg);
-            int weakness = 120 - 2 * level;
-            int max_s = -ValueS.VALUE_INFINITE;
-            best = MoveS.MOVE_NONE;
-
-
-            // Choose best move. For each move score we add two terms both dependent on
-            // weakness. One deterministic and bigger for weaker moves, and one random,
-            // then we choose the move with the resulting highest score.
-            for (int i = 0; i < Search.MultiPV; ++i)
-            {
-                int s = Search.RootMoves[i].score;
-
-                // Don't allow crazy blunders even at very low skills
-                if (i > 0 && Search.RootMoves[i - 1].score > s + 2 + ValueS.PawnValueMg)
-                    break;
-
-                // This is our magic formula
-                s += (weakness * (Search.RootMoves[0].score - s)
-                      + variance * (int)(rk.rand32() % (UInt64)weakness)) / 128;
-
-                if (s > max_s)
-                {
-                    max_s = s;
-                    best = Search.RootMoves[i].pv[0];
-                }
-            }
-            return best;
-        }
-    }
-
-    public sealed class RootMove
-    {
-        public Value score ;
-        public Value prevScore;
-        public List<Move> pv = new List<Move>();        
-
-        public RootMove(Move m)
-        {
-            score = prevScore = -ValueS.VALUE_INFINITE;
-            pv.Add(m);
-            pv.Add(MoveS.MOVE_NONE);            
-        }
-
-        //bool operator<(const RootMove& m) const { return score > m.score; } // Ascending sort
-        //bool operator==(const Move& m) const { return pv[0] == m; } 
-
-        /// RootMove::extract_pv_from_tt() builds a PV by adding moves from the TT table.
-        /// We also consider both failing high nodes and BOUND_EXACT nodes here to
-        /// ensure that we have a ponder move even when we fail high at root. This
-        /// results in a long PV to print that is important for position analysis.
-        public void extract_pv_from_tt(Position pos)
-        {
-            StateInfo[] estate = new StateInfo[Types.MAX_PLY_PLUS_6];
-            for (int i = 0; i < Types.MAX_PLY_PLUS_6; i++)
-                estate[i] = new StateInfo();
-
-            TTEntry tte;
-            int st = 0;
-            int ply = 1; // At root ply is 1...
-            Move m = pv[0]; // ...instead pv[] array starts from 0
-            Value expectedScore = score;
-
-            pv.Clear();
-
-            do
-            {
-                pv.Add(m);
-
-                Debug.Assert((new MoveList(pos, GenTypeS.LEGAL)).contains(pv[ply-1]));
-
-                pos.do_move(pv[ply++ - 1], estate[st++]);
-                tte = Engine.TT.probe(pos.key());
-                expectedScore = -expectedScore;
-            } while (tte != null
-                && expectedScore == Search.value_from_tt(tte.value(), ply)
-                && pos.pseudo_legal(m = tte.move()) // Local copy, TT could change
-                && pos.legal(m, pos.pinned_pieces(pos.side_to_move()))
-                && ply < Types.MAX_PLY
-                && (!pos.is_draw() || ply <= 2));
-
-            pv.Add(MoveS.MOVE_NONE); // Must be zero-terminating
-
-            while (--ply != 0) pos.undo_move(pv[ply - 1]);
-        }
-
-        /// RootMove::insert_pv_in_tt() is called at the end of a search iteration, and
-        /// inserts the PV back into the TT. This makes sure the old PV moves are searched
-        /// first, even if the old TT entries have been overwritten.
-        public void insert_pv_in_tt(Position pos)
-        {
-            StateInfo[] state = new StateInfo[Types.MAX_PLY_PLUS_6];
-            int st = 0;
-            for (int i = 0; i < Types.MAX_PLY_PLUS_6; i++)
-                state[i] = new StateInfo();
-
-            TTEntry tte;
-            int idx = 0; // Ply starts from 1, we need to start from 0
-
-            do
-            {
-                tte = Engine.TT.probe(pos.key());
-
-                if (tte == null || tte.move() != pv[idx])// Don't overwrite correct entries
-                    Engine.TT.store(pos.key(), ValueS.VALUE_NONE, BoundS.BOUND_NONE, DepthS.DEPTH_NONE, pv[idx], ValueS.VALUE_NONE);
-
-                Debug.Assert((new MoveList(pos, GenTypeS.LEGAL)).contains(pv[idx]));
-
-                pos.do_move(pv[idx++], state[st++]);
-            } while (pv[idx] != MoveS.MOVE_NONE);
-
-            while (idx != 0) pos.undo_move(pv[--idx]);
-        }
-    }
-
     public sealed class Search
     {
         public static SignalsType Signals;
@@ -255,7 +30,7 @@ namespace StockFish
         // Reduction lookup tables (initialized at startup) and their access function
         public static sbyte[][][][] Reductions = new sbyte[2][][][]; // [pv][improving][depth][moveNumber] 2, 2, 64, 64
 
-        // Set to true to force running with one thread. Used for debugging        
+        // Set to true to force running with one thread. Used for debugging
         public const bool FakeSplit = false;
         public static int MultiPV, PVIdx;
         public static TimeManager TimeMgr= new TimeManager();
@@ -272,28 +47,28 @@ namespace StockFish
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Value razor_margin(Depth d) { return 512 + 16 * (int)d; }
+        public static Value Razor_margin(Depth d) { return 512 + 16 * (int)d; }
 
         #if AGGR_INLINE
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Value futility_margin(Depth d)
+        public static Value Futility_margin(Depth d)
         {
-            return (100 * d);
+            return 100 * d;
         }
 
         #if AGGR_INLINE
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Depth reduction(int i, Depth d, int mn, int PvNode)
+        public static Depth Reduction(int i, Depth d, int mn, int PvNode)
         {
             return (Depth)Reductions[PvNode][i][Math.Min((int)d / DepthS.ONE_PLY, 63)][Math.Min(mn, 63)];
         }
 
-        /// Search::init() is called during startup to initialize various lookup tables
-        public static void init()
+        // Search::init() is called during startup to initialize various lookup tables
+        public static void Init()
         {
-            int d;  // depth (ONE_PLY == 2)            
+            int d;  // depth (ONE_PLY == 2)
             int hd; // half depth (ONE_PLY == 1)
             int mc; // moveCount
 
@@ -312,24 +87,30 @@ namespace StockFish
 
                 // Init reductions array
             for (hd = 1; hd < 64; ++hd)
+            {
                 for (mc = 1; mc < 64; ++mc)
                 {
-                    double pvRed = 0.00 + Math.Log((double)hd) * Math.Log((double)mc) / 3.0;
-                    double nonPVRed = 0.33 + Math.Log((double)hd) * Math.Log((double)mc) / 2.25;
+                    double pvRed = 0.00 + (Math.Log((double)hd) * Math.Log((double)mc) / 3.0);
+                    double nonPVRed = 0.33 + (Math.Log((double)hd) * Math.Log((double)mc) / 2.25);
                     Reductions[1][1][hd][mc] = (sbyte)(pvRed >= 1.0 ? Math.Floor(pvRed * (int)DepthS.ONE_PLY) : 0);
                     Reductions[0][1][hd][mc] = (sbyte)(nonPVRed >= 1.0 ? Math.Floor(nonPVRed * (int)DepthS.ONE_PLY) : 0);
 
                     Reductions[1][0][hd][mc] = Reductions[1][1][hd][mc];
                     Reductions[0][0][hd][mc] = Reductions[0][1][hd][mc];
 
-                    if (Reductions[0][0][hd][mc] > 2 * DepthS.ONE_PLY)
-                        Reductions[0][0][hd][mc] += DepthS.ONE_PLY;
-
-                    else if (Reductions[0][0][hd][mc] > 1 *DepthS.ONE_PLY)
-                        Reductions[0][0][hd][mc] += DepthS.ONE_PLY / 2;
+                    if (Reductions[0][0][hd][mc] > 1 * DepthS.ONE_PLY)
+                    {
+                        if (Reductions[0][0][hd][mc] > 2 * DepthS.ONE_PLY)
+                        {
+                            Reductions[0][0][hd][mc] += DepthS.ONE_PLY;
+                        }
+                        else
+                        {
+                            Reductions[0][0][hd][mc] += DepthS.ONE_PLY / 2;
+                        }
+                    }
                 }
-            
-
+            }
             // Init futility move count array
             for (d = 0; d < 32; ++d)
             {
@@ -338,40 +119,39 @@ namespace StockFish
             }
         }
 
-        /// Search::perft() is our utility to verify move generation. All the leaf nodes
-        /// up to the given depth are generated and counted and the sum returned.
+        // Search::perft() is our utility to verify move generation. All the leaf nodes
+        // up to the given depth are generated and counted and the sum returned.
 
-        public static UInt64 static_perft(Position pos, Depth depth) {
-
+        public static UInt64 Static_perft(Position pos, Depth depth)
+         {
             StateInfo st = new StateInfo();
             UInt64 cnt = 0;
             CheckInfo ci= new CheckInfo(pos);
             bool leaf = depth == 2 * DepthS.ONE_PLY;
-          
-            for (MoveList it = new MoveList(pos, GenTypeS.LEGAL); it.move() != MoveS.MOVE_NONE; ++it)
+            for (MoveList it = new MoveList(pos, GenTypeS.LEGAL); it.Move() != MoveS.MOVE_NONE; ++it)
             {
-                pos.do_move(it.move(), st, ci, pos.gives_check(it.move(), ci));
-                cnt += leaf ? (UInt64)(new MoveList(pos, GenTypeS.LEGAL)).size() : Search.static_perft(pos, depth - DepthS.ONE_PLY);
-                pos.undo_move(it.move());
+                pos.do_move(it.Move(), st, ci, pos.gives_check(it.Move(), ci));
+                cnt += leaf ? (UInt64)(new MoveList(pos, GenTypeS.LEGAL)).Size() : Search.Static_perft(pos, depth - DepthS.ONE_PLY);
+                pos.undo_move(it.Move());
             }
             return cnt;
         }
 
         public static UInt64 perft(Position pos, Depth depth) {
-            return depth > DepthS.ONE_PLY ? Search.static_perft(pos, depth) : (UInt64)(new MoveList(pos, GenTypeS.LEGAL)).size();
+            return depth > DepthS.ONE_PLY ? Search.Static_perft(pos, depth) : (UInt64)(new MoveList(pos, GenTypeS.LEGAL)).Size();
         }
 
-        /// Search::think() is the external interface to Stockfish's search, and is
-        /// called by the main thread when the program receives the UCI 'go' command. It
-        /// searches from RootPos and at the end prints the "bestmove" to output.
-        public static void think()
+        // Search::think() is the external interface to Stockfish's search, and is
+        // called by the main thread when the program receives the UCI 'go' command. It
+        // searches from RootPos and at the end prints the "bestmove" to output.
+        public static void Think()
         {
             RootColor = RootPos.side_to_move();
             TimeMgr.init(Limits, RootPos.game_ply(), RootColor);
 
             int cf = Engine.Options["Contempt Factor"].getInt() * ValueS.PawnValueEg / 100; // From centipawns
             DrawValue[RootColor] = ValueS.VALUE_DRAW - (cf);
-            DrawValue[Types.notColor(RootColor)] = ValueS.VALUE_DRAW + (cf);
+            DrawValue[Types.NotColor(RootColor)] = ValueS.VALUE_DRAW + (cf);
 
             if (RootMoves.Count == 0)
             {
@@ -383,7 +163,7 @@ namespace StockFish
 
             if (Engine.Options["OwnBook"].getInt() != 0 && Engine.Options["Book File"].getString()!=null && 0 == Limits.infinite && 0 == Limits.mate)
             {
-                Move bookMove = book.probe(RootPos, Engine.Options["Book File"].getString(), Engine.Options["Best Book Move"].getInt()!=0);
+                Move bookMove = book.Probe(RootPos, Engine.Options["Book File"].getString(), Engine.Options["Best Book Move"].getInt()!=0);
 
                 if (bookMove != 0 && existRootMove(RootMoves, bookMove))
                 {
@@ -393,8 +173,7 @@ namespace StockFish
                     RootMoves[bestpos] = temp;
                     goto finalize;
                 }
-            }            
-
+            }
 
             // Reset the threads, still sleeping: will be wake up at split time
             for (int i = 0; i < Engine.Threads.Count; ++i)
@@ -414,7 +193,7 @@ namespace StockFish
             Engine.inOut.Write("info nodes ", MutexAction.ADQUIRE);
             Engine.inOut.Write(RootPos.nodes_searched().ToString());
             Engine.inOut.Write(" time ");
-            Engine.inOut.WriteLine((Time.now() - SearchTime + 1).ToString(), MutexAction.RELAX);
+            Engine.inOut.WriteLine((Time.Now() - SearchTime + 1).ToString(), MutexAction.RELAX);
 
             // When we reach the maximum depth, we can arrive here without a raise of
             // Signals.stop. However, if we are pondering or in an infinite search,
@@ -457,7 +236,7 @@ namespace StockFish
             bestValue = delta = alpha = -ValueS.VALUE_INFINITE;
             beta = ValueS.VALUE_INFINITE;
 
-            Engine.TT.new_search();
+            Engine.TT.New_search();
             History.clear();
             Gains.clear();
             Countermoves.clear();
@@ -468,7 +247,7 @@ namespace StockFish
 
             // Do we have to play with skill handicap? In this case enable MultiPV search
             // that we will use behind the scenes to retrieve a set of possible moves.
-            if (skill.enabled() && MultiPV < 4)
+            if (skill.Enabled() && MultiPV < 4)
                 MultiPV = 4;
 
             MultiPV = Math.Min(MultiPV, RootMoves.Count);
@@ -515,7 +294,7 @@ namespace StockFish
                         // Write PV back to transposition table in case the relevant
                         // entries have been overwritten during the search.
                         for (int i = 0; i <= PVIdx; ++i)
-                            RootMoves[i].insert_pv_in_tt(pos);
+                            RootMoves[i].Insert_pv_in_tt(pos);
 
                         // If search has been stopped break immediately. Sorting and
                         // writing PV back to TT is safe because RootMoves is still
@@ -526,7 +305,7 @@ namespace StockFish
                         // When failing high/low give some update (without cluttering
                         // the UI) before to research.
                         if ((bestValue <= alpha || bestValue >= beta)
-                            && Time.now() - SearchTime > 3000)
+                            && Time.Now() - SearchTime > 3000)
                             Engine.inOut.WriteLine(uci_pv(pos, depth, alpha, beta), MutexAction.ATOMIC);
 
                         // In case of failing low/high increase aspiration window and
@@ -552,13 +331,13 @@ namespace StockFish
                     // Sort the PV lines searched so far and update the GUI                    
                     sort(RootMoves, 0, PVIdx + 1);
 
-                    if (PVIdx + 1 == MultiPV || Time.now() - SearchTime > 3000)
+                    if (PVIdx + 1 == MultiPV || Time.Now() - SearchTime > 3000)
                         Engine.inOut.WriteLine(uci_pv(pos, depth, alpha, beta), MutexAction.ATOMIC);
                 }
 
                 // If skill levels are enabled and time is up, pick a sub-optimal best move
-                if (skill.enabled() && skill.time_to_pick(depth))
-                    skill.pick_move();
+                if (skill.Enabled() && skill.Time_to_pick(depth))
+                    skill.Pick_move();
 
                 // Have we found a "mate in x"?
                 if (Limits.mate != 0
@@ -567,7 +346,7 @@ namespace StockFish
                     Signals.stop = true;
 
                 // Do we have time for the next iteration? Can we stop searching now?
-                if (Limits.use_time_management() && !Signals.stop && !Signals.stopOnPonderhit)
+                if (Limits.Use_time_management() && !Signals.stop && !Signals.stopOnPonderhit)
                 {                    
                     // Take in account some extra time if the best move has changed
                     if (depth > 4 && depth < 50 && MultiPV == 1)
@@ -576,7 +355,7 @@ namespace StockFish
                     // Stop the search if only one legal move is available or all
                     // of the available time has been used.
                     if (RootMoves.Count == 1
-                        || Time.now() - SearchTime > TimeMgr.available_time())
+                        || Time.Now() - SearchTime > TimeMgr.available_time())
                     {
                         // If we are allowed to ponder do not stop the search now but
                         // keep pondering until the GUI sends "ponderhit" or "stop".
@@ -657,8 +436,8 @@ namespace StockFish
                 // because we will never beat the current alpha. Same logic but with reversed
                 // signs applies also in the opposite condition of being mated instead of giving
                 // mate. In this case return a fail-high score.
-                alpha = Math.Max(Types.mated_in(ss[ssPos].ply), alpha);
-                beta = Math.Min(Types.mate_in(ss[ssPos].ply + 1), beta);
+                alpha = Math.Max(Types.Mated_in(ss[ssPos].ply), alpha);
+                beta = Math.Min(Types.Mate_in(ss[ssPos].ply + 1), beta);
                 if (alpha >= beta)
                     return alpha;
             }
@@ -668,7 +447,7 @@ namespace StockFish
             // TT value, so we use a different position key in case of an excluded move.
             excludedMove = ss[ssPos].excludedMove;
             posKey = excludedMove != 0 ? pos.exclusion_key() : pos.key();
-            tte = Engine.TT.probe(posKey);
+            tte = Engine.TT.Probe(posKey);
             ss[ssPos].ttMove = ttMove = RootNode ? RootMoves[PVIdx].pv[0] : tte != null ? tte.move() : MoveS.MOVE_NONE;
             ttValue = (tte != null) ? value_from_tt(tte.value(), ss[ssPos].ply) : ValueS.VALUE_NONE;
 
@@ -703,7 +482,7 @@ namespace StockFish
             else if (tte != null)
             {
                 // Never assume anything on values stored in TT
-                if ((ss[ssPos].staticEval = eval = tte.eval_value()) == ValueS.VALUE_NONE)
+                if ((ss[ssPos].staticEval = eval = tte.Eval_value()) == ValueS.VALUE_NONE)
                     eval = ss[ssPos].staticEval = Eval.evaluate(pos);
 
                 // Can ttValue be used as a better position evaluation?
@@ -721,26 +500,26 @@ namespace StockFish
                 && ss[ssPos].staticEval != ValueS.VALUE_NONE
                 && ss[ssPos - 1].staticEval != ValueS.VALUE_NONE
                 && (move = ss[ssPos - 1].currentMove) != MoveS.MOVE_NULL
-                && Types.type_of_move(move) == MoveTypeS.NORMAL)
+                && Types.Type_of_move(move) == MoveTypeS.NORMAL)
             {
-                Square to = Types.to_sq(move);
+                Square to = Types.To_sq(move);
                 Gains.update(pos.piece_on(to), to, -ss[ssPos - 1].staticEval - ss[ssPos].staticEval);
             }
 
             // Step 6. Razoring (is omitted in PV nodes)
             if (!PvNode
                 && depth < 4 * DepthS.ONE_PLY
-                && eval + razor_margin(depth) <= beta
+                && eval + Razor_margin(depth) <= beta
                 && ttMove == MoveS.MOVE_NONE
                 && Math.Abs(beta) < ValueS.VALUE_MATE_IN_MAX_PLY
                 && !pos.pawn_on_7th(pos.side_to_move())
                 )
             {
                 if (   depth <= DepthS.ONE_PLY
-                    && eval + razor_margin(3 * DepthS.ONE_PLY) <= alpha)
+                    && eval + Razor_margin(3 * DepthS.ONE_PLY) <= alpha)
                     return qsearch(pos, ss, ssPos, alpha, beta, DepthS.DEPTH_ZERO, NodeTypeS.NonPV, false);
 
-                Value ralpha = alpha - razor_margin(depth);
+                Value ralpha = alpha - Razor_margin(depth);
                 Value v = qsearch(pos, ss, ssPos, ralpha, ralpha + 1, DepthS.DEPTH_ZERO, NodeTypeS.NonPV, false);
                 if (v <= ralpha)
                     return v;
@@ -750,11 +529,11 @@ namespace StockFish
             if (!PvNode
                 && 0==ss[ssPos].skipNullMove
                 && depth < 7 * DepthS.ONE_PLY
-                && eval - futility_margin(depth) >= beta
+                && eval - Futility_margin(depth) >= beta
                 && Math.Abs(beta) < ValueS.VALUE_MATE_IN_MAX_PLY
                 && Math.Abs(eval) < ValueS.VALUE_KNOWN_WIN
                 && pos.non_pawn_material(pos.side_to_move()) != 0)
-                return eval - futility_margin(depth);
+                return eval - Futility_margin(depth);
 
             // Step 8. Null move search with verification search (is omitted in PV nodes)
             if (!PvNode
@@ -842,16 +621,16 @@ namespace StockFish
                 search(pos, ss, ssPos, alpha, beta, d, true, PvNode ? NodeTypeS.PV : NodeTypeS.NonPV, false);
                 ss[ssPos].skipNullMove = 0;
 
-                tte = Engine.TT.probe(posKey);
+                tte = Engine.TT.Probe(posKey);
                 ttMove = (tte != null) ? tte.move() : MoveS.MOVE_NONE;
             }
 
         moves_loop: // When in check and at SpNode search starts from here
-            Square prevMoveSq = Types.to_sq(ss[ssPos - 1].currentMove);
+            Square prevMoveSq = Types.To_sq(ss[ssPos - 1].currentMove);
             Move[] countermoves = { Countermoves[pos.piece_on(prevMoveSq)][prevMoveSq].first,
                                     Countermoves[pos.piece_on(prevMoveSq)][prevMoveSq].second };
 
-            Square prevOwnMoveSq = Types.to_sq(ss[ssPos - 2].currentMove);
+            Square prevOwnMoveSq = Types.To_sq(ss[ssPos - 2].currentMove);
             Move[] followupmoves = {Followupmoves[pos.piece_on(prevOwnMoveSq)][prevOwnMoveSq].first,
                                     Followupmoves[pos.piece_on(prevOwnMoveSq)][prevOwnMoveSq].second };
 
@@ -874,7 +653,7 @@ namespace StockFish
             // Loop through all pseudo-legal moves until no moves remain or a beta cutoff occurs            
             while ((move = (SpNode ? mp.next_move_true() : mp.next_move_false())) != MoveS.MOVE_NONE)
             {
-                Debug.Assert(Types.is_ok_move(move));
+                Debug.Assert(Types.Is_ok_move(move));
 
                 if (move == excludedMove)
                     continue;
@@ -901,7 +680,7 @@ namespace StockFish
                 {
                     Signals.firstRootMove = (moveCount == 1);
 
-                    if (thisThread == Engine.Threads.main() && Time.now() - SearchTime > 3000)
+                    if (thisThread == Engine.Threads.main() && Time.Now() - SearchTime > 3000)
                     {
                         Engine.inOut.Write("info depth ", MutexAction.ADQUIRE);
                         Engine.inOut.Write((depth / DepthS.ONE_PLY).ToString(), MutexAction.NONE);
@@ -916,12 +695,12 @@ namespace StockFish
                 ext = DepthS.DEPTH_ZERO;
                 captureOrPromotion = pos.capture_or_promotion(move);
 
-                givesCheck = Types.type_of_move(move) == MoveTypeS.NORMAL && 0==ci.dcCandidates
-                  ? (ci.checkSq[Types.type_of_piece(pos.piece_on(Types.from_sq(move)))] & BitBoard.SquareBB[Types.to_sq(move)])!=0
+                givesCheck = Types.Type_of_move(move) == MoveTypeS.NORMAL && 0==ci.dcCandidates
+                  ? (ci.checkSq[Types.Type_of_piece(pos.piece_on(Types.From_sq(move)))] & BitBoard.SquareBB[Types.To_sq(move)])!=0
                   : pos.gives_check(move, ci);
 
                 dangerous = givesCheck
-                 || Types.type_of_move(move) != MoveTypeS.NORMAL
+                 || Types.Type_of_move(move) != MoveTypeS.NORMAL
                  || pos.advanced_pawn_push(move);
 
                 // Step 12. Extend checks
@@ -973,13 +752,13 @@ namespace StockFish
                         continue;
                     }
                     
-                    predictedDepth = newDepth - reduction(improving ? 1 : 0, depth, moveCount, PvNode ? 1 : 0);
+                    predictedDepth = newDepth - Reduction(improving ? 1 : 0, depth, moveCount, PvNode ? 1 : 0);
                     
                     // Futility pruning: parent node
                     if (predictedDepth < 7 * DepthS.ONE_PLY)
                     {
-                        futilityValue = ss[ssPos].staticEval + futility_margin(predictedDepth)
-                                    + 128 + Gains[pos.moved_piece(move)][Types.to_sq(move)];
+                        futilityValue = ss[ssPos].staticEval + Futility_margin(predictedDepth)
+                                    + 128 + Gains[pos.moved_piece(move)][Types.To_sq(move)];
 
                         if (futilityValue <= alpha)
                         {
@@ -1029,12 +808,12 @@ namespace StockFish
                     && move != ss[ssPos].killers0
                     && move != ss[ssPos].killers1)
                 {
-                    ss[ssPos].reduction = reduction(improving ? 1 : 0, depth, moveCount, PvNode ? 1 : 0);
+                    ss[ssPos].reduction = Reduction(improving ? 1 : 0, depth, moveCount, PvNode ? 1 : 0);
 
                     if (!PvNode && cutNode)
                         ss[ssPos].reduction += DepthS.ONE_PLY;
 
-                    else if (History[pos.piece_on(Types.to_sq(move))][Types.to_sq(move)] < 0)
+                    else if (History[pos.piece_on(Types.To_sq(move))][Types.To_sq(move)] < 0)
                         ss[ssPos].reduction += DepthS.ONE_PLY / 2;
 
                     if (move == countermoves[0] || move == countermoves[1])
@@ -1097,7 +876,7 @@ namespace StockFish
                 // Finished searching the move. If a stop or a cutoff occurred, the return
                 // value of the search cannot be trusted, and we return immediately without
                 // updating best move, PV and TT.
-                if (Signals.stop || thisThread.cutoff_occurred())
+                if (Signals.stop || thisThread.Cutoff_occurred())
                     return ValueS.VALUE_ZERO; // To avoid returning VALUE_INFINITE
 
                 if (RootNode)
@@ -1109,7 +888,7 @@ namespace StockFish
                     if (pvMove || value > alpha)
                     {
                         rm.score = value;
-                        rm.extract_pv_from_tt(pos);
+                        rm.Extract_pv_from_tt(pos);
 
                         // We record how often the best move has been changed in each
                         // iteration. This information is used for time management: When
@@ -1156,10 +935,10 @@ namespace StockFish
                 {
                     Debug.Assert(bestValue > -ValueS.VALUE_INFINITE && bestValue < beta);
 
-                    thisThread.split(pos, ss, ssPos, alpha, beta, ref bestValue, ref bestMove,
+                    thisThread.Split(pos, ss, ssPos, alpha, beta, ref bestValue, ref bestMove,
                                                  depth, moveCount, mp, NT, cutNode, FakeSplit);
                     
-                    if (Signals.stop || thisThread.cutoff_occurred())
+                    if (Signals.stop || thisThread.Cutoff_occurred())
                         return ValueS.VALUE_ZERO;
 
                     if (bestValue >= beta)
@@ -1184,7 +963,7 @@ namespace StockFish
             // return a fail low score.
             if (0==moveCount)
                 bestValue = excludedMove!=0 ? alpha
-                   : inCheck ? Types.mated_in(ss[ssPos].ply) : DrawValue[pos.side_to_move()];
+                   : inCheck ? Types.Mated_in(ss[ssPos].ply) : DrawValue[pos.side_to_move()];
 
             // Quiet best move: update killers, history, countermoves and followupmoves
             else if (bestValue >= beta && !pos.capture_or_promotion(bestMove) && !inCheck)
@@ -1240,7 +1019,7 @@ namespace StockFish
 
             // Transposition table lookup
             posKey = pos.key();
-            tte = Engine.TT.probe(posKey);
+            tte = Engine.TT.Probe(posKey);
             ttMove = (tte != null ? tte.move() : MoveS.MOVE_NONE);
             ttValue = tte != null ? value_from_tt(tte.value(), ss[ssPos].ply) : ValueS.VALUE_NONE;
 
@@ -1266,7 +1045,7 @@ namespace StockFish
                 if (tte != null)
                 {
                     // Never assume anything on values stored in TT
-                    if ((ss[ssPos].staticEval = bestValue = tte.eval_value()) == ValueS.VALUE_NONE)
+                    if ((ss[ssPos].staticEval = bestValue = tte.Eval_value()) == ValueS.VALUE_NONE)
                         ss[ssPos].staticEval = bestValue = Eval.evaluate(pos);
 
                     // Can ttValue be used as a better position evaluation?
@@ -1297,17 +1076,17 @@ namespace StockFish
             // to search the moves. Because the depth is <= 0 here, only captures,
             // queen promotions and checks (only if depth >= DEPTH_QS_CHECKS) will
             // be generated.
-            MovePicker mp = new MovePicker(pos, ttMove, depth, History, Types.to_sq(ss[ssPos - 1].currentMove));
+            MovePicker mp = new MovePicker(pos, ttMove, depth, History, Types.To_sq(ss[ssPos - 1].currentMove));
             CheckInfo ci = new CheckInfo(pos);
             st = new StateInfo();
 
             // Loop through the moves until no moves remain or a beta cutoff occurs
             while ((move = mp.next_move_false()) != MoveS.MOVE_NONE)
             {
-                Debug.Assert(Types.is_ok_move(move));
+                Debug.Assert(Types.Is_ok_move(move));
 
-                givesCheck = Types.type_of_move(move) == MoveTypeS.NORMAL && 0==ci.dcCandidates
-                  ? (ci.checkSq[Types.type_of_piece(pos.piece_on(Types.from_sq(move)))] & BitBoard.SquareBB[Types.to_sq(move)])!=0
+                givesCheck = Types.Type_of_move(move) == MoveTypeS.NORMAL && 0==ci.dcCandidates
+                  ? (ci.checkSq[Types.Type_of_piece(pos.piece_on(Types.From_sq(move)))] & BitBoard.SquareBB[Types.To_sq(move)])!=0
                   : pos.gives_check(move, ci);
 
                 // Futility pruning
@@ -1318,9 +1097,9 @@ namespace StockFish
                   && futilityBase > -ValueS.VALUE_KNOWN_WIN
                   && !pos.advanced_pawn_push(move))
                 {
-                    Debug.Assert(Types.type_of_move(move) != MoveTypeS.ENPASSANT); // Due to !pos.advanced_pawn_push
+                    Debug.Assert(Types.Type_of_move(move) != MoveTypeS.ENPASSANT); // Due to !pos.advanced_pawn_push
 
-                    futilityValue = futilityBase + Position.PieceValue[PhaseS.EG][pos.piece_on(Types.to_sq(move))];
+                    futilityValue = futilityBase + Position.PieceValue[PhaseS.EG][pos.piece_on(Types.To_sq(move))];
 
                     if (futilityValue < beta)
                     {
@@ -1345,7 +1124,7 @@ namespace StockFish
                 if (!PvNode
                   && (!InCheck || evasionPrunable)
                   && move != ttMove
-                  && Types.type_of_move(move) != MoveTypeS.PROMOTION
+                  && Types.Type_of_move(move) != MoveTypeS.PROMOTION
                   && pos.see_sign(move) < ValueS.VALUE_ZERO)
                     continue;
 
@@ -1389,7 +1168,7 @@ namespace StockFish
             // All legal moves have been searched. A special case: If we're in check
             // and no legal moves were found, it is checkmate.
             if (InCheck && bestValue == -ValueS.VALUE_INFINITE)
-                return Types.mated_in(ss[ssPos].ply); // Plies to mate from the root            
+                return Types.Mated_in(ss[ssPos].ply); // Plies to mate from the root            
 
             Engine.TT.store(posKey, value_to_tt(bestValue, ss[ssPos].ply),
                 PvNode && bestValue > oldAlpha ? BoundS.BOUND_EXACT : BoundS.BOUND_UPPER,
@@ -1435,22 +1214,22 @@ namespace StockFish
             // Increase history value of the cut-off move and decrease all the other
             // played quiet moves.
             Value bonus = ((depth) * (depth));
-            History.update(pos.moved_piece(move), Types.to_sq(move), bonus);
+            History.update(pos.moved_piece(move), Types.To_sq(move), bonus);
             for (int i = 0; i < quietsCnt; ++i)
             {
                 Move m = quiets[i];
-                History.update(pos.moved_piece(m), Types.to_sq(m), -bonus);
+                History.update(pos.moved_piece(m), Types.To_sq(m), -bonus);
             }
 
-            if (Types.is_ok_move(ss[ssPos-1].currentMove))
+            if (Types.Is_ok_move(ss[ssPos-1].currentMove))
             {
-                Square prevMoveSq = Types.to_sq(ss[ssPos - 1].currentMove);
+                Square prevMoveSq = Types.To_sq(ss[ssPos - 1].currentMove);
                 Countermoves.update(pos.piece_on(prevMoveSq), prevMoveSq, move);
             }
 
-            if (Types.is_ok_move(ss[ssPos - 2].currentMove) && ss[ssPos - 1].currentMove == ss[ssPos - 1].ttMove)
+            if (Types.Is_ok_move(ss[ssPos - 2].currentMove) && ss[ssPos - 1].currentMove == ss[ssPos - 1].ttMove)
             {
-                Square prevOwnMoveSq = Types.to_sq(ss[ssPos - 2].currentMove);
+                Square prevOwnMoveSq = Types.To_sq(ss[ssPos - 2].currentMove);
                 Followupmoves.update(pos.piece_on(prevOwnMoveSq), prevOwnMoveSq, move);
             }
         }
@@ -1461,7 +1240,7 @@ namespace StockFish
         public static string uci_pv(Position pos, int depth, Value alpha, Value beta)
         {
             StringBuilder s = new StringBuilder();
-            long elaspsed = Time.now() - SearchTime + 1;
+            long elaspsed = Time.Now() - SearchTime + 1;
             int uciPVSize = Math.Min(Engine.Options["MultiPV"].getInt(), RootMoves.Count);
             int selDepth = 0;
 
@@ -1572,6 +1351,164 @@ namespace StockFish
             }
         }                               
     }
+}
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Diagnostics;
+using System.Text;
+
+using Key = System.UInt64;
+using Move = System.Int32;
+using Depth = System.Int32;
+using Value = System.Int32;
+using Color = System.Int32;
+using NodeType = System.Int32;
+using Square = System.Int32;
+
+namespace StockFish
+{
+    public sealed class StateStackPtr : Stack<StateInfo>
+    {
+    }
+
+    /// <summary>
+    /// The LimitsType struct stores information sent by GUI about available time
+    /// to search the current move, maximum depth/time, if we are in analysis mode
+    /// or if we have to ponder while it's our opponent's turn to move.
+    /// </summary>
+    public sealed class LimitsType
+    {
+        public List<Move> searchmoves= new List<Move>();
+        public int[] time = new int[ColorS.COLOR_NB], inc = new int[ColorS.COLOR_NB];
+        public int movestogo, depth, nodes, movetime, mate, infinite, ponder;
+
+        public bool Use_time_management() { return 0==(mate | movetime | depth | nodes | infinite); }
+    };
+
+    /// <summary>
+    /// The Stack struct keeps track of the information we need to remember from
+    /// nodes shallower and deeper in the tree during the search. Each search thread
+    /// has its own array of Stack objects, indexed by the current ply.
+    /// </summary>
+    public sealed class Stack
+    {
+        public SplitPoint splitPoint;
+        public int ply;
+        public Move currentMove;
+        public Move ttMove;
+        public Move excludedMove;
+        public Move killers0;
+        public Move killers1;
+        public Depth reduction;
+        public Value staticEval;
+        public int skipNullMove;
+
+        public void Clear()
+        {
+            //    splitPoint = null;
+            ply = 0;
+            currentMove = 0;
+            ttMove = 0;
+            excludedMove = 0;
+            killers0 = 0;
+            killers1 = 0;
+            reduction = 0;
+            staticEval = 0;
+            skipNullMove = 0;
+        }
+
+        public void CopyFrom(Stack s)
+        {
+            //    splitPoint = s.splitPoint;
+            ply = s.ply;
+            currentMove = s.currentMove;
+            ttMove = s.ttMove;
+            excludedMove = s.excludedMove;
+            killers0 = s.killers0;
+            killers1 = s.killers1;
+            reduction = s.reduction;
+            staticEval = s.staticEval;
+            skipNullMove = s.skipNullMove;
+        }
+    }
+
+    // The SignalsType struct stores volatile flags updated during the search
+    // typically in an async fashion e.g. to stop the search by the GUI.
+    public struct SignalsType
+    {
+        public volatile bool stop, stopOnPonderhit, firstRootMove, failedLowAtRoot;
+    };
+
+    // Different node types, used as template parameter
+    public struct NodeTypeS
+    {
+        public const int Root = 0, PV = 1, NonPV = 2;
+    };
+
+    public sealed partial class Skill : IDisposable
+    {
+        public int level;
+        public Move best;
+        public static RKISS rk = new RKISS();
+
+        public Skill(int l)
+        {
+            level = l;
+            best = MoveS.MOVE_NONE;
+        }
+
+        public void Dispose()
+        {
+            if (Enabled())// Swap best PV line with the sub-optimal one
+            {
+                int bestpos = Search.find(Search.RootMoves, 0, Search.RootMoves.Count, best != 0 ? best : Pick_move());
+                RootMove temp = Search.RootMoves[0];
+                Search.RootMoves[0] = Search.RootMoves[bestpos];
+                Search.RootMoves[bestpos] = temp;
+            }
+        }
+
+        public bool Enabled() { return level < 20; }
+        public bool Time_to_pick(int depth) { return depth == 1 + level; }
+
+        // When playing with a strength handicap, choose best move among the MultiPV
+        // set using a statistical rule dependent on 'level'. Idea by Heinz van Saanen.
+        public Move Pick_move()
+        {
+            // PRNG sequence should be not deterministic
+            for (int i = (int)Time.Now() % 50; i > 0; --i)
+                rk.rand32();
+
+            // RootMoves are already sorted by score in descending order
+            int variance = Math.Min(Search.RootMoves[0].score - Search.RootMoves[Search.MultiPV - 1].score, ValueS.PawnValueMg);
+            int weakness = 120 - (2 * level);
+            int max_s = -ValueS.VALUE_INFINITE;
+            best = MoveS.MOVE_NONE;
+
+            // Choose best move. For each move score we add two terms both dependent on
+            // weakness. One deterministic and bigger for weaker moves, and one random,
+            // then we choose the move with the resulting highest score.
+            for (int i = 0; i < Search.MultiPV; ++i)
+            {
+                int s = Search.RootMoves[i].score;
+
+                // Don't allow crazy blunders even at very low skills
+                if (i > 0 && Search.RootMoves[i - 1].score > s + 2 + ValueS.PawnValueMg)
+                    break;
+
+                // This is our magic formula
+                s += ((weakness * (Search.RootMoves[0].score - s)) + (variance * (int)(rk.rand32() % (UInt64)weakness))) / 128;
+
+                if (s > max_s)
+                {
+                    max_s = s;
+                    best = Search.RootMoves[i].pv[0];
+                }
+            }
+            return best;
+        }
+    }
 
     public partial class Thread
     {
@@ -1600,7 +1537,7 @@ namespace StockFish
                     mutex.Lock();
 
                     // If we are master and all slaves have finished then exit idle_loop                    
-                    if (this_sp != null && this_sp.slavesMask.none())
+                    if (this_sp != null && this_sp.slavesMask.None())
                     {
                         mutex.UnLock();
                         break;
@@ -1638,7 +1575,7 @@ namespace StockFish
                     Position pos = new Position(sp.pos, this);
 
                     for (int i = sp.ssPos - 2, n = 0; n < 5; n++, i++)
-                        stack[ss - 2 + n].copyFrom(sp.ss[i]);
+                        stack[ss - 2 + n].CopyFrom(sp.ss[i]);
 
                     stack[ss].splitPoint = sp;
 
@@ -1671,7 +1608,7 @@ namespace StockFish
                     // Wake up the master thread so to allow it to return from the idle
                     // loop in case we are the last slave of the split point.                    
                     if (this != sp.masterThread
-                        && sp.slavesMask.none())
+                        && sp.slavesMask.None())
                     {
                         Debug.Assert(!sp.masterThread.searching);
                         sp.masterThread.notify_one();
@@ -1690,14 +1627,14 @@ namespace StockFish
 
                             if (   sp!=null
                                 && sp.allSlavesSearching
-                                && available_to(Engine.Threads[i]))
+                                && Available_to(Engine.Threads[i]))
                             {
                                 // Recheck the conditions under lock protection
                                 Engine.Threads.mutex.Lock();
                                 sp.mutex.Lock();
 
                                 if (   sp.allSlavesSearching
-                                    && available_to(Engine.Threads[i]))
+                                    && Available_to(Engine.Threads[i]))
                                 {
                                     sp.slavesMask[idx]=true;
                                     activeSplitPoint = sp;
@@ -1714,10 +1651,10 @@ namespace StockFish
 
                 // If this thread is the master of a split point and all slaves have finished
                 // their work at this split point, return from the idle loop.                
-                if (this_sp != null && this_sp.slavesMask.none())
+                if (this_sp != null && this_sp.slavesMask.None())
                 {
                     this_sp.mutex.Lock();
-                    bool finished = this_sp.slavesMask.none(); // Retest under lock protection
+                    bool finished = this_sp.slavesMask.None(); // Retest under lock protection
                     this_sp.mutex.UnLock();
                     if (finished)
                         return;
@@ -1742,12 +1679,12 @@ namespace StockFish
         public void check_time()
         {
             if (lastInfoTime < 0)
-                lastInfoTime = Time.now();
+                lastInfoTime = Time.Now();
 
             Int64 nodes = 0; // Workaround silly 'uninitialized' gcc warning
-            if (Time.now() - lastInfoTime >= 1000)
+            if (Time.Now() - lastInfoTime >= 1000)
             {
-                lastInfoTime = Time.now();
+                lastInfoTime = Time.Now();
                 Search.dbg_print();
             }
 
@@ -1781,7 +1718,7 @@ namespace StockFish
                 Engine.Threads.mutex.UnLock();
             }
 
-            Int64 elapsed = Time.now() - Search.SearchTime;
+            Int64 elapsed = Time.Now() - Search.SearchTime;
             bool stillAtFirstMove = Search.Signals.firstRootMove
                                  && !Search.Signals.failedLowAtRoot
                                  && elapsed > Search.TimeMgr.available_time() * 75 / 100;
@@ -1789,7 +1726,7 @@ namespace StockFish
             bool noMoreTime = elapsed > Search.TimeMgr.maximum_time() - 2 * TimerThread.Resolution
                            || stillAtFirstMove;
 
-            if ((Search.Limits.use_time_management() && noMoreTime)
+            if ((Search.Limits.Use_time_management() && noMoreTime)
               || (Search.Limits.movetime != 0 && elapsed >= Search.Limits.movetime)
               || (Search.Limits.nodes != 0 && nodes >= Search.Limits.nodes))
                 Search.Signals.stop = true;

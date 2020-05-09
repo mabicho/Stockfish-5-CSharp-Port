@@ -303,12 +303,12 @@ namespace StockFish
 
         public PolyglotBook()
         {
-            RKiss = new RKISS((int)(Time.now() % 1000));
+            RKiss = new RKISS((int)(Time.Now() % 1000));
         }
 
-        /// open() tries to open a book file with the given name after closing any
-        /// exsisting one.
-        public bool open(string fName)
+        // open() tries to open a book file with the given name after closing any
+        // exsisting one.
+        public bool Open(string fName)
         {
 
             if (stream != null)
@@ -330,10 +330,10 @@ namespace StockFish
             return true;
         }
 
-        /// operator>>() reads sizeof(T) chars from the file's binary byte stream and
-        /// converts them in a number of type T. A Polyglot book stores numbers in
-        /// big-endian format.
-        public bool read(ref PolyglotBook.Entry e)
+        // operator>>() reads sizeof(T) chars from the file's binary byte stream and
+        // converts them in a number of type T. A Polyglot book stores numbers in
+        // big-endian format.
+        public bool Read(ref PolyglotBook.Entry e)
         {
             if (stream.Length == stream.Position) return false;
             byte[] t = new byte[SIZE_OF_BOOKENTRY];
@@ -366,10 +366,10 @@ namespace StockFish
             return true;
         }
 
-        /// find_first() takes a book key as input, and does a binary search through
-        /// the book file for the given key. Returns the index of the leftmost book
-        /// entry with the same key as the input.
-        public int find_first(Key key)
+        // find_first() takes a book key as input, and does a binary search through
+        // the book file for the given key. Returns the index of the leftmost book
+        // entry with the same key as the input.
+        public int Find_first(Key key)
         {
             int low = 0, mid, high = (int)(stream.Length / SIZE_OF_BOOKENTRY) - 1;
             PolyglotBook.Entry e = new PolyglotBook.Entry(); ;
@@ -383,7 +383,7 @@ namespace StockFish
                 Debug.Assert(mid >= low && mid < high);
 
                 stream.Seek(mid * SIZE_OF_BOOKENTRY, SeekOrigin.Begin);
-                read(ref e);
+                Read(ref e);
                 if (key <= e.key)
                     high = mid;
                 else
@@ -396,7 +396,7 @@ namespace StockFish
         }
 
         // polyglot_key() returns the PolyGlot hash key of the given position
-        public static Key polyglot_key(Position pos)
+        public static Key Polyglot_key(Position pos)
         {
 
             Key key = 0;
@@ -404,20 +404,20 @@ namespace StockFish
 
             while (b != 0)
             {
-                Square s = BitBoard.pop_lsb(ref b);
+                Square s = BitBoard.Pop_lsb(ref b);
                 Piece pc = pos.piece_on(s);
                 // PolyGlot pieces are: BP = 0, WP = 1, BN = 2, ... BK = 10, WK = 11
-                int pieceOfs = 2 * (Types.type_of_piece(pc) - 1) + ((Types.color_of(pc) == ColorS.WHITE) ? 1 : 0);
+                int pieceOfs = 2 * (Types.Type_of_piece(pc) - 1) + ((Types.Color_of(pc) == ColorS.WHITE) ? 1 : 0);
                 key ^= PG[psq + (64 * pieceOfs + s)];
             }
 
             b = (ulong)pos.can_castle_castleright(CastlingRightS.ANY_CASTLING);
 
             while (b != 0)
-                key ^= PG[castle + BitBoard.pop_lsb(ref b)];
+                key ^= PG[castle + BitBoard.Pop_lsb(ref b)];
 
             if (pos.ep_square() != SquareS.SQ_NONE)
-                key ^= PG[enpassant + Types.file_of(pos.ep_square())];
+                key ^= PG[enpassant + Types.File_of(pos.ep_square())];
 
             if (pos.side_to_move() == ColorS.WHITE)
                 key ^= PG[turn + 0];
@@ -425,22 +425,22 @@ namespace StockFish
             return key;
         }
 
-        /// probe() tries to find a book move for the given position. If no move is
-        /// found returns MOVE_NONE. If pickBest is true returns always the highest
-        /// rated move, otherwise randomly chooses one, based on the move score.
-        public Move probe(Position pos, string fName, bool pickBest)
+        //probe() tries to find a book move for the given position. If no move is
+        // found returns MOVE_NONE. If pickBest is true returns always the highest
+        // rated move, otherwise randomly chooses one, based on the move score.
+        public Move Probe(Position pos, string fName, bool pickBest)
         {
-            if (fName==null ||( fileName != fName && !open(fName)))
+            if (fName==null ||( fileName != fName && !Open(fName)))
                 return MoveS.MOVE_NONE;
 
             PolyglotBook.Entry e = new PolyglotBook.Entry();
             UInt16 best = 0;
             uint sum = 0;
             Move move = MoveS.MOVE_NONE;
-            Key key = polyglot_key(pos);
+            Key key = Polyglot_key(pos);
 
-            stream.Seek(find_first(key) * SIZE_OF_BOOKENTRY, SeekOrigin.Begin);
-            while (read(ref e) && e.key == key)
+            stream.Seek(Find_first(key) * SIZE_OF_BOOKENTRY, SeekOrigin.Begin);
+            while (Read(ref e) && e.key == key)
             {
                 best = Math.Max(best, e.count);
                 sum += e.count;
@@ -450,7 +450,9 @@ namespace StockFish
                 // with lower score. Note that first entry is always chosen.
                 if ((sum != 0 && ((((uint)RKiss.rand64()) % sum) < e.count))
                     || (pickBest && e.count == best))
+                {
                     move = (e.move);
+                }
             }
 
             if (move == 0)
@@ -468,17 +470,16 @@ namespace StockFish
             // the special Move's flags (bit 14-15) that are not supported by PolyGlot.
             int pt = (move >> 12) & 7;
             if (pt != 0)
-                move = Types.make(Types.from_sq(move), Types.to_sq(move), MoveTypeS.PROMOTION, (pt + 1));
+                move = Types.make(Types.From_sq(move), Types.To_sq(move), MoveTypeS.PROMOTION, (pt + 1));
 
             // Add 'special move' flags and verify it is legal
             for (MoveList ml = new MoveList(pos, GenTypeS.LEGAL); ml.mlist[ml.cur].move != MoveS.MOVE_NONE; ++ml)
-                if (move == (ml.move() ^ Types.type_of_move(ml.move())))
-                    return ml.move();
+            {
+                if (move == (ml.Move() ^ Types.Type_of_move(ml.Move())))
+                    return ml.Move();
+            }
 
             return MoveS.MOVE_NONE;
         }
-
-
-
-    }   
+    }
 }

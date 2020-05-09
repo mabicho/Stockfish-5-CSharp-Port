@@ -18,26 +18,26 @@ namespace StockFish
 
         public Engine(string[] args)
         {
-            inOut.WriteLine(Misc.engine_info(), MutexAction.ATOMIC);
+            inOut.WriteLine(Misc.Engine_info(), MutexAction.ATOMIC);
 
             Uci.init(Options);
-            BitBoard.init();
+            BitBoard.Init();
             Position.init();
-            Bitbases.init_kpk();
-            Search.init();
+            Bitbases.Init_kpk();
+            Search.Init();
             Pawns.init();
             Eval.init();
-            Threads.init();
-            TT.resize((ulong)Options["Hash"].getInt());
+            Threads.Init();
+            TT.Resize((ulong)Options["Hash"].getInt());
 
             Uci.loop(args);
 
-            Threads.exit();
+            Threads.Exit();
         }
 
         public void Dispose()
         {
-            Threads.exit();
+            Threads.Exit();
         }  
     }
 }

@@ -14,16 +14,16 @@ namespace StockFish
     public sealed class Mutex
     {
         public Object l = new object();        
-        public void Lock() { ThreadHelper.lock_grab(l); }
-        public void UnLock() { ThreadHelper.lock_release(l); }
+        public void Lock() { ThreadHelper.Lock_grab(l); }
+        public void UnLock() { ThreadHelper.Lock_release(l); }
     }
 
     public sealed class ConditionVariable
     {
         public Object c = new object();
-        public void wait(Mutex m) { ThreadHelper.cond_wait(c, m.l); }
-        public void wait_for(Mutex m, int ms) { ThreadHelper.cond_timedwait(c, m.l, ms); }
-        public void notify_one() { ThreadHelper.cond_signal(c); }
+        public void wait(Mutex m) { ThreadHelper.Cond_wait(c, m.l); }
+        public void wait_for(Mutex m, int ms) { ThreadHelper.Cond_timedwait(c, m.l, ms); }
+        public void notify_one() { ThreadHelper.Cond_signal(c); }
     }
 
     public sealed class SplitPoint
@@ -100,7 +100,7 @@ namespace StockFish
     /// tables so that once we get a pointer to an entry its life time is unlimited
     /// and we don't have to care about someone changing the entry under our feet.
     public partial class Thread : ThreadBase
-    {                
+    {
         public SplitPoint[] splitPoints = new SplitPoint[MAX_SPLITPOINTS_PER_THREAD];
         public Material.Table materialTable = new Material.Table();
         public Endgames endgames = new Endgames();
@@ -111,8 +111,9 @@ namespace StockFish
         public volatile SplitPoint activeSplitPoint;
         public volatile int splitPointsSize;
         public volatile bool searching;
-       
-        public Thread(): base(){            
+
+        public Thread(): base()
+        {
             searching = exit = false;
             maxPly = splitPointsSize = 0;
             activeSplitPoint = null;
@@ -125,11 +126,13 @@ namespace StockFish
 
         // cutoff_occurred() checks whether a beta cutoff has occurred in the
         // current active split point, or in some ancestor of the split point.
-        public bool cutoff_occurred()
+        public bool Cutoff_occurred()
         {
             for (SplitPoint sp = activeSplitPoint; sp != null; sp = sp.parentSplitPoint)
+            {
                 if (sp.cutoff)
                     return true;
+            }
 
             return false;
         }
@@ -140,7 +143,7 @@ namespace StockFish
         // the master of some split point, it is only available as a slave to the slaves
         // which are busy searching the split point at the top of slave's split point
         // stack (the "helpful master concept" in YBWC terminology).
-        public bool available_to(Thread master)
+        public bool Available_to(Thread master)
         {
             if (searching)
                 return false;
@@ -162,7 +165,7 @@ namespace StockFish
         // told that they have been assigned work. This will cause them to instantly
         // leave their idle loops and call search(). When all threads have returned from
         // search() then split() returns.
-        public void split(Position pos, Stack[] ss, int ssPos, Value alpha, Value beta, ref Value bestValue,
+        public void Split(Position pos, Stack[] ss, int ssPos, Value alpha, Value beta, ref Value bestValue,
                                    ref Move bestMove, Depth depth, int moveCount,
                                    MovePicker movePicker, int nodeType, bool cutNode, bool Fake)
         {
@@ -180,7 +183,7 @@ namespace StockFish
             sp.slavesMask.SetAll(false); sp.slavesMask[idx] = true;
             sp.depth = depth;
             sp.bestValue = bestValue;
-            sp.bestMove = bestMove;           
+            sp.bestMove = bestMove;
             sp.alpha = alpha;
             sp.beta = beta;
             sp.nodeType = nodeType;
@@ -192,7 +195,6 @@ namespace StockFish
             sp.cutoff = false;
             sp.ss = ss;
             sp.ssPos = ssPos;
-
 
             // Try to allocate available threads and ask them to start searching setting
             // 'searching' flag. This must be done under lock protection to avoid concurrent
@@ -206,22 +208,22 @@ namespace StockFish
             activePosition = null;
 
 
-            if (!Fake)
+            if (!Fake){
                 for (Thread slave; (slave = Engine.Threads.available_slave(this)) != null; )
                 {
                     sp.slavesMask[slave.idx] = true;
                     slave.activeSplitPoint = sp;
                     slave.searching = true; // Slave leaves idle_loop()
                     slave.notify_one(); // Could be sleeping
-                }
+                }}
+
 
             // Everything is set up. The master thread enters the idle loop, from which
             // it will instantly launch a search, because its 'searching' flag is set.
             // The thread will return from the idle loop when all slaves have finished
-            // their work at this split point.            
+            // their work at this split point.
             sp.mutex.UnLock();
-            Engine.Threads.mutex.UnLock();        
-    
+            Engine.Threads.mutex.UnLock();
             idle_loop_base(); // Force a call to base class idle_loop()//TODO, si se llama a la base??
 
             // In the helpful master concept, a master can help only a sub-tree of its
@@ -235,8 +237,6 @@ namespace StockFish
             // done under lock protection to avoid a race with Thread::available_to().
             Engine.Threads.mutex.Lock();
             sp.mutex.Lock();
-            
-
             searching = true;
             --splitPointsSize;
             activeSplitPoint = sp.parentSplitPoint;
@@ -250,8 +250,8 @@ namespace StockFish
         }
     }
 
-    /// MainThread and TimerThread are derived classes used to characterize the two
-    /// special threads: the main one and the recurring timer.
+    //MainThread and TimerThread are derived classes used to characterize the two
+    // special threads: the main one and the recurring timer.
     public sealed class MainThread : Thread
     {
         public volatile bool thinking;
@@ -284,7 +284,7 @@ namespace StockFish
 
                 searching = true;
 
-                Search.think();
+                Search.Think();
 
                 Debug.Assert(searching);
 
@@ -294,7 +294,7 @@ namespace StockFish
 
 
         // MainThread::idle_loop() is where the main thread is parked waiting to be started
-        // when there is a new search. Main thread will launch all the slave threads.        
+        // when there is a new search. Main thread will launch all the slave threads.
         public override void idle_loop_base()
         {
             base.idle_loop();
@@ -302,7 +302,7 @@ namespace StockFish
     }
 
     public sealed partial class TimerThread : ThreadBase
-    {        
+    {
         public bool run;
         public const int Resolution = 5; // msec between two check_time() calls
 
@@ -332,13 +332,15 @@ namespace StockFish
         //}
     }
 
+    /// <summary>
     /// ThreadPool struct handles all the threads related stuff like init, starting,
     /// parking and, most importantly, launching a slave thread at a split point.
     /// All the access to shared thread data is done through this class.
+    /// </summary>
     public sealed class ThreadPool : List<Thread>
     {
         public const int MAX_THREADS = 128;
-        
+
         public Depth minimumSplitDepth;
         public Mutex mutex = new Mutex();
         public ConditionVariable sleepCondition = new ConditionVariable();
@@ -348,7 +350,7 @@ namespace StockFish
 
         // start_routine() is the C function which is called when a new thread
         // is launched. It is a wrapper to the virtual function idle_loop().
-        public static void start_routine(/*Thread*/ Object th)
+        public static void Start_routine(/*Thread*/ Object th)
         {
             ((ThreadBase)th).idle_loop();
         }
@@ -356,53 +358,53 @@ namespace StockFish
         // Helpers to launch a thread after creation and joining before delete. Must be
         // outside Thread c'tor and d'tor because the object will be fully initialized
         // when start_routine (and hence virtual idle_loop) is called and when joining.
-        public static Thread new_thread()
+        public static Thread New_thread()
         {
             Thread th = new Thread();
-            ThreadHelper.thread_create(out th.handle, ThreadPool.start_routine, th);
+            ThreadHelper.Thread_create(out th.handle, ThreadPool.Start_routine, th);
             return th;
         }
 
-        public static TimerThread new_timerthread()
+        public static TimerThread New_timerthread()
         {
             TimerThread th = new TimerThread();
-            ThreadHelper.thread_create(out th.handle, ThreadPool.start_routine, th);
+            ThreadHelper.Thread_create(out th.handle, ThreadPool.Start_routine, th);
             return th;
         }
 
-        public static MainThread new_mainthread()
+        public static MainThread New_mainthread()
         {
             MainThread th = new MainThread();
-            ThreadHelper.thread_create(out th.handle, ThreadPool.start_routine, th);
+            ThreadHelper.Thread_create(out th.handle, ThreadPool.Start_routine, th);
             return th;
         }
 
-        public void delete_thread(ThreadBase th)
-        {            
+        public void Delete_thread(ThreadBase th)
+        {
             th.exit = true; // Search must be already finished
             th.notify_one();
-            th.handle.Join(); // Wait for thread termination                         
+            th.handle.Join(); // Wait for thread termination
         }
 
         // init() is called at startup to create and launch requested threads, that will
         // go immediately to sleep. We cannot use a c'tor because Threads is a static
         // object and we need a fully initialized engine at this point due to allocation
         // of Endgames in Thread c'tor.
-        public void init()
+        public void Init()
         {
-            timer = new_timerthread();
-            Add(new_mainthread());
-            read_uci_options();
+            timer = New_timerthread();
+            Add(New_mainthread());
+            Read_uci_options();
         }
 
         // exit() cleanly terminates the threads before the program exits. Cannot be done in
         // d'tor because we have to terminate the threads before to free ThreadPool object.
-        public void exit()
+        public void Exit()
         {
-            delete_thread(timer); // As first because check_time() accesses threads data           
+            Delete_thread(timer); // As first because check_time() accesses threads data
 
-            foreach (Thread it in this)            
-                delete_thread(it);            
+            foreach (Thread it in this)
+                Delete_thread(it);
         }
 
         // read_uci_options() updates internal threads parameters from the corresponding
@@ -410,7 +412,7 @@ namespace StockFish
         // objects are dynamically allocated to avoid creating all possible threads
         // in advance (which include pawns and material tables), even if only a few
         // are to be used.
-        public void read_uci_options()
+        public void Read_uci_options()
         {
             minimumSplitDepth = Engine.Options["Min Split Depth"].getInt() * DepthS.ONE_PLY;
             int requested = Engine.Options["Threads"].getInt();
@@ -419,14 +421,14 @@ namespace StockFish
 
             // If zero (default) then set best minimum split depth automatically
             if (0 == minimumSplitDepth)
-                minimumSplitDepth = requested < 8 ? 4 * DepthS.ONE_PLY : 7 * DepthS.ONE_PLY;            
+                minimumSplitDepth = requested < 8 ? 4 * DepthS.ONE_PLY : 7 * DepthS.ONE_PLY;
 
             while (this.Count < requested)
-                Add(new_thread());
+                Add(New_thread());
 
             while (this.Count > requested)
             {
-                delete_thread(this[this.Count - 1]);                
+                Delete_thread(this[this.Count - 1]);
                 this.RemoveAt(this.Count - 1);
             }
         }
@@ -436,7 +438,7 @@ namespace StockFish
         public Thread available_slave(Thread master)
         {
             foreach (Thread it in this)            
-                if (it.available_to(master))
+                if (it.Available_to(master))
                     return it;                            
 
             return null;
@@ -457,7 +459,7 @@ namespace StockFish
         {
             wait_for_think_finished();
 
-            Search.SearchTime = Time.now(); // As early as possible
+            Search.SearchTime = Time.Now(); // As early as possible
 
             Search.Signals.stopOnPonderhit = Search.Signals.firstRootMove = false;
             Search.Signals.stop = Search.Signals.failedLowAtRoot = false;
@@ -472,10 +474,10 @@ namespace StockFish
                 //Debug.Assert(states==null);
             }
 
-            for (MoveList it = new MoveList(pos, GenTypeS.LEGAL); it.move()!= 0; ++it)
+            for (MoveList it = new MoveList(pos, GenTypeS.LEGAL); it.Move()!= 0; ++it)
                 if (limits.searchmoves.Count == 0
-                    || Misc.existSearchMove(limits.searchmoves, it.move()))
-                    Search.RootMoves.Add(new RootMove(it.move()));
+                    || Misc.ExistSearchMove(limits.searchmoves, it.Move()))
+                    Search.RootMoves.Add(new RootMove(it.Move()));
 
             main().thinking = true;
             main().notify_one(); // Starts main thread

@@ -19,9 +19,9 @@ namespace StockFish
         /// 'On change' actions, triggered by an option's value change
         public static void on_logger(Option o) { /*Misc.start_logger(o.getBool()); */}
         public static void on_eval(Option o) { Eval.init();}
-        public static void on_threads(Option o) { Engine.Threads.read_uci_options();}
-        public static void on_hash_size(Option o) {Engine.TT.resize((UInt32)o.getInt());}
-        public static void on_clear_hash(Option o) { Engine.TT.clear();}
+        public static void on_threads(Option o) { Engine.Threads.Read_uci_options();}
+        public static void on_hash_size(Option o) {Engine.TT.Resize((UInt32)o.getInt());}
+        public static void on_clear_hash(Option o) { Engine.TT.Clear();}
 
         /// init() initializes the UCI options to their hard-coded default values
         public static void init(Dictionary<string, Option> o)
@@ -184,7 +184,7 @@ namespace StockFish
                     int depth = Int32.Parse(stack.Pop());
                     Stack<string> ss = Misc.CreateStack(Engine.Options["Hash"].getInt() + " "
                         + Engine.Options["Threads"].getInt() + " " + depth + " current " + token);
-                    Engine.benchmark(pos, ss);                    
+                    Engine.Benchmark(pos, ss);                    
                 }
                 else if (token == "key")
                 {
@@ -201,7 +201,7 @@ namespace StockFish
                 }
                 else if (token == "uci")
                 {
-                    Engine.inOut.WriteLine("id name " + Misc.engine_info(), MutexAction.ADQUIRE);
+                    Engine.inOut.WriteLine("id name " + Misc.Engine_info(), MutexAction.ADQUIRE);
                     Engine.inOut.WriteLine(ToString(Engine.Options));
                     Engine.inOut.WriteLine("uciok", MutexAction.RELAX);
                 }
@@ -215,8 +215,8 @@ namespace StockFish
                 else if (token == "position") position(pos, stack);
                 else if (token == "setoption") setoption(stack);
                 else if (token == "flip") pos.flip();
-                else if (token == "bench") Engine.benchmark(pos, stack);
-                else if (token == "benchfile") Engine.benchfile(pos, stack);
+                else if (token == "bench") Engine.Benchmark(pos, stack);
+                else if (token == "benchfile") Engine.Benchfile(pos, stack);
                 else if (token == "d") Engine.inOut.WriteLine(pos.pretty(0), MutexAction.ATOMIC);
                 else if (token == "isready") Engine.inOut.WriteLine("readyok", MutexAction.ATOMIC);
 

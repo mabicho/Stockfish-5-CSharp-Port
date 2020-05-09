@@ -9,7 +9,7 @@ namespace StockFish
     {
         public static Score S(int mg, int eg)
         {
-            return Types.make_score(mg, eg);
+            return Types.Make_score(mg, eg);
         }
 
         public static Score[][] PSQT = new Score[7][]{

@@ -37,12 +37,11 @@ namespace StockFish
 
     public sealed class Time
     {
-
-        /// Convert system time to milliseconds. That's all we need.
+        // Convert system time to milliseconds. That's all we need.
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Int64 now()
+        public static Int64 Now()
         {
             return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         }
@@ -51,19 +50,19 @@ namespace StockFish
     public static class ThreadHelper
     {
         //#  define lock_grab(x) EnterCriticalSection(x)
-        public static void lock_grab(object Lock)
+        public static void Lock_grab(object Lock)
         {
             System.Threading.Monitor.Enter(Lock);
         }
 
         //#  define lock_release(x) LeaveCriticalSection(x)
-        public static void lock_release(object Lock)
+        public static void Lock_release(object Lock)
         {
             System.Threading.Monitor.Exit(Lock);
         }
 
         //#  define cond_signal(x) SetEvent(*x)
-        public static void cond_signal(object sleepCond)
+        public static void Cond_signal(object sleepCond)
         {
             lock (sleepCond)
             {
@@ -72,28 +71,28 @@ namespace StockFish
         }
 
         //#  define cond_wait(x,y) { lock_release(y); WaitForSingleObject(*x, INFINITE); lock_grab(y); }
-        public static void cond_wait(object sleepCond, object sleepLock)
+        public static void Cond_wait(object sleepCond, object sleepLock)
         {
-            lock_release(sleepLock);
+            Lock_release(sleepLock);
             lock (sleepCond)
             {
                 Monitor.Wait(sleepCond);
             }
-            lock_grab(sleepLock);
+            Lock_grab(sleepLock);
         }
 
         //#  define cond_timedwait(x,y,z) { lock_release(y); WaitForSingleObject(*x,z); lock_grab(y); }
-        public static void cond_timedwait(object sleepCond, object sleepLock, int msec)
+        public static void Cond_timedwait(object sleepCond, object sleepLock, int msec)
         {
-            lock_release(sleepLock);
+            Lock_release(sleepLock);
             lock (sleepCond)
             {
                 Monitor.Wait(sleepCond, msec);
             }
-            lock_grab(sleepLock);
+            Lock_grab(sleepLock);
         }
 
-        public static bool thread_create(out System.Threading.Thread handle, ParameterizedThreadStart start_routine, ThreadBase thread)
+        public static bool Thread_create(out System.Threading.Thread handle, ParameterizedThreadStart start_routine, ThreadBase thread)
         {
             handle = new System.Threading.Thread(start_routine);
             handle.Start(thread);
@@ -104,11 +103,13 @@ namespace StockFish
     public sealed class Misc
     {
         public const double DBL_MIN = 2.2250738585072014e-308;//Sacado de internet
+        /// <summary>
         /// engine_info() returns the full name of the current Stockfish version. This
         /// will be either "Stockfish <Tag> DD-MM-YY" (where DD-MM-YY is the date when
         /// the program was compiled) or "Stockfish <Version>", depending on whether
         /// Version is empty.
-        public static string engine_info()
+        /// </summary>
+        public static string Engine_info()
         {
             StringBuilder s = new StringBuilder("StockFishPort 5.0");
             s.Append(Types.newline);
@@ -117,22 +118,22 @@ namespace StockFish
             return s.ToString();
         }
 
-        public static bool isdigit(char c)
+        public static bool Isdigit(char c)
         {
             return c >= '0' && c <= '9';
         }
 
-        public static bool islower(char token)
+        public static bool Islower(char token)
         {
             return token.ToString().ToLowerInvariant() == token.ToString();
         }
 
-        public static char toupper(char token)
+        public static char Toupper(char token)
         {
             return token.ToString().ToUpperInvariant()[0];
         }
 
-        public static char tolower(char token)
+        public static char Tolower(char token)
         {
             return token.ToString().ToLowerInvariant()[0];
         }
@@ -153,14 +154,14 @@ namespace StockFish
             return stack;
         }
 
-        public static void start_logger(bool b) { throw new Exception("Funcionalidad no implementada"); }
+        public static void Start_logger(bool b) { throw new Exception("Funcionalidad no implementada"); }
 
-        public static int cpu_count()
+        public static int Cpu_count()
         {
             return Environment.ProcessorCount;
         }
 
-        public static bool existSearchMove(List<Move> moves, Move m) // count elements that match _Val
+        public static bool ExistSearchMove(List<Move> moves, Move m) // count elements that match _Val
         {
             int moveLength = moves.Count;
             if (moveLength == 0) return false;
@@ -186,7 +187,7 @@ namespace StockFish
         public bool this[int i]
         {
             get
-            {                
+            {
                 return bits[i];
             }
             set
@@ -195,11 +196,13 @@ namespace StockFish
             }
         }
 
-        public bool none()
+        public bool None()
         {
             for (int i = 0; i < dim; i++)
+            {
                 if (bits[i])
                     return false;
+            }
 
             return true;
         }

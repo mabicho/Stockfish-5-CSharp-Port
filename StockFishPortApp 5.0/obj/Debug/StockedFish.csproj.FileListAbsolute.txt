@@ -1,0 +1,7 @@
+C:\Users\brian\OneDrive\Documents\GitHub\Stockfish-CSharp-Port\StockFishPortApp 5.0\bin\Debug\StockFishPortApp 5.0.exe.config
+C:\Users\brian\OneDrive\Documents\GitHub\Stockfish-CSharp-Port\StockFishPortApp 5.0\bin\Debug\StockFishPortApp 5.0.exe
+C:\Users\brian\OneDrive\Documents\GitHub\Stockfish-CSharp-Port\StockFishPortApp 5.0\bin\Debug\StockFishPortApp 5.0.pdb
+C:\Users\brian\OneDrive\Documents\GitHub\Stockfish-CSharp-Port\StockFishPortApp 5.0\obj\Debug\StockedFish.csprojAssemblyReference.cache
+C:\Users\brian\OneDrive\Documents\GitHub\Stockfish-CSharp-Port\StockFishPortApp 5.0\obj\Debug\StockedFish.csproj.CoreCompileInputs.cache
+C:\Users\brian\OneDrive\Documents\GitHub\Stockfish-CSharp-Port\StockFishPortApp 5.0\obj\Debug\StockFishPortApp 5.0.exe
+C:\Users\brian\OneDrive\Documents\GitHub\Stockfish-CSharp-Port\StockFishPortApp 5.0\obj\Debug\StockFishPortApp 5.0.pdb

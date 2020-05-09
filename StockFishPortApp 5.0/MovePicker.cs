@@ -287,14 +287,14 @@ namespace StockFish
             for (int it = 0; it != end; ++it)
             {
                 m = moves[it].move;
-                moves[it].value = Position.PieceValue[PhaseS.MG][pos.piece_on(Types.to_sq(m))]
-                         - Types.type_of_piece(pos.moved_piece(m));
+                moves[it].value = Position.PieceValue[PhaseS.MG][pos.piece_on(Types.To_sq(m))]
+                         - Types.Type_of_piece(pos.moved_piece(m));
 
-                if (Types.type_of_move(m) == MoveTypeS.ENPASSANT)
+                if (Types.Type_of_move(m) == MoveTypeS.ENPASSANT)
                     moves[it].value += Position.PieceValue[PhaseS.MG][PieceTypeS.PAWN];                
 
-                else if (Types.type_of_move(m) == MoveTypeS.PROMOTION)
-                    moves[it].value += Position.PieceValue[PhaseS.MG][Types.promotion_type(m)] - Position.PieceValue[PhaseS.MG][PieceTypeS.PAWN];
+                else if (Types.Type_of_move(m) == MoveTypeS.PROMOTION)
+                    moves[it].value += Position.PieceValue[PhaseS.MG][Types.Promotion_type(m)] - Position.PieceValue[PhaseS.MG][PieceTypeS.PAWN];
             }
         }
 
@@ -305,7 +305,7 @@ namespace StockFish
             for (int it = 0; it != end; ++it)
             {
                 m = moves[it].move;
-                moves[it].value = history[pos.moved_piece(m)][Types.to_sq(m)];
+                moves[it].value = history[pos.moved_piece(m)][Types.To_sq(m)];
             }
         }
 
@@ -324,10 +324,10 @@ namespace StockFish
                     moves[it].value = see - HistoryStats.Max; // At the bottom
 
                 else if (pos.capture(m))
-                    moves[it].value = Position.PieceValue[PhaseS.MG][pos.piece_on(Types.to_sq(m))]
-                             - Types.type_of_piece(pos.moved_piece(m)) + HistoryStats.Max;
+                    moves[it].value = Position.PieceValue[PhaseS.MG][pos.piece_on(Types.To_sq(m))]
+                             - Types.Type_of_piece(pos.moved_piece(m)) + HistoryStats.Max;
                 else
-                    moves[it].value = history[pos.moved_piece(m)][Types.to_sq(m)];
+                    moves[it].value = history[pos.moved_piece(m)][Types.To_sq(m)];
             }
         }
 
@@ -365,7 +365,7 @@ namespace StockFish
                 case StagesS.CAPTURES_S4:
                 case StagesS.CAPTURES_S5:
                 case StagesS.CAPTURES_S6:
-                    end = MoveList.generate(pos, moves, 0, GenTypeS.CAPTURES);
+                    end = MoveList.Generate(pos, moves, 0, GenTypeS.CAPTURES);
                     score_captures();
                     return;
 
@@ -398,7 +398,7 @@ namespace StockFish
                     return;
 
                 case StagesS.QUIETS_1_S1:
-                    endQuiets = end = MoveList.generate(pos, moves, 0, GenTypeS.QUIETS);
+                    endQuiets = end = MoveList.Generate(pos, moves, 0, GenTypeS.QUIETS);
                     score_quiets();
                     end = partition(moves, cur, end);
                     insertion_sort(moves, cur, end);
@@ -418,13 +418,13 @@ namespace StockFish
                     return;
 
                 case StagesS.EVASIONS_S2:
-                    end = MoveList.generate(pos, moves, 0, GenTypeS.EVASIONS);
+                    end = MoveList.Generate(pos, moves, 0, GenTypeS.EVASIONS);
                     if (end > 1)
                         score_evasions();
                     return;
 
                 case StagesS.QUIET_CHECKS_S3:
-                    end = MoveList.generate(pos, moves, 0, GenTypeS.QUIET_CHECKS);
+                    end = MoveList.Generate(pos, moves, 0, GenTypeS.QUIET_CHECKS);
                     return;
 
                 case StagesS.EVASION:
@@ -523,7 +523,7 @@ namespace StockFish
 
                     case StagesS.CAPTURES_S6:
                         move = moves[pick_best(moves, cur++, end)].move;
-                        if (Types.to_sq(move) == recaptureSquare)
+                        if (Types.To_sq(move) == recaptureSquare)
                             return move;
                         break;
 

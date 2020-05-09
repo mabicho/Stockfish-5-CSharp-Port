@@ -41,7 +41,7 @@ namespace StockFish
             public int spaceWeight;
             public Phase gamePhase;
 
-            public Score material_value() { return Types.make_score(value, value); }
+            public Score material_value() { return Types.Make_score(value, value); }
             public int space_weight() { return spaceWeight; }
             public Phase game_phase() { return gamePhase; }
             public bool specialized_eval_exists() { return evaluationFunction != null; }
@@ -262,7 +262,7 @@ namespace StockFish
                 int minorPieceCount = pos.count(ColorS.WHITE, PieceTypeS.KNIGHT) + pos.count(ColorS.WHITE, PieceTypeS.BISHOP)
                                     + pos.count(ColorS.BLACK, PieceTypeS.KNIGHT) + pos.count(ColorS.BLACK, PieceTypeS.BISHOP);
 
-                e.spaceWeight = Types.make_score(minorPieceCount * minorPieceCount, 0);
+                e.spaceWeight = Types.Make_score(minorPieceCount * minorPieceCount, 0);
             }
 
             // Evaluate the material imbalance. We use PIECE_TYPE_NONE as a place holder

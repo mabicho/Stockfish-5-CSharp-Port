@@ -23,7 +23,6 @@ namespace StockFish
         public const Bitboard FileFBB = FileABB << 5;
         public const Bitboard FileGBB = FileABB << 6;
         public const Bitboard FileHBB = FileABB << 7;
-
         public const Bitboard Rank1BB = 0xFF;
         public const Bitboard Rank2BB = Rank1BB << (8 * 1);
         public const Bitboard Rank3BB = Rank1BB << (8 * 2);
@@ -72,8 +71,10 @@ namespace StockFish
 
         public delegate uint Fn(Square s, Bitboard occ, PieceType Pt);
 
+        /// <summary>
         /// Overloads of bitwise operators between a Bitboard and a Square for testing
         /// whether a given bit is set in a bitboard, and for setting and clearing bits.
+        /// </summary>
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
@@ -114,7 +115,7 @@ namespace StockFish
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static bool more_than_one(UInt64 b)
+        public static bool More_than_one(UInt64 b)
         {
             return (b & (b - 1)) != 0;
         }
@@ -122,7 +123,7 @@ namespace StockFish
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static int square_distance(Square s1, Square s2)
+        public static int Square_distance(Square s1, Square s2)
         {
             return BitBoard.SquareDistance[s1][s2];
         }
@@ -130,38 +131,37 @@ namespace StockFish
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static int file_distance(Square s1, Square s2)
+        public static int File_distance(Square s1, Square s2)
         {
-            return Math.Abs(Types.file_of(s1) - Types.file_of(s2));
+            return Math.Abs(Types.File_of(s1) - Types.File_of(s2));
         }
 
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static int rank_distance(Square s1, Square s2)
+        public static int Rank_distance(Square s1, Square s2)
         {
-            return Math.Abs(Types.rank_of(s1) - Types.rank_of(s2));
+            return Math.Abs(Types.Rank_of(s1) - Types.Rank_of(s2));
         }
 
-        /// shift_bb() moves bitboard one step along direction Delta. Mainly for pawns.
+        // shift_bb() moves bitboard one step along direction Delta. Mainly for pawns.
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard shift_bb(Bitboard b, Square Delta)
+        public static Bitboard Shift_bb(Bitboard b, Square Delta)
         {
-
             return Delta == SquareS.DELTA_N ? b << 8 : Delta == SquareS.DELTA_S ? b >> 8
                   : Delta == SquareS.DELTA_NE ? (b & ~FileHBB) << 9 : Delta == SquareS.DELTA_SE ? (b & ~FileHBB) >> 7
                   : Delta == SquareS.DELTA_NW ? (b & ~FileABB) << 7 : Delta == SquareS.DELTA_SW ? (b & ~FileABB) >> 9
                   : 0;
         }
 
-        /// rank_bb() and file_bb() take a file or a square as input and return
-        /// a bitboard representing all squares on the given file or rank.        
+        // rank_bb() and file_bb() take a file or a square as input and return
+        // a bitboard representing all squares on the given file or rank.
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard rank_bb_rank(Rank r)
+        public static Bitboard Rank_bb_rank(Rank r)
         {
             return RankBB[r];
         }
@@ -169,15 +169,15 @@ namespace StockFish
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard rank_bb_square(Square s)
+        public static Bitboard Rank_bb_square(Square s)
         {
-            return RankBB[Types.rank_of(s)];
+            return RankBB[Types.Rank_of(s)];
         }
 
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard file_bb_file(File f)
+        public static Bitboard File_bb_file(File f)
         {
             return FileBB[f];
         }
@@ -185,108 +185,112 @@ namespace StockFish
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard file_bb_square(Square s)
+        public static Bitboard File_bb_square(Square s)
         {
-            return FileBB[Types.file_of(s)];
+            return FileBB[Types.File_of(s)];
         }
 
-        /// adjacent_files_bb() takes a file as input and returns a bitboard representing
-        /// all squares on the adjacent files.
+        // adjacent_files_bb() takes a file as input and returns a bitboard representing
+        // all squares on the adjacent files.
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard adjacent_files_bb(File f)
+        public static Bitboard Adjacent_files_bb(File f)
         {
             return AdjacentFilesBB[f];
         }
 
-        /// in_front_bb() takes a color and a rank as input, and returns a bitboard
-        /// representing all the squares on all ranks in front of the rank, from the
-        /// given color's point of view. For instance, in_front_bb(BLACK, RANK_3) will
-        /// give all squares on ranks 1 and 2.
+        // in_front_bb() takes a color and a rank as input, and returns a bitboard
+        // representing all the squares on all ranks in front of the rank, from the
+        // given color's point of view. For instance, in_front_bb(BLACK, RANK_3) will
+        // give all squares on ranks 1 and 2.
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard in_front_bb(Color c, Rank r)
+        public static Bitboard In_front_bb(Color c, Rank r)
         {
             return InFrontBB[c][r];
         }
 
-        /// between_bb() returns a bitboard representing all squares between two squares.
-        /// For instance, between_bb(SQ_C4, SQ_F7) returns a bitboard with the bits for
-        /// square d5 and e6 set.  If s1 and s2 are not on the same rank, file or diagonal,
-        /// 0 is returned.
+        // between_bb() returns a bitboard representing all squares between two squares.
+        // For instance, between_bb(SQ_C4, SQ_F7) returns a bitboard with the bits for
+        // square d5 and e6 set.  If s1 and s2 are not on the same rank, file or diagonal,
+        // 0 is returned.
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard between_bb(Square s1, Square s2)
+        public static Bitboard Between_bb(Square s1, Square s2)
         {
             return BetweenBB[s1][s2];
         }
 
-        /// forward_bb() takes a color and a square as input, and returns a bitboard
-        /// representing all squares along the line in front of the square, from the
-        /// point of view of the given color. Definition of the table is:
-        /// ForwardBB[c][s] = in_front_bb(c, s) & file_bb(s)
+        // forward_bb() takes a color and a square as input, and returns a bitboard
+        // representing all squares along the line in front of the square, from the
+        // point of view of the given color. Definition of the table is:
+        // ForwardBB[c][s] = in_front_bb(c, s) file_bb(s)
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard forward_bb(Color c, Square s)
+        public static Bitboard Forward_bb(Color c, Square s)
         {
             return ForwardBB[c][s];
         }
 
+        /// <summary>
         /// pawn_attack_span() takes a color and a square as input, and returns a bitboard
         /// representing all squares that can be attacked by a pawn of the given color
         /// when it moves along its file starting from the given square. Definition is:
-        /// PawnAttackSpan[c][s] = in_front_bb(c, s) & adjacent_files_bb(s);
+        /// PawnAttackSpan[c][s] = in_front_bb(c, s) + adjacent_files_bb(s);
+        /// </summary>
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard pawn_attack_span(Color c, Square s)
+        public static Bitboard Pawn_attack_span(Color c, Square s)
         {
             return PawnAttackSpan[c][s];
         }
 
+        /// <summary>
         /// passed_pawn_mask() takes a color and a square as input, and returns a
         /// bitboard mask which can be used to test if a pawn of the given color on
         /// the given square is a passed pawn. Definition of the table is:
         /// PassedPawnMask[c][s] = pawn_attack_span(c, s) | forward_bb(c, s)
+        /// </summary>
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard passed_pawn_mask(Color c, Square s)
+        public static Bitboard Passed_pawn_mask(Color c, Square s)
         {
             return PassedPawnMask[c][s];
         }
 
-        /// squares_of_color() returns a bitboard representing all squares with the same
-        /// color of the given square.
+        // squares_of_color() returns a bitboard representing all squares with the same
+        // color of the given square.
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard squares_of_color(Square s)
+        public static Bitboard Squares_of_color(Square s)
         {
             return (DarkSquares & SquareBB[s]) != 0 ? DarkSquares : ~DarkSquares;
         }
 
-        /// aligned() returns true if the squares s1, s2 and s3 are aligned
-        /// either on a straight or on a diagonal line.
+        // aligned() returns true if the squares s1, s2 and s3 are aligned
+        //  either on a straight or on a diagonal line.
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard aligned(Square s1, Square s2, Square s3)
+        public static Bitboard Aligned(Square s1, Square s2, Square s3)
         {
             return LineBB[s1][s2] & SquareBB[s3];
         }
 
-        /// Functions for computing sliding attack bitboards. Function attacks_bb() takes
-        /// a square and a bitboard of occupied squares as input, and returns a bitboard
-        /// representing all squares attacked by Pt (bishop or rook) on the given square.
+        // Functions for computing sliding attack bitboards. Function attacks_bb() takes
+        // a square and a bitboard of occupied squares as input, and returns a bitboard
+        // representing all squares attacked by Pt (bishop or rook) on the given square.
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static uint magic_index(Square s, UInt64 occ, PieceType Pt)
+        public static uint Magic_index(Square s, UInt64 occ, PieceType Pt)
         {
             Bitboard[] Masks = Pt == PieceTypeS.ROOK ? RMasks : BMasks;
             Bitboard[] Magics = Pt == PieceTypeS.ROOK ? RMagics : BMagics;
@@ -295,77 +299,79 @@ namespace StockFish
             uint lo = (uint)(occ) & (uint)Masks[s];
             uint hi = (uint)(occ >> 32) & (uint)(Masks[s] >> 32);
             return (lo * (uint)(Magics[s]) ^ hi * (uint)(Magics[s] >> 32)) >> (int)Shifts[s];
+             }
 
+        #if AGGR_INLINE
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        #endif
+        public static Bitboard Attacks_bb_SBBPT(Square s, Bitboard occ, PieceType Pt)
+        {
+            return (Pt == PieceTypeS.ROOK ? RAttacks : BAttacks)[s][Magic_index(s, occ, Pt)];
         }
 
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Bitboard attacks_bb_SBBPT(Square s, Bitboard occ, PieceType Pt)
+        public static Bitboard Attacks_bb_PSBB(Piece pc, Square s, Bitboard occ)
         {
-            return (Pt == PieceTypeS.ROOK ? RAttacks : BAttacks)[s][magic_index(s, occ, Pt)];
-        }
-
-        #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        #endif
-        public static Bitboard attacks_bb_PSBB(Piece pc, Square s, Bitboard occ)
-        {
-            switch (Types.type_of_piece(pc))
+            switch (Types.Type_of_piece(pc))
             {
-                case PieceTypeS.BISHOP: return attacks_bb_SBBPT(s, occ, PieceTypeS.BISHOP);
-                case PieceTypeS.ROOK: return attacks_bb_SBBPT(s, occ, PieceTypeS.ROOK);
-                case PieceTypeS.QUEEN: return attacks_bb_SBBPT(s, occ, PieceTypeS.BISHOP) | attacks_bb_SBBPT(s, occ, PieceTypeS.ROOK);
+                case PieceTypeS.BISHOP: return Attacks_bb_SBBPT(s, occ, PieceTypeS.BISHOP);
+                case PieceTypeS.ROOK: return Attacks_bb_SBBPT(s, occ, PieceTypeS.ROOK);
+                case PieceTypeS.QUEEN: return Attacks_bb_SBBPT(s, occ, PieceTypeS.BISHOP) | Attacks_bb_SBBPT(s, occ, PieceTypeS.ROOK);
                 default: return StepAttacksBB[pc][s];
             }
         }
-        
+        /// <summary>
         /// frontmost_sq() and backmost_sq() find the square corresponding to the
         /// most/least advanced bit relative to the given color.
+        /// </summary>
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Square frontmost_sq(Color c, Bitboard b) { return c == ColorS.WHITE ? msb(b) : lsb(b); }
+        public static Square Frontmost_sq(Color c, Bitboard b) { return c == ColorS.WHITE ? Msb(b) : Lsb(b); }
 
         #if AGGR_INLINE
                         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Square backmost_sq(Color c, Bitboard b) { return c == ColorS.WHITE ? lsb(b) : msb(b); }
+        public static Square Backmost_sq(Color c, Bitboard b) { return c == ColorS.WHITE ? Lsb(b) : Msb(b); }
 
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static uint bsf_index(Bitboard b)
+        public static uint Bsf_index(Bitboard b)
         {
             // Matt Taylor's folding for 32 bit systems, extended to 64 bits by Kim Walisch
             b ^= (b - 1);
             return (((uint)(b) ^ (uint)(b >> 32)) * DeBruijn_32) >> 26;
         }
 
+        /// <summary>
         /// lsb()/msb() finds the least/most significant bit in a non-zero bitboard.
         /// pop_lsb() finds and clears the least significant bit in a non-zero bitboard.
+        /// </summary>
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Square lsb(Bitboard b)
+        public static Square Lsb(Bitboard b)
         {
-            return BSFTable[bsf_index(b)];
+            return BSFTable[Bsf_index(b)];
         }
 
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static int pop_lsb(ref Bitboard b)
+        public static int Pop_lsb(ref Bitboard b)
         {
             Bitboard bb = b;
             b = bb & (bb - 1);
-            return BSFTable[bsf_index(bb)];
+            return BSFTable[Bsf_index(bb)];
         }
 
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static Square msb(UInt64 b)
+        public static Square Msb(UInt64 b)
         {
             uint b32;
             int result = 0;
@@ -393,9 +399,11 @@ namespace StockFish
             return (Square)(result + MS1BTable[b32]);
         }
 
+        /// <summary>
         /// Bitboards::pretty() returns an ASCII representation of a bitboard to be
         /// printed to standard output. This is sometimes useful for debugging.
-        public static String pretty(Bitboard b)
+        /// </summary>
+        public static String Pretty(Bitboard b)
         {
             StringBuilder sb = new StringBuilder("+---+---+---+---+---+---+---+---+");
             sb.Append(Types.newline);
@@ -403,7 +411,7 @@ namespace StockFish
             {
                 for (File f = FileS.FILE_A; f <= FileS.FILE_H; ++f)
                 {
-                    sb.Append((b & SquareBB[Types.make_square(f, r)])!=0 ? "| X " : "|   ");
+                    sb.Append((b & SquareBB[Types.Make_square(f, r)])!=0 ? "| X " : "|   ");
                 }
                 sb.Append("|");
                 sb.Append(Types.newline);
@@ -414,15 +422,17 @@ namespace StockFish
             return sb.ToString();
         }
 
+        /// <summary>
         /// Bitboards::init() initializes various bitboard tables. It is called at
         /// startup and relies on global objects to be already zero-initialized.
-        public static void init()
+        /// </summary>
+        public static void Init()
         {
             for (Square s = SquareS.SQ_A1; s <= SquareS.SQ_H8; ++s)
-                BSFTable[bsf_index(SquareBB[s] = 1UL << s)] = s;
+                BSFTable[Bsf_index(SquareBB[s] = 1UL << s)] = s;
 
             for (Bitboard b = 1; b < 256; ++b)
-                MS1BTable[b] = more_than_one(b) ? MS1BTable[b - 1] : lsb(b);
+                MS1BTable[b] = More_than_one(b) ? MS1BTable[b - 1] : Lsb(b);
 
             for (File f = FileS.FILE_A; f <= FileS.FILE_H; ++f)
                 FileBB[f] = f > FileS.FILE_A ? FileBB[f - 1] << 1 : FileABB;
@@ -447,12 +457,14 @@ namespace StockFish
             }
 
             for (Color c = ColorS.WHITE; c <= ColorS.BLACK; ++c)
+            {
                 for (Square s = SquareS.SQ_A1; s <= SquareS.SQ_H8; ++s)
                 {
-                    ForwardBB[c][s] = InFrontBB[c][Types.rank_of(s)] & FileBB[Types.file_of(s)];
-                    PawnAttackSpan[c][s] = InFrontBB[c][Types.rank_of(s)] & AdjacentFilesBB[Types.file_of(s)];
+                    ForwardBB[c][s] = InFrontBB[c][Types.Rank_of(s)] & FileBB[Types.File_of(s)];
+                    PawnAttackSpan[c][s] = InFrontBB[c][Types.Rank_of(s)] & AdjacentFilesBB[Types.File_of(s)];
                     PassedPawnMask[c][s] = ForwardBB[c][s] | PawnAttackSpan[c][s];
                 }
+            }
 
             for (Square c = 0; c < SquareS.SQUARE_NB; c++)
             {
@@ -461,12 +473,16 @@ namespace StockFish
             }
 
             for (Square s1 = SquareS.SQ_A1; s1 <= SquareS.SQ_H8; ++s1)
+            {
                 for (Square s2 = SquareS.SQ_A1; s2 <= SquareS.SQ_H8; ++s2)
+                {
                     if (s1 != s2)
                     {
-                        SquareDistance[s1][s2] = Math.Max(file_distance(s1, s2), rank_distance(s1, s2));
+                        SquareDistance[s1][s2] = Math.Max(File_distance(s1, s2), Rank_distance(s1, s2));
                         DistanceRingsBB[s1][SquareDistance[s1][s2] - 1] |= SquareBB[s2];
                     }
+                }
+            }
 
             int[][] steps = new int[7][];
             steps[0] = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -481,36 +497,41 @@ namespace StockFish
                 StepAttacksBB[p] = new Bitboard[SquareS.SQUARE_NB];
 
             for (Color c = ColorS.WHITE; c <= ColorS.BLACK; ++c)
+            {
                 for (PieceType pt = PieceTypeS.PAWN; pt <= PieceTypeS.KING; ++pt)
+                {
                     for (Square s = SquareS.SQ_A1; s <= SquareS.SQ_H8; ++s)
+                    {
                         for (int i = 0; steps[pt][i] != 0; ++i)
                         {
                             Square to = s + (Square)(c == ColorS.WHITE ? steps[pt][i] : -steps[pt][i]);
 
-                            if (Types.is_ok_square(to) && BitBoard.square_distance(s, to) < 3)
-                                StepAttacksBB[Types.make_piece(c, pt)][s] |= SquareBB[to];
+                            if (Types.Is_ok_square(to) && BitBoard.Square_distance(s, to) < 3)
+                                StepAttacksBB[Types.Make_piece(c, pt)][s] |= SquareBB[to];
                         }
-
+                    }
+                }
+            }
 
             Square[] RDeltas = new Square[] { SquareS.DELTA_N, SquareS.DELTA_E, SquareS.DELTA_S, SquareS.DELTA_W };
             Square[] BDeltas = new Square[] { SquareS.DELTA_NE, SquareS.DELTA_SE, SquareS.DELTA_SW, SquareS.DELTA_NW };
 
-            init_magics(PieceTypeS.ROOK, RAttacks, RMagics, RMasks, RShifts, RDeltas, magic_index);
-            init_magics(PieceTypeS.BISHOP, BAttacks, BMagics, BMasks, BShifts, BDeltas, magic_index);
+            Init_magics(PieceTypeS.ROOK, RAttacks, RMagics, RMasks, RShifts, RDeltas, Magic_index);
+            Init_magics(PieceTypeS.BISHOP, BAttacks, BMagics, BMasks, BShifts, BDeltas, Magic_index);
 
             for (PieceType pt = PieceTypeS.NO_PIECE_TYPE; pt < PieceTypeS.PIECE_TYPE_NB; pt++)
                 PseudoAttacks[pt] = new Bitboard[SquareS.SQUARE_NB];
 
             for (Square s = SquareS.SQ_A1; s <= SquareS.SQ_H8; s++)
-            { 
+            {
                 BetweenBB[s] = new Bitboard[SquareS.SQUARE_NB];
                 LineBB[s] = new Bitboard[SquareS.SQUARE_NB];
             }
 
             for (Square s1 = SquareS.SQ_A1; s1 <= SquareS.SQ_H8; ++s1)
             {
-                PseudoAttacks[PieceTypeS.QUEEN][s1] = PseudoAttacks[PieceTypeS.BISHOP][s1] = attacks_bb_SBBPT(s1, 0, PieceTypeS.BISHOP);
-                PseudoAttacks[PieceTypeS.QUEEN][s1] |= PseudoAttacks[PieceTypeS.ROOK][s1] = attacks_bb_SBBPT(s1, 0, PieceTypeS.ROOK);
+                PseudoAttacks[PieceTypeS.QUEEN][s1] = PseudoAttacks[PieceTypeS.BISHOP][s1] = Attacks_bb_SBBPT(s1, 0, PieceTypeS.BISHOP);
+                PseudoAttacks[PieceTypeS.QUEEN][s1] |= PseudoAttacks[PieceTypeS.ROOK][s1] = Attacks_bb_SBBPT(s1, 0, PieceTypeS.ROOK);
 
                 for (Square s2 = SquareS.SQ_A1; s2 <= SquareS.SQ_H8; ++s2)
                 {
@@ -520,19 +541,20 @@ namespace StockFish
                     if (pc == PieceS.NO_PIECE)
                         continue;
 
-                    LineBB[s1][s2] = (attacks_bb_PSBB(pc, s1, 0) & attacks_bb_PSBB(pc, s2, 0)) | SquareBB[s1] | SquareBB[s2];
-                    BetweenBB[s1][s2] = attacks_bb_PSBB(pc, s1, SquareBB[s2]) & attacks_bb_PSBB(pc, s2, SquareBB[s1]);
+                    LineBB[s1][s2] = (Attacks_bb_PSBB(pc, s1, 0) & Attacks_bb_PSBB(pc, s2, 0)) | SquareBB[s1] | SquareBB[s2];
+                    BetweenBB[s1][s2] = Attacks_bb_PSBB(pc, s1, SquareBB[s2]) & Attacks_bb_PSBB(pc, s2, SquareBB[s1]);
                 }
             }
         }
 
-        public static Bitboard sliding_attack(Square[] deltas, Square sq, Bitboard occupied)
+        public static Bitboard Sliding_attack(Square[] deltas, Square sq, Bitboard occupied)
         {
             Bitboard attack = 0;
 
             for (int i = 0; i < 4; ++i)
+            {
                 for (Square s = sq + deltas[i];
-                     Types.is_ok_square(s) && BitBoard.square_distance(s, s - deltas[i]) == 1;
+                     Types.Is_ok_square(s) && BitBoard.Square_distance(s, s - deltas[i]) == 1;
                      s += deltas[i])
                 {
                     attack |= SquareBB[s];
@@ -540,6 +562,7 @@ namespace StockFish
                     if ((occupied & SquareBB[s]) != 0)
                         break;
                 }
+            }
 
             return attack;
         }
@@ -548,32 +571,31 @@ namespace StockFish
         // bitboards are used to look up attacks of sliding pieces. As a reference see
         // chessprogramming.wikispaces.com/Magic+Bitboards. In particular, here we
         // use the so called "fancy" approach.
-        public static void init_magics(PieceType pt, Bitboard[][] attacks, Bitboard[] magics,
+        public static void Init_magics(PieceType pt, Bitboard[][] attacks, Bitboard[] magics,
                          Bitboard[] masks, uint[] shifts, Square[] deltas, Fn index)
         {
-
-            int[][] MagicBoosters = new int[2][]{ 
+            int[][] MagicBoosters = new int[2][]{
 				new int[] { 969, 1976, 2850,  542, 2069, 2852, 1708,  164 },
-		   		new int[] { 3101,  552, 3555,  926,  834,   26, 2131, 1117 } 
+		   		new int[] { 3101,  552, 3555,  926,  834,   26, 2131, 1117 }
 			};
 
             RKISS rk = new RKISS();
             Bitboard[] occupancy = new UInt64[4096], reference = new UInt64[4096];
             Bitboard edges, b;
-            int i, size, booster;            
+            int i, size, booster;
 
             for (Square s = SquareS.SQ_A1; s <= SquareS.SQ_H8; s++)
             {
                 // Board edges are not considered in the relevant occupancies
-                edges = ((BitBoard.Rank1BB | BitBoard.Rank8BB) & ~BitBoard.rank_bb_square(s)) | ((BitBoard.FileABB | BitBoard.FileHBB) & ~BitBoard.file_bb_square(s));
+                edges = ((BitBoard.Rank1BB | BitBoard.Rank8BB) & ~BitBoard.Rank_bb_square(s)) | ((BitBoard.FileABB | BitBoard.FileHBB) & ~BitBoard.File_bb_square(s));
 
                 // Given a square 's', the mask is the bitboard of sliding attacks from
                 // 's' computed on an empty board. The index must be big enough to contain
                 // all the attacks for each possible subset of the mask and so is 2 power
                 // the number of 1s of the mask. Hence we deduce the size of the shift to
                 // apply to the 64 or 32 bits word to get the index.
-                masks[s] = sliding_attack(deltas, s, 0) & ~edges;
-                shifts[s] = 32 - (uint)Bitcount.popcount_Max15(masks[s]);
+                masks[s] = Sliding_attack(deltas, s, 0) & ~edges;
+                shifts[s] = 32 - (uint)Bitcount.Popcount_Max15(masks[s]);
 
                 // Use Carry-Rippler trick to enumerate all subsets of masks[s] and
                 // store the corresponding sliding attack bitboard in reference[].
@@ -582,7 +604,7 @@ namespace StockFish
                 do
                 {
                     occupancy[size] = b;
-                    reference[size] = sliding_attack(deltas, s, b);
+                    reference[size] = Sliding_attack(deltas, s, b);
                     size++;
                     b = (b - masks[s]) & masks[s];
                 } while (b != 0);
@@ -590,14 +612,14 @@ namespace StockFish
                 // Set the offset for the table of the next square. We have individual
                 // table sizes for each square with "Fancy Magic Bitboards".                
                 attacks[s] = new Bitboard[size];
-                booster = MagicBoosters[0][Types.rank_of(s)];
+                booster = MagicBoosters[0][Types.Rank_of(s)];
 
                 // Find a magic for square 's' picking up an (almost) random number
                 // until we find the one that passes the verification test.
                 do
                 {
                     do magics[s] = rk.magic_rand(booster);
-                    while (Bitcount.popcount_Max15((magics[s] * masks[s]) >> 56) < 6);
+                    while (Bitcount.Popcount_Max15((magics[s] * masks[s]) >> 56) < 6);
 
                     Array.Clear(attacks[s], 0, size);
 
@@ -620,7 +642,5 @@ namespace StockFish
                 } while (i != size);
             }
         }
-
-
     }
 }

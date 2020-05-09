@@ -10,7 +10,7 @@ namespace StockFish
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static int popcount(Bitboard b)
+        public static int Popcount(Bitboard b)
         {
             UInt32 w = (UInt32)(b >> 32), v = (UInt32)(b);
             v -= (v >> 1) & 0x55555555; // 0-2 in 2 bits
@@ -24,7 +24,7 @@ namespace StockFish
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public static int popcount_Max15(Bitboard b)
+        public static int Popcount_Max15(Bitboard b)
         {
             UInt32 w = (UInt32)(b >> 32), v = (UInt32)(b);
             v -= (v >> 1) & 0x55555555; // 0-2 in 2 bits

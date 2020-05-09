@@ -8,26 +8,6 @@
             "name": ".NET Core Launch (console)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
-            "program": "${workspaceFolder}/bin/Debug/netcoreapp.2.1/stockedfish.exe",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "stopAtEntry": false,
-            "console": "internalConsole"
-        },
-    {
-        "type": "DotNetAutoAttach",
-        "request": "launch",
-        "name": ".NET Core Watch",
-        "args": [],
-        "env": {
-            "ASPNETCORE_ENVIRONMENT": "Development"
-        }
-    },
-        {
-            "name": ".NET Core Launch (console)",
-            "type": "coreclr",
-            "request": "launch",
             "WARNING01": "*********************************************************************************",
             "WARNING02": "The C# extension was unable to automatically decode projects in the current",
             "WARNING03": "workspace to create a runnable launch.json file. A template launch.json file has",

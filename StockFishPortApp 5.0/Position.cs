@@ -35,7 +35,7 @@ namespace StockFish
         /// CheckInfo c'tor
         public CheckInfo(Position pos)
         {
-            Color them = Types.notColor(pos.side_to_move());
+            Color them = Types.NotColor(pos.side_to_move());
             ksq = pos.king_square(them);
 
             pinned = pos.pinned_pieces(pos.side_to_move());
@@ -207,7 +207,7 @@ namespace StockFish
         #endif
         public Piece moved_piece(Move m)
         {
-            return board[Types.from_sq(m)];
+            return board[Types.From_sq(m)];
         }
 
         #if AGGR_INLINE
@@ -343,7 +343,7 @@ namespace StockFish
         #endif
         public Bitboard attacks_from_square_piecetype(Square s, PieceType Pt)
         {
-            return (Pt == PieceTypeS.BISHOP || Pt == PieceTypeS.ROOK) ? BitBoard.attacks_bb_SBBPT(s, pieces(), Pt)
+            return (Pt == PieceTypeS.BISHOP || Pt == PieceTypeS.ROOK) ? BitBoard.Attacks_bb_SBBPT(s, pieces(), Pt)
                  : (Pt == PieceTypeS.QUEEN) ? attacks_from_square_piecetype(s, PieceTypeS.ROOK) | attacks_from_square_piecetype(s, PieceTypeS.BISHOP)
                  : BitBoard.StepAttacksBB[Pt][s];
         }
@@ -353,7 +353,7 @@ namespace StockFish
         #endif
         public Bitboard attacks_from_pawn(Square s, Color c)
         {
-            return BitBoard.StepAttacksBB[Types.make_piece(c, PieceTypeS.PAWN)][s];
+            return BitBoard.StepAttacksBB[Types.Make_piece(c, PieceTypeS.PAWN)][s];
         }
 
         #if AGGR_INLINE
@@ -361,7 +361,7 @@ namespace StockFish
         #endif
         public Bitboard attacks_from_piece_square(Piece pc, Square s)
         {
-            return BitBoard.attacks_bb_PSBB(pc, s, byTypeBB[PieceTypeS.ALL_PIECES]);
+            return BitBoard.Attacks_bb_PSBB(pc, s, byTypeBB[PieceTypeS.ALL_PIECES]);
         }
 
         #if AGGR_INLINE
@@ -385,7 +385,7 @@ namespace StockFish
         #endif
         public Bitboard discovered_check_candidates()
         {
-            return check_blockers(sideToMove, Types.notColor(sideToMove));
+            return check_blockers(sideToMove, Types.NotColor(sideToMove));
         }
 
         #if AGGR_INLINE
@@ -401,7 +401,7 @@ namespace StockFish
         #endif
         public bool pawn_passed(Color c, Square s)
         {
-            return 0==(pieces_color_piecetype(Types.notColor(c), PieceTypeS.PAWN) & BitBoard.passed_pawn_mask(c, s));
+            return 0==(pieces_color_piecetype(Types.NotColor(c), PieceTypeS.PAWN) & BitBoard.Passed_pawn_mask(c, s));
         }
 
         #if AGGR_INLINE
@@ -409,8 +409,8 @@ namespace StockFish
         #endif
                 public bool advanced_pawn_push(Move m)
         {
-            return Types.type_of_piece(moved_piece(m)) == PieceTypeS.PAWN
-                && Types.relative_rank_square(sideToMove, Types.from_sq(m)) > RankS.RANK_4;
+            return Types.Type_of_piece(moved_piece(m)) == PieceTypeS.PAWN
+                && Types.Relative_rank_square(sideToMove, Types.From_sq(m)) > RankS.RANK_4;
         }
 
         #if AGGR_INLINE
@@ -468,7 +468,7 @@ namespace StockFish
         {
             return pieceCount[ColorS.WHITE][PieceTypeS.BISHOP] == 1
                 && pieceCount[ColorS.BLACK][PieceTypeS.BISHOP] == 1
-                && Types.opposite_colors(pieceList[ColorS.WHITE][PieceTypeS.BISHOP][0], pieceList[ColorS.BLACK][PieceTypeS.BISHOP][0]);
+                && Types.Opposite_colors(pieceList[ColorS.WHITE][PieceTypeS.BISHOP][0], pieceList[ColorS.BLACK][PieceTypeS.BISHOP][0]);
         }
 
         #if AGGR_INLINE
@@ -477,7 +477,7 @@ namespace StockFish
         public bool bishop_pair(Color c)
         {
             return pieceCount[c][PieceTypeS.BISHOP] >= 2
-                && Types.opposite_colors(pieceList[c][PieceTypeS.BISHOP][0], pieceList[c][PieceTypeS.BISHOP][1]);
+                && Types.Opposite_colors(pieceList[c][PieceTypeS.BISHOP][0], pieceList[c][PieceTypeS.BISHOP][1]);
         }
 
         #if AGGR_INLINE
@@ -485,7 +485,7 @@ namespace StockFish
         #endif
         public bool pawn_on_7th(Color c)
         {
-            return (pieces_color_piecetype(c, PieceTypeS.PAWN) & BitBoard.rank_bb_rank(Types.relative_rank_rank(c, RankS.RANK_7))) != 0;
+            return (pieces_color_piecetype(c, PieceTypeS.PAWN) & BitBoard.Rank_bb_rank(Types.Relative_rank_rank(c, RankS.RANK_7))) != 0;
         }
 
         #if AGGR_INLINE
@@ -501,8 +501,8 @@ namespace StockFish
         #endif
         public bool capture_or_promotion(Move m)
         {
-            Debug.Assert(Types.is_ok_move(m));
-            return Types.type_of_move(m) != MoveTypeS.NORMAL ? Types.type_of_move(m) != MoveTypeS.CASTLING : !empty(Types.to_sq(m));
+            Debug.Assert(Types.Is_ok_move(m));
+            return Types.Type_of_move(m) != MoveTypeS.NORMAL ? Types.Type_of_move(m) != MoveTypeS.CASTLING : !empty(Types.To_sq(m));
         }
 
         #if AGGR_INLINE
@@ -511,8 +511,8 @@ namespace StockFish
         public bool capture(Move m)
         {
             // Note that castle is coded as "king captures the rook"
-            Debug.Assert(Types.is_ok_move(m));
-            return (!empty(Types.to_sq(m)) && Types.type_of_move(m) != MoveTypeS.CASTLING) || Types.type_of_move(m) == MoveTypeS.ENPASSANT;
+            Debug.Assert(Types.Is_ok_move(m));
+            return (!empty(Types.To_sq(m)) && Types.Type_of_move(m) != MoveTypeS.CASTLING) || Types.Type_of_move(m) == MoveTypeS.ENPASSANT;
         }
 
         #if AGGR_INLINE
@@ -536,7 +536,7 @@ namespace StockFish
         #endif
         public void put_piece(Square s, Color c, PieceType pt)
         {
-            board[s] = Types.make_piece(c, pt);
+            board[s] = Types.Make_piece(c, pt);
             byTypeBB[PieceTypeS.ALL_PIECES] |= BitBoard.SquareBB[s];
             byTypeBB[pt] |= BitBoard.SquareBB[s];
             byColorBB[c] |= BitBoard.SquareBB[s];
@@ -557,7 +557,7 @@ namespace StockFish
             byTypeBB[pt] ^= from_to_bb;
             byColorBB[c] ^= from_to_bb;
             board[from] = PieceS.NO_PIECE;
-            board[to] = Types.make_piece(c, pt);
+            board[to] = Types.Make_piece(c, pt);
             index[to] = index[from];
             pieceList[c][pt][index[to]] = to;
         }
@@ -611,10 +611,10 @@ namespace StockFish
             occupied ^= b & ~(b - 1);
 
             if (Pt == PieceTypeS.PAWN || Pt == PieceTypeS.BISHOP || Pt == PieceTypeS.QUEEN)
-                attackers |= BitBoard.attacks_bb_SBBPT(to, occupied, PieceTypeS.BISHOP) & (bb[PieceTypeS.BISHOP] | bb[PieceTypeS.QUEEN]);
+                attackers |= BitBoard.Attacks_bb_SBBPT(to, occupied, PieceTypeS.BISHOP) & (bb[PieceTypeS.BISHOP] | bb[PieceTypeS.QUEEN]);
 
             if (Pt == PieceTypeS.ROOK || Pt == PieceTypeS.QUEEN)
-                attackers |= BitBoard.attacks_bb_SBBPT(to, occupied, PieceTypeS.ROOK) & (bb[PieceTypeS.ROOK] | bb[PieceTypeS.QUEEN]);
+                attackers |= BitBoard.Attacks_bb_SBBPT(to, occupied, PieceTypeS.ROOK) & (bb[PieceTypeS.ROOK] | bb[PieceTypeS.QUEEN]);
 
             attackers &= occupied; // After X-ray that may add already processed pieces
             return (PieceType)Pt;
@@ -656,7 +656,7 @@ namespace StockFish
                 Bitboard b = (Bitboard)cf;
                 while (b != 0)
                 {
-                    Key k = Zobrist.castling[1UL << BitBoard.pop_lsb(ref b)];
+                    Key k = Zobrist.castling[1UL << BitBoard.Pop_lsb(ref b)];
                     Zobrist.castling[cf] ^= k != 0 ? k : rk.rand64();
                 }
             }
@@ -685,15 +685,15 @@ namespace StockFish
 
             for (PieceType pt = PieceTypeS.PAWN; pt <= PieceTypeS.KING; ++pt)
             {                
-                PieceValue[PhaseS.MG][Types.make_piece(ColorS.BLACK, pt)] = PieceValue[PhaseS.MG][pt];
-                PieceValue[PhaseS.EG][Types.make_piece(ColorS.BLACK, pt)] = PieceValue[PhaseS.EG][pt];
+                PieceValue[PhaseS.MG][Types.Make_piece(ColorS.BLACK, pt)] = PieceValue[PhaseS.MG][pt];
+                PieceValue[PhaseS.EG][Types.Make_piece(ColorS.BLACK, pt)] = PieceValue[PhaseS.EG][pt];
 
-                Score v = Types.make_score(PieceValue[PhaseS.MG][pt], PieceValue[PhaseS.EG][pt]);
+                Score v = Types.Make_score(PieceValue[PhaseS.MG][pt], PieceValue[PhaseS.EG][pt]);
 
                 for (Square s = SquareS.SQ_A1; s <= SquareS.SQ_H8; ++s)
                 {
                     psq[ColorS.WHITE][pt][s] = (v + PsqTab.PSQT[pt][s]);
-                    psq[ColorS.BLACK][pt][Types.notSquare(s)] = -(v + PsqTab.PSQT[pt][s]);
+                    psq[ColorS.BLACK][pt][Types.NotSquare(s)] = -(v + PsqTab.PSQT[pt][s]);
                 }
             }
         }
@@ -827,7 +827,7 @@ namespace StockFish
             // 1. Piece placement
             while ((token = fen[ss++]) != ' ')
             {
-                if (Misc.isdigit(token))
+                if (Misc.Isdigit(token))
                     sq += (token - '0'); // Advance the given number of files
                 else if (token == '/')
                     sq -= 16;
@@ -835,7 +835,7 @@ namespace StockFish
                 {
                     if ((idx = PieceToChar.IndexOf(token)) > -1)
                     {
-                        put_piece(sq, Types.color_of(idx), Types.type_of_piece(idx));
+                        put_piece(sq, Types.Color_of(idx), Types.Type_of_piece(idx));
                         ++sq;
                     }
                 }
@@ -854,20 +854,20 @@ namespace StockFish
             while ((token = fen[ss++]) != ' ')
             {
                 Square rsq;
-                Color c = Misc.islower(token) ? ColorS.BLACK : ColorS.WHITE;
-                token = Misc.toupper(token);
+                Color c = Misc.Islower(token) ? ColorS.BLACK : ColorS.WHITE;
+                token = Misc.Toupper(token);
 
                 if (token == 'K')
                 {
-                    for (rsq = Types.relative_square(c, SquareS.SQ_H1); Types.type_of_piece(piece_on(rsq)) != PieceTypeS.ROOK; --rsq) { }
+                    for (rsq = Types.Relative_square(c, SquareS.SQ_H1); Types.Type_of_piece(piece_on(rsq)) != PieceTypeS.ROOK; --rsq) { }
                 }
                 else if (token == 'Q')
                 {
-                    for (rsq = Types.relative_square(c, SquareS.SQ_A1); Types.type_of_piece(piece_on(rsq)) != PieceTypeS.ROOK; --rsq) { }
+                    for (rsq = Types.Relative_square(c, SquareS.SQ_A1); Types.Type_of_piece(piece_on(rsq)) != PieceTypeS.ROOK; --rsq) { }
                 }
                 else if (token >= 'A' && token <= 'H')
                 {
-                    rsq = Types.make_square(token - 'A', Types.relative_rank_rank(c, RankS.RANK_1));
+                    rsq = Types.Make_square(token - 'A', Types.Relative_rank_rank(c, RankS.RANK_1));
                 }
                 else
                 {
@@ -887,7 +887,7 @@ namespace StockFish
                     // 4. En passant square. Ignore if no pawn capture is possible
                     if (((col >= 'a' && col <= 'h')) && ((row == '3' || row == '6')))
                     {
-                        st.epSquare = Types.make_square(col - 'a', row - '1');
+                        st.epSquare = Types.Make_square(col - 'a', row - '1');
                         if ((attackers_to(st.epSquare) & pieces_color_piecetype(sideToMove, PieceTypeS.PAWN)) == 0)
                             st.epSquare = SquareS.SQ_NONE;
                     }
@@ -921,15 +921,15 @@ namespace StockFish
         {
             Square kfrom = king_square(c);
             CastlingSide cs = kfrom < rfrom ? CastlingSideS.KING_SIDE : CastlingSideS.QUEEN_SIDE;
-            CastlingRight cr = Types.orCastlingRight(c, cs);
+            CastlingRight cr = Types.OrCastlingRight(c, cs);
             
             st.castlingRights |= cr;
             castlingRightsMask[kfrom] |= cr;
             castlingRightsMask[rfrom] |= cr;
             castlingRookSquare[cr] = rfrom;
 
-            Square kto = Types.relative_square(c, cs == CastlingSideS.KING_SIDE ? SquareS.SQ_G1 : SquareS.SQ_C1);
-            Square rto = Types.relative_square(c, cs == CastlingSideS.KING_SIDE ? SquareS.SQ_F1 : SquareS.SQ_D1);
+            Square kto = Types.Relative_square(c, cs == CastlingSideS.KING_SIDE ? SquareS.SQ_G1 : SquareS.SQ_C1);
+            Square rto = Types.Relative_square(c, cs == CastlingSideS.KING_SIDE ? SquareS.SQ_F1 : SquareS.SQ_D1);
 
             for (Square s = Math.Min(rfrom, rto); s <= Math.Max(rfrom, rto); ++s)
                 if (s != kfrom && s != rfrom)
@@ -950,18 +950,18 @@ namespace StockFish
             si.npMaterial[ColorS.WHITE] = si.npMaterial[ColorS.BLACK] = ValueS.VALUE_ZERO;
             si.psq = ScoreS.SCORE_ZERO;
 
-            si.checkersBB = attackers_to(king_square(sideToMove)) & pieces_color(Types.notColor(sideToMove));
+            si.checkersBB = attackers_to(king_square(sideToMove)) & pieces_color(Types.NotColor(sideToMove));
 
             for (Bitboard b = pieces(); b!=0; )
             {
-                Square s = BitBoard.pop_lsb(ref b);
+                Square s = BitBoard.Pop_lsb(ref b);
                 Piece pc = piece_on(s);
-                si.key ^= Zobrist.psq[Types.color_of(pc)][Types.type_of_piece(pc)][s];
-                si.psq += psq[Types.color_of(pc)][Types.type_of_piece(pc)][s];
+                si.key ^= Zobrist.psq[Types.Color_of(pc)][Types.Type_of_piece(pc)][s];
+                si.psq += psq[Types.Color_of(pc)][Types.Type_of_piece(pc)][s];
             }
 
             if (ep_square() != SquareS.SQ_NONE)
-                si.key ^= Zobrist.enpassant[Types.file_of(ep_square())];
+                si.key ^= Zobrist.enpassant[Types.File_of(ep_square())];
 
             if (sideToMove == ColorS.BLACK)
                 si.key ^= Zobrist.side;
@@ -970,8 +970,8 @@ namespace StockFish
 
             for (Bitboard b = pieces_piecetype(PieceTypeS.PAWN); b!=0; )
             {
-                Square s = BitBoard.pop_lsb(ref b);
-                si.pawnKey ^= Zobrist.psq[Types.color_of(piece_on(s))][PieceTypeS.PAWN][s];
+                Square s = BitBoard.Pop_lsb(ref b);
+                si.pawnKey ^= Zobrist.psq[Types.Color_of(piece_on(s))][PieceTypeS.PAWN][s];
             }
 
             for (Color c = ColorS.WHITE; c <= ColorS.BLACK; ++c)
@@ -995,14 +995,14 @@ namespace StockFish
             {
                 for (File f = FileS.FILE_A; f <= FileS.FILE_H; ++f)
                 {
-                    for (emptyCnt = 0; f <= FileS.FILE_H && empty(Types.make_square(f, r)); ++f)
+                    for (emptyCnt = 0; f <= FileS.FILE_H && empty(Types.Make_square(f, r)); ++f)
                         ++emptyCnt;
 
                     if (emptyCnt!=0)
                         ss.Append(emptyCnt.ToString());
 
                     if (f <= FileS.FILE_H)
-                        ss.Append(PieceToChar[piece_on(Types.make_square(f, r))]);                        
+                        ss.Append(PieceToChar[piece_on(Types.Make_square(f, r))]);                        
                 }
 
                 if (r > RankS.RANK_1)
@@ -1012,21 +1012,21 @@ namespace StockFish
             ss.Append(sideToMove == ColorS.WHITE ? " w " : " b ");
 
             if (can_castle_castleright(CastlingRightS.WHITE_OO) != 0)
-                ss.Append(chess960 != 0 ? Types.file_to_char(Types.file_of(castling_rook_square(Types.orCastlingRight(ColorS.WHITE, CastlingSideS.KING_SIDE))), false) : 'K');
+                ss.Append(chess960 != 0 ? Types.File_to_char(Types.File_of(castling_rook_square(Types.OrCastlingRight(ColorS.WHITE, CastlingSideS.KING_SIDE))), false) : 'K');
 
             if (can_castle_castleright(CastlingRightS.WHITE_OOO) != 0)
-                ss.Append(chess960 != 0 ? Types.file_to_char(Types.file_of(castling_rook_square(Types.orCastlingRight(ColorS.WHITE, CastlingSideS.QUEEN_SIDE))), false) : 'Q');
+                ss.Append(chess960 != 0 ? Types.File_to_char(Types.File_of(castling_rook_square(Types.OrCastlingRight(ColorS.WHITE, CastlingSideS.QUEEN_SIDE))), false) : 'Q');
 
             if (can_castle_castleright(CastlingRightS.BLACK_OO) != 0)
-                ss.Append(chess960 != 0 ? Types.file_to_char(Types.file_of(castling_rook_square(Types.orCastlingRight(ColorS.BLACK, CastlingSideS.KING_SIDE))), true) : 'k');
+                ss.Append(chess960 != 0 ? Types.File_to_char(Types.File_of(castling_rook_square(Types.OrCastlingRight(ColorS.BLACK, CastlingSideS.KING_SIDE))), true) : 'k');
 
             if (can_castle_castleright(CastlingRightS.BLACK_OOO) != 0)
-                ss.Append(chess960 != 0 ? Types.file_to_char(Types.file_of(castling_rook_square(Types.orCastlingRight(ColorS.BLACK, CastlingSideS.QUEEN_SIDE))), true) : 'q');
+                ss.Append(chess960 != 0 ? Types.File_to_char(Types.File_of(castling_rook_square(Types.OrCastlingRight(ColorS.BLACK, CastlingSideS.QUEEN_SIDE))), true) : 'q');
 
             if (0==can_castle_color(ColorS.WHITE) && 0==can_castle_color(ColorS.BLACK))
                 ss.Append('-');
 
-            ss.Append(st.epSquare == SquareS.SQ_NONE ? " - " : " " + Types.square_to_string(st.epSquare) + " ");
+            ss.Append(st.epSquare == SquareS.SQ_NONE ? " - " : " " + Types.Square_to_string(st.epSquare) + " ");
             ss.Append(st.rule50).Append(" ").Append(1 + (gamePly - (sideToMove == ColorS.BLACK ? 1 : 0)) / 2);
 
             return ss.ToString();
@@ -1049,7 +1049,7 @@ namespace StockFish
             for (Rank r = RankS.RANK_8; r >= RankS.RANK_1; --r)
             {
                 for (File f = FileS.FILE_A; f <= FileS.FILE_H; ++f)
-                    ss.Append(" | " + PieceToChar[piece_on(Types.make_square(f, r))]);
+                    ss.Append(" | " + PieceToChar[piece_on(Types.Make_square(f, r))]);
 
                 ss.Append(" |"+Types.newline+" +---+---+---+---+---+---+---+---+"+Types.newline);                
             }
@@ -1057,11 +1057,11 @@ namespace StockFish
             ss.Append(Types.newline+"Fen: "+fen()+Types.newline+"Key: "+st.key.ToString("X").ToUpper().PadLeft(16, '0')+Types.newline+"Checkers: ");
 
             for (Bitboard b = checkers(); b != 0; )
-                ss.Append(Types.square_to_string(BitBoard.pop_lsb(ref b)) + " ");                
+                ss.Append(Types.Square_to_string(BitBoard.Pop_lsb(ref b)) + " ");                
             
             ss.Append(Types.newline+"Legal moves: ");
             for (MoveList ml = new MoveList(this, GenTypeS.LEGAL); ml.mlist[ml.cur].move != MoveS.MOVE_NONE; ++ml)            
-                ss.Append(Notation.move_to_san(this, ml.move())+" ");            
+                ss.Append(Notation.move_to_san(this, ml.Move())+" ");            
             
             return ss.ToString();
         }
@@ -1079,13 +1079,13 @@ namespace StockFish
 
             // Pinners are sliders that give check when a pinned piece is removed
             pinners = (  (pieces_piecetype(  PieceTypeS.ROOK, PieceTypeS.QUEEN) & BitBoard.PseudoAttacks[PieceTypeS.ROOK  ][ksq])
-                     | (pieces_piecetype(PieceTypeS.BISHOP, PieceTypeS.QUEEN) & BitBoard.PseudoAttacks[PieceTypeS.BISHOP][ksq])) & pieces_color(Types.notColor(kingColor));
+                     | (pieces_piecetype(PieceTypeS.BISHOP, PieceTypeS.QUEEN) & BitBoard.PseudoAttacks[PieceTypeS.BISHOP][ksq])) & pieces_color(Types.NotColor(kingColor));
 
             while (pinners!=0)
             {
-                b = BitBoard.between_bb(ksq, BitBoard.pop_lsb(ref pinners)) & pieces();
+                b = BitBoard.Between_bb(ksq, BitBoard.Pop_lsb(ref pinners)) & pieces();
 
-                if (!BitBoard.more_than_one(b))
+                if (!BitBoard.More_than_one(b))
                     result |= b & pieces_color(c);
             }
             return result;
@@ -1098,53 +1098,53 @@ namespace StockFish
             return (attacks_from_pawn(s, ColorS.BLACK) & pieces_color_piecetype(ColorS.WHITE, PieceTypeS.PAWN))
                  | (attacks_from_pawn(s, ColorS.WHITE) & pieces_color_piecetype(ColorS.BLACK, PieceTypeS.PAWN))
                  | (attacks_from_square_piecetype(s, PieceTypeS.KNIGHT) & pieces_piecetype(PieceTypeS.KNIGHT))
-                 | (BitBoard.attacks_bb_SBBPT(s, occ, PieceTypeS.ROOK) & pieces_piecetype(PieceTypeS.ROOK, PieceTypeS.QUEEN))
-                 | (BitBoard.attacks_bb_SBBPT(s, occ, PieceTypeS.BISHOP) & pieces_piecetype(PieceTypeS.BISHOP, PieceTypeS.QUEEN))
+                 | (BitBoard.Attacks_bb_SBBPT(s, occ, PieceTypeS.ROOK) & pieces_piecetype(PieceTypeS.ROOK, PieceTypeS.QUEEN))
+                 | (BitBoard.Attacks_bb_SBBPT(s, occ, PieceTypeS.BISHOP) & pieces_piecetype(PieceTypeS.BISHOP, PieceTypeS.QUEEN))
                  | (attacks_from_square_piecetype(s, PieceTypeS.KING) & pieces_piecetype(PieceTypeS.KING));
         }
 
         /// Position::legal() tests whether a pseudo-legal move is legal       
         public bool legal(Move m, Bitboard pinned)
         {
-            Debug.Assert(Types.is_ok_move(m));
+            Debug.Assert(Types.Is_ok_move(m));
             Debug.Assert(pinned == pinned_pieces(sideToMove));
 
             Color us = sideToMove;
-            Square from = Types.from_sq(m);
+            Square from = Types.From_sq(m);
 
-            Debug.Assert(Types.color_of(moved_piece(m)) == us);
-            Debug.Assert(piece_on(king_square(us)) == Types.make_piece(us, PieceTypeS.KING));
+            Debug.Assert(Types.Color_of(moved_piece(m)) == us);
+            Debug.Assert(piece_on(king_square(us)) == Types.Make_piece(us, PieceTypeS.KING));
 
             // En passant captures are a tricky special case. Because they are rather
             // uncommon, we do it simply by testing whether the king is attacked after
             // the move is made.
-            if (Types.type_of_move(m) == MoveTypeS.ENPASSANT)
+            if (Types.Type_of_move(m) == MoveTypeS.ENPASSANT)
             {
                 Square ksq = king_square(us);
-                Square to = Types.to_sq(m);
-                Square capsq = to - Types.pawn_push(us);
+                Square to = Types.To_sq(m);
+                Square capsq = to - Types.Pawn_push(us);
                 Bitboard occ = (pieces() ^ BitBoard.SquareBB[from] ^ BitBoard.SquareBB[capsq]) | BitBoard.SquareBB[to];
 
                 Debug.Assert(to == ep_square());
-                Debug.Assert(moved_piece(m) == Types.make_piece(us, PieceTypeS.PAWN));
-                Debug.Assert(piece_on(capsq) == Types.make_piece(Types.notColor(us), PieceTypeS.PAWN));
+                Debug.Assert(moved_piece(m) == Types.Make_piece(us, PieceTypeS.PAWN));
+                Debug.Assert(piece_on(capsq) == Types.Make_piece(Types.NotColor(us), PieceTypeS.PAWN));
                 Debug.Assert(piece_on(to) == PieceS.NO_PIECE);
 
-                return 0==(BitBoard.attacks_bb_SBBPT(ksq, occ, PieceTypeS.ROOK) & pieces_color_piecetype(Types.notColor(us), PieceTypeS.QUEEN, PieceTypeS.ROOK))
-                    && 0==(BitBoard.attacks_bb_SBBPT(ksq, occ, PieceTypeS.BISHOP) & pieces_color_piecetype(Types.notColor(us), PieceTypeS.QUEEN, PieceTypeS.BISHOP));
+                return 0==(BitBoard.Attacks_bb_SBBPT(ksq, occ, PieceTypeS.ROOK) & pieces_color_piecetype(Types.NotColor(us), PieceTypeS.QUEEN, PieceTypeS.ROOK))
+                    && 0==(BitBoard.Attacks_bb_SBBPT(ksq, occ, PieceTypeS.BISHOP) & pieces_color_piecetype(Types.NotColor(us), PieceTypeS.QUEEN, PieceTypeS.BISHOP));
             }
 
             // If the moving piece is a king, check whether the destination
             // square is attacked by the opponent. Castling moves are checked
             // for legality during move generation.
-            if (Types.type_of_piece(piece_on(from)) == PieceTypeS.KING)
-                return Types.type_of_move(m) == MoveTypeS.CASTLING || 0==(attackers_to(Types.to_sq(m)) & pieces_color(Types.notColor(us)));
+            if (Types.Type_of_piece(piece_on(from)) == PieceTypeS.KING)
+                return Types.Type_of_move(m) == MoveTypeS.CASTLING || 0==(attackers_to(Types.To_sq(m)) & pieces_color(Types.NotColor(us)));
 
             // A non-king move is legal if and only if it is not pinned or it
             // is moving along the ray towards or away from the king.
             return 0==pinned 
                   || 0==(pinned & BitBoard.SquareBB[from])
-                  || BitBoard.aligned(from, Types.to_sq(m), king_square(us)) != 0;
+                  || BitBoard.Aligned(from, Types.To_sq(m), king_square(us)) != 0;
         }
 
         /// Position::is_pseudo_legal() takes a random move and tests whether the move
@@ -1153,21 +1153,21 @@ namespace StockFish
         public bool pseudo_legal(Move m)
         {                        
             Color us = sideToMove;
-            Square from = Types.from_sq(m);
-            Square to = Types.to_sq(m);
+            Square from = Types.From_sq(m);
+            Square to = Types.To_sq(m);
             Piece pc = moved_piece(m);
 
             // Use a slower but simpler function for uncommon cases
-            if (Types.type_of_move(m) != MoveTypeS.NORMAL)
-                return (new MoveList(this, GenTypeS.LEGAL)).contains(m);
+            if (Types.Type_of_move(m) != MoveTypeS.NORMAL)
+                return (new MoveList(this, GenTypeS.LEGAL)).Contains(m);
 
             // Is not a promotion, so promotion piece must be empty
-            if (Types.promotion_type(m) - 2 != PieceTypeS.NO_PIECE_TYPE)
+            if (Types.Promotion_type(m) - 2 != PieceTypeS.NO_PIECE_TYPE)
                 return false;
 
             // If the from square is not occupied by a piece belonging to the side to
             // move, the move is obviously not legal.
-            if (pc == PieceS.NO_PIECE || Types.color_of(pc) != us)
+            if (pc == PieceS.NO_PIECE || Types.Color_of(pc) != us)
                 return false;
 
             // The destination square cannot be occupied by a friendly piece
@@ -1175,21 +1175,21 @@ namespace StockFish
                 return false;
 
             // Handle the special case of a pawn move
-            if (Types.type_of_piece(pc) == PieceTypeS.PAWN)
+            if (Types.Type_of_piece(pc) == PieceTypeS.PAWN)
             {
                 // We have already handled promotion moves, so destination
                 // cannot be on the 8th/1st rank.
-                if (Types.rank_of(to) == Types.relative_rank_rank(us, RankS.RANK_8))
+                if (Types.Rank_of(to) == Types.Relative_rank_rank(us, RankS.RANK_8))
                     return false;
 
-                if (0==(attacks_from_pawn(from, us) & pieces_color(Types.notColor(us)) & BitBoard.SquareBB[to]) // Not a capture
+                if (0==(attacks_from_pawn(from, us) & pieces_color(Types.NotColor(us)) & BitBoard.SquareBB[to]) // Not a capture
 
-                    && !((from + Types.pawn_push(us) == to) && empty(to))       // Not a single push
+                    && !((from + Types.Pawn_push(us) == to) && empty(to))       // Not a single push
 
-                    && !((from + 2 * Types.pawn_push(us) == to)              // Not a double push
-                         && (Types.rank_of(from) == Types.relative_rank_rank(us, RankS.RANK_2))
+                    && !((from + 2 * Types.Pawn_push(us) == to)              // Not a double push
+                         && (Types.Rank_of(from) == Types.Relative_rank_rank(us, RankS.RANK_2))
                          && empty(to)
-                         && empty(to - Types.pawn_push(us))))
+                         && empty(to - Types.Pawn_push(us))))
                     return false;
             }
             else
@@ -1201,19 +1201,19 @@ namespace StockFish
             // kind of moves are filtered out here.
             if (checkers() != 0)
             {
-                if (Types.type_of_piece(pc) != PieceTypeS.KING)
+                if (Types.Type_of_piece(pc) != PieceTypeS.KING)
                 {
                     // Double check? In this case a king move is required
-                    if (BitBoard.more_than_one(checkers()))
+                    if (BitBoard.More_than_one(checkers()))
                         return false;
 
                     // Our move must be a blocking evasion or a capture of the checking piece
-                    if (0==((BitBoard.between_bb(BitBoard.lsb(checkers()), king_square(us)) | checkers()) & BitBoard.SquareBB[to]))
+                    if (0==((BitBoard.Between_bb(BitBoard.Lsb(checkers()), king_square(us)) | checkers()) & BitBoard.SquareBB[to]))
                         return false;
                 }
                 // In case of king moves under check we have to remove king so to catch
                 // as invalid moves like b1a1 when opposite queen is on c1.
-                else if ((attackers_to(to, pieces() ^ BitBoard.SquareBB[from]) & pieces_color(Types.notColor(us))) != 0)
+                else if ((attackers_to(to, pieces() ^ BitBoard.SquareBB[from]) & pieces_color(Types.NotColor(us))) != 0)
                     return false;
             }
             
@@ -1223,13 +1223,13 @@ namespace StockFish
         /// Position::move_gives_check() tests whether a pseudo-legal move gives a check        
         public bool gives_check(Move m, CheckInfo ci)
         {
-            Debug.Assert(Types.is_ok_move(m));
+            Debug.Assert(Types.Is_ok_move(m));
             Debug.Assert(ci.dcCandidates == discovered_check_candidates());
-            Debug.Assert(Types.color_of(moved_piece(m)) == sideToMove);
+            Debug.Assert(Types.Color_of(moved_piece(m)) == sideToMove);
 
-            Square from = Types.from_sq(m);
-            Square to = Types.to_sq(m);
-            PieceType pt = Types.type_of_piece(piece_on(from));
+            Square from = Types.From_sq(m);
+            Square to = Types.To_sq(m);
+            PieceType pt = Types.Type_of_piece(piece_on(from));
 
             // Is there a direct check?
             if ((ci.checkSq[pt] & BitBoard.SquareBB[to]) != 0)
@@ -1238,16 +1238,16 @@ namespace StockFish
             // Is there a discovered check?
             if (ci.dcCandidates != 0 
                 && (ci.dcCandidates & BitBoard.SquareBB[from]) != 0
-                && 0 == BitBoard.aligned(from, to, ci.ksq))            
+                && 0 == BitBoard.Aligned(from, to, ci.ksq))            
                     return true;            
                         
-            switch (Types.type_of_move(m))
+            switch (Types.Type_of_move(m))
             {
                 case MoveTypeS.NORMAL:
                     return false;
 
                 case MoveTypeS.PROMOTION:
-                    return (BitBoard.attacks_bb_PSBB(Types.promotion_type(m), to, pieces() ^ BitBoard.SquareBB[from]) & BitBoard.SquareBB[ci.ksq])!=0;
+                    return (BitBoard.Attacks_bb_PSBB(Types.Promotion_type(m), to, pieces() ^ BitBoard.SquareBB[from]) & BitBoard.SquareBB[ci.ksq])!=0;
 
                 // En passant capture with check? We have already handled the case
                 // of direct checks and ordinary discovered check, so the only case we
@@ -1255,22 +1255,22 @@ namespace StockFish
                 // the captured pawn.
                 case MoveTypeS.ENPASSANT:
                     {
-                        Square capsq = Types.make_square(Types.file_of(to), Types.rank_of(from));
+                        Square capsq = Types.Make_square(Types.File_of(to), Types.Rank_of(from));
                         Bitboard b = (pieces() ^ BitBoard.SquareBB[from] ^ BitBoard.SquareBB[capsq]) | BitBoard.SquareBB[to];
 
-                        return ((BitBoard.attacks_bb_SBBPT(ci.ksq, b, PieceTypeS.ROOK) & pieces_color_piecetype(sideToMove, PieceTypeS.QUEEN, PieceTypeS.ROOK))
-                            | (BitBoard.attacks_bb_SBBPT(ci.ksq, b, PieceTypeS.BISHOP) & pieces_color_piecetype(sideToMove, PieceTypeS.QUEEN, PieceTypeS.BISHOP))) != 0;
+                        return ((BitBoard.Attacks_bb_SBBPT(ci.ksq, b, PieceTypeS.ROOK) & pieces_color_piecetype(sideToMove, PieceTypeS.QUEEN, PieceTypeS.ROOK))
+                            | (BitBoard.Attacks_bb_SBBPT(ci.ksq, b, PieceTypeS.BISHOP) & pieces_color_piecetype(sideToMove, PieceTypeS.QUEEN, PieceTypeS.BISHOP))) != 0;
                     }
 
                 case MoveTypeS.CASTLING:
                     {
                         Square kfrom = from;
                         Square rfrom = to; // Castling is encoded as 'King captures the rook'
-                        Square kto = Types.relative_square(sideToMove, rfrom > kfrom ? SquareS.SQ_G1 : SquareS.SQ_C1);
-                        Square rto = Types.relative_square(sideToMove, rfrom > kfrom ? SquareS.SQ_F1 : SquareS.SQ_D1);
+                        Square kto = Types.Relative_square(sideToMove, rfrom > kfrom ? SquareS.SQ_G1 : SquareS.SQ_C1);
+                        Square rto = Types.Relative_square(sideToMove, rfrom > kfrom ? SquareS.SQ_F1 : SquareS.SQ_D1);
 
                         return (BitBoard.PseudoAttacks[PieceTypeS.ROOK][rto] & BitBoard.SquareBB[ci.ksq]) != 0
-                                && (BitBoard.attacks_bb_SBBPT(rto, (pieces() ^ BitBoard.SquareBB[kfrom] ^ BitBoard.SquareBB[rfrom]) | BitBoard.SquareBB[rto] | BitBoard.SquareBB[kto], PieceTypeS.ROOK) & BitBoard.SquareBB[ci.ksq]) != 0;
+                                && (BitBoard.Attacks_bb_SBBPT(rto, (pieces() ^ BitBoard.SquareBB[kfrom] ^ BitBoard.SquareBB[rfrom]) | BitBoard.SquareBB[rto] | BitBoard.SquareBB[kto], PieceTypeS.ROOK) & BitBoard.SquareBB[ci.ksq]) != 0;
                     }
 
                 default:
@@ -1292,7 +1292,7 @@ namespace StockFish
 
         public void do_move(Move m, StateInfo newSt, CheckInfo ci, bool moveIsCheck)
         {
-            Debug.Assert(Types.is_ok_move(m));
+            Debug.Assert(Types.Is_ok_move(m));
             Debug.Assert(newSt != st);
 
             ++nodes;
@@ -1324,20 +1324,20 @@ namespace StockFish
             ++st.pliesFromNull;
 
             Color us = sideToMove;
-            Color them = Types.notColor(us);
-            Square from = Types.from_sq(m);
-            Square to = Types.to_sq(m);
+            Color them = Types.NotColor(us);
+            Square from = Types.From_sq(m);
+            Square to = Types.To_sq(m);
             Piece pc = piece_on(from);
-            PieceType pt = Types.type_of_piece(pc);
-            PieceType capture = Types.type_of_move(m) == MoveTypeS.ENPASSANT ? PieceTypeS.PAWN : Types.type_of_piece(piece_on(to));
+            PieceType pt = Types.Type_of_piece(pc);
+            PieceType capture = Types.Type_of_move(m) == MoveTypeS.ENPASSANT ? PieceTypeS.PAWN : Types.Type_of_piece(piece_on(to));
 
-            Debug.Assert(Types.color_of(pc) == us);
-            Debug.Assert(piece_on(to) == PieceS.NO_PIECE || Types.color_of(piece_on(to)) == them || Types.type_of_move(m) == MoveTypeS.CASTLING);
+            Debug.Assert(Types.Color_of(pc) == us);
+            Debug.Assert(piece_on(to) == PieceS.NO_PIECE || Types.Color_of(piece_on(to)) == them || Types.Type_of_move(m) == MoveTypeS.CASTLING);
             Debug.Assert(capture != PieceTypeS.KING);
 
-            if (Types.type_of_move(m) == MoveTypeS.CASTLING)
+            if (Types.Type_of_move(m) == MoveTypeS.CASTLING)
             {
-                Debug.Assert(pc == Types.make_piece(us, PieceTypeS.KING));
+                Debug.Assert(pc == Types.Make_piece(us, PieceTypeS.KING));
 
                 Square rfrom, rto;
                 do_castling(from, ref to, out rfrom, out rto, true);
@@ -1355,15 +1355,15 @@ namespace StockFish
                 // update non-pawn material.
                 if (capture == PieceTypeS.PAWN)
                 {
-                    if (Types.type_of_move(m) == MoveTypeS.ENPASSANT)
+                    if (Types.Type_of_move(m) == MoveTypeS.ENPASSANT)
                     {
-                        capsq += Types.pawn_push(them);
+                        capsq += Types.Pawn_push(them);
 
                         Debug.Assert(pt == PieceTypeS.PAWN);
                         Debug.Assert(to == st.epSquare);
-                        Debug.Assert(Types.relative_rank_square(us, to) == RankS.RANK_6);
+                        Debug.Assert(Types.Relative_rank_square(us, to) == RankS.RANK_6);
                         Debug.Assert(piece_on(to) == PieceS.NO_PIECE);
-                        Debug.Assert(piece_on(capsq) == Types.make_piece(them, PieceTypeS.PAWN));
+                        Debug.Assert(piece_on(capsq) == Types.Make_piece(them, PieceTypeS.PAWN));
 
                         board[capsq] = PieceS.NO_PIECE;
                     }
@@ -1394,7 +1394,7 @@ namespace StockFish
             // Reset en passant square
             if (st.epSquare != SquareS.SQ_NONE)
             {
-                k ^= Zobrist.enpassant[Types.file_of(st.epSquare)];
+                k ^= Zobrist.enpassant[Types.File_of(st.epSquare)];
                 st.epSquare = SquareS.SQ_NONE;
             }
 
@@ -1407,7 +1407,7 @@ namespace StockFish
             }
 
             // Move the piece. The tricky Chess960 castle is handled earlier
-            if (Types.type_of_move(m) != MoveTypeS.CASTLING)
+            if (Types.Type_of_move(m) != MoveTypeS.CASTLING)
                 move_piece(from, to, us, pt);
 
             // If the moving piece is a pawn do some special extra work
@@ -1415,17 +1415,17 @@ namespace StockFish
             {
                 // Set en-passant square, only if moved pawn can be captured
                 if ((to ^ from) == 16
-                    && (attacks_from_pawn(from + Types.pawn_push(us), us) & pieces_color_piecetype(them, PieceTypeS.PAWN)) != 0)
+                    && (attacks_from_pawn(from + Types.Pawn_push(us), us) & pieces_color_piecetype(them, PieceTypeS.PAWN)) != 0)
                 {
                     st.epSquare = (from + to) / 2;
-                    k ^= Zobrist.enpassant[Types.file_of(st.epSquare)];
+                    k ^= Zobrist.enpassant[Types.File_of(st.epSquare)];
                 }
 
-                else if (Types.type_of_move(m) == MoveTypeS.PROMOTION)
+                else if (Types.Type_of_move(m) == MoveTypeS.PROMOTION)
                 {
-                    PieceType promotion = Types.promotion_type(m);
+                    PieceType promotion = Types.Promotion_type(m);
 
-                    Debug.Assert(Types.relative_rank_square(us, to) == RankS.RANK_8);
+                    Debug.Assert(Types.Relative_rank_square(us, to) == RankS.RANK_8);
                     Debug.Assert(promotion >= PieceTypeS.KNIGHT && promotion <= PieceTypeS.QUEEN);
 
                     remove_piece(to, us, PieceTypeS.PAWN);
@@ -1465,7 +1465,7 @@ namespace StockFish
 
             if (moveIsCheck)
             {
-                if (Types.type_of_move(m) != MoveTypeS.NORMAL)
+                if (Types.Type_of_move(m) != MoveTypeS.NORMAL)
                     st.checkersBB = attackers_to(king_square(them)) & pieces_color(us);
                 else
                 {
@@ -1485,7 +1485,7 @@ namespace StockFish
                 }
             }
 
-            sideToMove = Types.notColor(sideToMove);
+            sideToMove = Types.NotColor(sideToMove);
 
             Debug.Assert(pos_is_ok());
         }
@@ -1494,31 +1494,31 @@ namespace StockFish
         /// be restored to exactly the same state as before the move was made.  
         public void undo_move(Move m)
         {
-            Debug.Assert(Types.is_ok_move(m));
+            Debug.Assert(Types.Is_ok_move(m));
 
-            sideToMove = Types.notColor(sideToMove);
+            sideToMove = Types.NotColor(sideToMove);
 
             Color us = sideToMove;           
-            Square from = Types.from_sq(m);
-            Square to = Types.to_sq(m);
-            PieceType pt = Types.type_of_piece(piece_on(to));            
+            Square from = Types.From_sq(m);
+            Square to = Types.To_sq(m);
+            PieceType pt = Types.Type_of_piece(piece_on(to));            
 
-            Debug.Assert(empty(from) || Types.type_of_move(m) == MoveTypeS.CASTLING);
+            Debug.Assert(empty(from) || Types.Type_of_move(m) == MoveTypeS.CASTLING);
             Debug.Assert(st.capturedType != PieceTypeS.KING);
 
-            if (Types.type_of_move(m) == MoveTypeS.PROMOTION)
+            if (Types.Type_of_move(m) == MoveTypeS.PROMOTION)
             {                
-                Debug.Assert(pt==Types.promotion_type(m));
-                Debug.Assert(Types.relative_rank_square(us, to) == RankS.RANK_8);
-                Debug.Assert(Types.promotion_type(m) >= PieceTypeS.KNIGHT && Types.promotion_type(m) <= PieceTypeS.QUEEN);
+                Debug.Assert(pt==Types.Promotion_type(m));
+                Debug.Assert(Types.Relative_rank_square(us, to) == RankS.RANK_8);
+                Debug.Assert(Types.Promotion_type(m) >= PieceTypeS.KNIGHT && Types.Promotion_type(m) <= PieceTypeS.QUEEN);
 
-                remove_piece(to, us, Types.promotion_type(m));
+                remove_piece(to, us, Types.Promotion_type(m));
                 put_piece(to, us, PieceTypeS.PAWN);
 
                 pt = PieceTypeS.PAWN;
             }
 
-            if (Types.type_of_move(m) == MoveTypeS.CASTLING)
+            if (Types.Type_of_move(m) == MoveTypeS.CASTLING)
             {
                 Square rfrom, rto;
                 do_castling(from, ref to, out rfrom, out rto, false);
@@ -1531,17 +1531,17 @@ namespace StockFish
                 {
                     Square capsq = to;
 
-                    if (Types.type_of_move(m) == MoveTypeS.ENPASSANT)
+                    if (Types.Type_of_move(m) == MoveTypeS.ENPASSANT)
                     {
-                        capsq -= Types.pawn_push(us);
+                        capsq -= Types.Pawn_push(us);
 
                         Debug.Assert(pt == PieceTypeS.PAWN);
                         Debug.Assert(to == st.previous.epSquare);
-                        Debug.Assert(Types.relative_rank_square(us, to) == RankS.RANK_6);
+                        Debug.Assert(Types.Relative_rank_square(us, to) == RankS.RANK_6);
                         Debug.Assert(piece_on(capsq) == PieceS.NO_PIECE);
                     }
 
-                    put_piece(capsq, Types.notColor(us), st.capturedType); // Restore the captured piece
+                    put_piece(capsq, Types.NotColor(us), st.capturedType); // Restore the captured piece
                 }
             }
 
@@ -1558,8 +1558,8 @@ namespace StockFish
         {
             bool kingSide = to > from;
             rfrom = to; // Castling is encoded as "king captures friendly rook"
-            rto = Types.relative_square(sideToMove, kingSide ? SquareS.SQ_F1 : SquareS.SQ_D1);
-            to = Types.relative_square(sideToMove, kingSide ? SquareS.SQ_G1 : SquareS.SQ_C1);
+            rto = Types.Relative_square(sideToMove, kingSide ? SquareS.SQ_F1 : SquareS.SQ_D1);
+            to = Types.Relative_square(sideToMove, kingSide ? SquareS.SQ_G1 : SquareS.SQ_C1);
 
             // Remove both pieces first since squares could overlap in Chess960
             remove_piece(Do ? from : to, sideToMove, PieceTypeS.KING);
@@ -1582,7 +1582,7 @@ namespace StockFish
 
             if (st.epSquare != SquareS.SQ_NONE)
             {
-                st.key ^= Zobrist.enpassant[Types.file_of(st.epSquare)];
+                st.key ^= Zobrist.enpassant[Types.File_of(st.epSquare)];
                 st.epSquare = SquareS.SQ_NONE;
             }
 
@@ -1591,7 +1591,7 @@ namespace StockFish
             ++st.rule50;
             st.pliesFromNull = 0;
 
-            sideToMove = Types.notColor(sideToMove);
+            sideToMove = Types.NotColor(sideToMove);
 
             Debug.Assert(pos_is_ok());
         }
@@ -1602,18 +1602,18 @@ namespace StockFish
             Debug.Assert(checkers() == 0);
 
             st = st.previous;
-            sideToMove = Types.notColor(sideToMove);
+            sideToMove = Types.NotColor(sideToMove);
         }
 
         /// Position::see() is a static exchange evaluator: It tries to estimate the
         /// material gain or loss resulting from a move.
         public int see_sign(Move m)
         {
-            Debug.Assert(Types.is_ok_move(m));
+            Debug.Assert(Types.Is_ok_move(m));
             // Early return if SEE cannot be negative because captured piece value
             // is not less then capturing one. Note that king moves always return
             // here because king midgame value is set to 0.
-            if (Position.PieceValue[PhaseS.MG][moved_piece(m)] <= Position.PieceValue[PhaseS.MG][piece_on(Types.to_sq(m))])
+            if (Position.PieceValue[PhaseS.MG][moved_piece(m)] <= Position.PieceValue[PhaseS.MG][piece_on(Types.To_sq(m))])
                 return ValueS.VALUE_KNOWN_WIN;
 
             return see(m);
@@ -1628,24 +1628,24 @@ namespace StockFish
             PieceType captured;
             Color stm;
 
-            Debug.Assert(Types.is_ok_move(m));
+            Debug.Assert(Types.Is_ok_move(m));
 
-            from = Types.from_sq(m);
-            to = Types.to_sq(m);
+            from = Types.From_sq(m);
+            to = Types.To_sq(m);
             swapList[0] = PieceValue[PhaseS.MG][piece_on(to)];
-            stm = Types.color_of(piece_on(from));
+            stm = Types.Color_of(piece_on(from));
             occupied = pieces() ^ BitBoard.SquareBB[from];
 
             // Castling moves are implemented as king capturing the rook so cannot be
             // handled correctly. Simply return 0 that is always the correct value
             // unless in the rare case the rook ends up under attack.
-            if (Types.type_of_move(m) == MoveTypeS.CASTLING)
+            if (Types.Type_of_move(m) == MoveTypeS.CASTLING)
                 return ValueS.VALUE_ZERO;
 
-            if (Types.type_of_move(m) == MoveTypeS.ENPASSANT)
+            if (Types.Type_of_move(m) == MoveTypeS.ENPASSANT)
             {
                 // Remove the captured pawn
-                occupied ^= BitBoard.SquareBB[to - Types.pawn_push(stm)]; // Remove the captured pawn
+                occupied ^= BitBoard.SquareBB[to - Types.Pawn_push(stm)]; // Remove the captured pawn
                 swapList[0] = PieceValue[PhaseS.MG][PieceTypeS.PAWN];
             }
 
@@ -1655,7 +1655,7 @@ namespace StockFish
             attackers = attackers_to(to, occupied) & occupied;
 
             // If the opponent has no attackers we are finished
-            stm = Types.notColor(stm);
+            stm = Types.NotColor(stm);
             stmAttackers = attackers & pieces_color(stm);
             if (0==stmAttackers)
                 return swapList[0];
@@ -1666,7 +1666,7 @@ namespace StockFish
             // destination square, where the sides alternately capture, and always
             // capture with the least valuable piece. After each capture, we look for
             // new X-ray attacks from behind the capturing piece.                        
-            captured = Types.type_of_piece(piece_on(from));
+            captured = Types.Type_of_piece(piece_on(from));
 
             do
             {
@@ -1687,7 +1687,7 @@ namespace StockFish
                     break;
                 }
 
-                stm = Types.notColor(stm);
+                stm = Types.NotColor(stm);
                 stmAttackers = attackers & pieces_color(stm);
                 ++slIndex;
             } while (stmAttackers != 0);            
@@ -1708,7 +1708,7 @@ namespace StockFish
                   && (non_pawn_material(ColorS.WHITE) + non_pawn_material(ColorS.BLACK) <= ValueS.BishopValueMg))
                   return true;
 
-            if (st.rule50 > 99 && (0==checkers() || (new MoveList(this, GenTypeS.LEGAL)).size()!=0))
+            if (st.rule50 > 99 && (0==checkers() || (new MoveList(this, GenTypeS.LEGAL)).Size()!=0))
                 return true;
 
             StateInfo stp = st;
@@ -1795,7 +1795,7 @@ namespace StockFish
               || piece_on(king_square(ColorS.WHITE)) != PieceS.W_KING
               || piece_on(king_square(ColorS.BLACK)) != PieceS.B_KING
               || (ep_square() != SquareS.SQ_NONE
-                  && Types.relative_rank_square(sideToMove, ep_square()) != RankS.RANK_6))
+                  && Types.Relative_rank_square(sideToMove, ep_square()) != RankS.RANK_6))
                         return false;
 
             if (step>0 && testBitboards)
@@ -1838,8 +1838,8 @@ namespace StockFish
                 int[] kingCount = new int[2];
 
                 for (Square s = SquareS.SQ_A1; s <= SquareS.SQ_H8; s++)
-                    if (Types.type_of_piece(piece_on(s)) == PieceTypeS.KING)
-                        kingCount[Types.color_of(piece_on(s))]++;
+                    if (Types.Type_of_piece(piece_on(s)) == PieceTypeS.KING)
+                        kingCount[Types.Color_of(piece_on(s))]++;
 
                 if (kingCount[0] != 1 || kingCount[1] != 1)
                     return false;
@@ -1847,7 +1847,7 @@ namespace StockFish
 
             if (step>0 && testKingCapture){
                 ++step;
-                if ((attackers_to(king_square(Types.notColor(sideToMove))) & pieces_color(sideToMove))!=0)
+                if ((attackers_to(king_square(Types.NotColor(sideToMove))) & pieces_color(sideToMove))!=0)
                     return false;
             }
 
@@ -1855,7 +1855,7 @@ namespace StockFish
                 ++step;
                 for (Color c = ColorS.WHITE; c <= ColorS.BLACK; ++c)
                     for (PieceType pt = PieceTypeS.PAWN; pt <= PieceTypeS.KING; ++pt)
-                        if (pieceCount[c][pt] != Bitcount.popcount(pieces_color_piecetype(c, pt)))
+                        if (pieceCount[c][pt] != Bitcount.Popcount(pieces_color_piecetype(c, pt)))
                             return false;
             }
 
@@ -1864,7 +1864,7 @@ namespace StockFish
                 for (Color c = ColorS.WHITE; c <= ColorS.BLACK; ++c)
                     for (PieceType pt = PieceTypeS.PAWN; pt <= PieceTypeS.KING; ++pt)
                         for (int i = 0; i < pieceCount[c][pt];  ++i)
-                            if (   board[pieceList[c][pt][i]] != Types.make_piece(c, pt)
+                            if (   board[pieceList[c][pt][i]] != Types.Make_piece(c, pt)
                                 || index[pieceList[c][pt][i]] != i)
                                 return false;
             }
@@ -1874,12 +1874,12 @@ namespace StockFish
                 for (Color c = ColorS.WHITE; c <= ColorS.BLACK; ++c)
                     for (CastlingSide s = CastlingSideS.KING_SIDE; s <= CastlingSideS.QUEEN_SIDE; s = (CastlingSide)(s + 1))
                     {
-                        if (0==can_castle_castleright(Types.orCastlingRight( c, s)))
+                        if (0==can_castle_castleright(Types.OrCastlingRight( c, s)))
                             continue;
 
-                        if ((castlingRightsMask[king_square(c)] & Types.orCastlingRight(c, s)) != Types.orCastlingRight(c, s)
-                            || piece_on(castlingRookSquare[Types.orCastlingRight(c, s)]) != Types.make_piece(c, PieceTypeS.ROOK)
-                            || castlingRightsMask[castlingRookSquare[Types.orCastlingRight(c, s)]] != (Types.orCastlingRight(c, s)))
+                        if ((castlingRightsMask[king_square(c)] & Types.OrCastlingRight(c, s)) != Types.OrCastlingRight(c, s)
+                            || piece_on(castlingRookSquare[Types.OrCastlingRight(c, s)]) != Types.Make_piece(c, PieceTypeS.ROOK)
+                            || castlingRightsMask[castlingRookSquare[Types.OrCastlingRight(c, s)]] != (Types.OrCastlingRight(c, s)))
                             return false;
                     }
             }

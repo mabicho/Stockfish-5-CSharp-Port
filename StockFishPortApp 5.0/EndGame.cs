@@ -15,15 +15,16 @@ using Rank = System.Int32;
 
 namespace StockFish
 {
+    /// <summary>
     /// Endgame functions can be of two types depending on whether they return a
     /// Value or a ScaleFactor. Type eg_fun<int>::type returns either ScaleFactor
     /// or Value depending on whether the template parameter is 0 or 1.
+    /// </summary>
     public delegate Int32 EndgameFunction(Position pos);
 
     public struct EndgameTypeS
     {
         // Evaluation functions
-        
         public const int KNNK = 0;  // KNN vs K
         public const int KXK = 1;   // Generic "mate lone king" eval
         public const int KBNK = 2;  // KBN vs K
@@ -94,7 +95,7 @@ namespace StockFish
         {
             this.endgameType = E;
             this.strongSide = c;
-            this.weakSide = Types.notColor(c);
+            this.weakSide = Types.NotColor(c);
         }
 
         public Color color()
@@ -112,11 +113,11 @@ namespace StockFish
 
             Debug.Assert(pos.count(strongSide, PieceTypeS.PAWN) == 1);
 
-            if (Types.file_of(pos.list(strongSide, PieceTypeS.PAWN)[0]) >= FileS.FILE_E)
+            if (Types.File_of(pos.list(strongSide, PieceTypeS.PAWN)[0]) >= FileS.FILE_E)
                 sq = (Square)(sq ^ 7); // Mirror SQ_H1 -> SQ_A1
 
             if (strongSide == ColorS.BLACK)
-                sq = Types.notSquare(sq);
+                sq = Types.NotSquare(sq);
 
             return sq;
         }
@@ -216,7 +217,7 @@ namespace StockFish
             Debug.Assert(0 == pos.checkers()); // Eval is never called when in check
 
             // Stalemate detection with lone king
-            if (pos.side_to_move() == weakSide && 0==(new MoveList(pos, GenTypeS.LEGAL)).size())
+            if (pos.side_to_move() == weakSide && 0==(new MoveList(pos, GenTypeS.LEGAL)).Size())
                 return ValueS.VALUE_DRAW;
 
             Square winnerKSq = pos.king_square(strongSide);
@@ -225,7 +226,7 @@ namespace StockFish
             Value result = pos.non_pawn_material(strongSide)
                          + pos.count(strongSide, PieceTypeS.PAWN) * ValueS.PawnValueEg
                          + PushToEdges[loserKSq]
-                         + PushClose[BitBoard.square_distance(winnerKSq, loserKSq)];
+                         + PushClose[BitBoard.Square_distance(winnerKSq, loserKSq)];
 
             if (pos.count(strongSide, PieceTypeS.QUEEN) != 0
                 || pos.count(strongSide, PieceTypeS.ROOK) != 0
@@ -252,14 +253,14 @@ namespace StockFish
             // kbnk_mate_table() tries to drive toward corners A1 or H8. If we have a
             // bishop that cannot reach the above squares, we flip the kings in order
             // to drive the enemy toward corners A8 or H1.
-            if (Types.opposite_colors(bishopSq, SquareS.SQ_A1))
+            if (Types.Opposite_colors(bishopSq, SquareS.SQ_A1))
             {
-                winnerKSq = Types.notSquare(winnerKSq);
-                loserKSq = Types.notSquare(loserKSq);
+                winnerKSq = Types.NotSquare(winnerKSq);
+                loserKSq = Types.NotSquare(loserKSq);
             }
 
             Value result = ValueS.VALUE_KNOWN_WIN
-                        + PushClose[BitBoard.square_distance(winnerKSq, loserKSq)]
+                        + PushClose[BitBoard.Square_distance(winnerKSq, loserKSq)]
                         + PushToCorners[loserKSq];
 
             return strongSide == pos.side_to_move() ? result : -result;
@@ -278,10 +279,10 @@ namespace StockFish
 
             Color us = strongSide == pos.side_to_move() ? ColorS.WHITE : ColorS.BLACK;
 
-            if (!Bitbases.probe_kpk(wksq, psq, bksq, us))
+            if (!Bitbases.Probe_kpk(wksq, psq, bksq, us))
                 return ValueS.VALUE_DRAW;
 
-            Value result = ValueS.VALUE_KNOWN_WIN + ValueS.PawnValueEg + Types.rank_of(psq);
+            Value result = ValueS.VALUE_KNOWN_WIN + ValueS.PawnValueEg + Types.Rank_of(psq);
 
             return strongSide == pos.side_to_move() ? result : -result;
         }
@@ -295,35 +296,35 @@ namespace StockFish
             Debug.Assert(verify_material(pos, strongSide, ValueS.RookValueMg, 0));
             Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 1));
 
-            Square wksq = Types.relative_square(strongSide, pos.king_square(strongSide));
-            Square bksq = Types.relative_square(strongSide, pos.king_square(weakSide));
-            Square rsq = Types.relative_square(strongSide, pos.list(strongSide, PieceTypeS.ROOK)[0]);
-            Square psq = Types.relative_square(strongSide, pos.list(weakSide, PieceTypeS.PAWN)[0]);
+            Square wksq = Types.Relative_square(strongSide, pos.king_square(strongSide));
+            Square bksq = Types.Relative_square(strongSide, pos.king_square(weakSide));
+            Square rsq = Types.Relative_square(strongSide, pos.list(strongSide, PieceTypeS.ROOK)[0]);
+            Square psq = Types.Relative_square(strongSide, pos.list(weakSide, PieceTypeS.PAWN)[0]);
 
-            Square queeningSq = Types.make_square(Types.file_of(psq), RankS.RANK_1);
+            Square queeningSq = Types.Make_square(Types.File_of(psq), RankS.RANK_1);
             Value result;
 
             // If the stronger side's king is in front of the pawn, it's a win
-            if (wksq < psq && Types.file_of(wksq) == Types.file_of(psq))
-                result = ValueS.RookValueEg - (BitBoard.square_distance(wksq, psq));
+            if (wksq < psq && Types.File_of(wksq) == Types.File_of(psq))
+                result = ValueS.RookValueEg - (BitBoard.Square_distance(wksq, psq));
 
             // If the weaker side's king is too far from the pawn and the rook,
             // it's a win
-            else if (BitBoard.square_distance(bksq, psq) >= 3 + ((pos.side_to_move() == weakSide)?1:0)
-                    && BitBoard.square_distance(bksq, rsq) >= 3)
-                result = ValueS.RookValueEg - (BitBoard.square_distance(wksq, psq));
+            else if (BitBoard.Square_distance(bksq, psq) >= 3 + ((pos.side_to_move() == weakSide)?1:0)
+                    && BitBoard.Square_distance(bksq, rsq) >= 3)
+                result = ValueS.RookValueEg - (BitBoard.Square_distance(wksq, psq));
 
             // If the pawn is far advanced and supported by the defending king,
             // the position is drawish
-            else if (Types.rank_of(bksq) <= RankS.RANK_3
-                    && BitBoard.square_distance(bksq, psq) == 1
-                    && Types.rank_of(wksq) >= RankS.RANK_4
-                    && BitBoard.square_distance(wksq, psq) > 2 + ((pos.side_to_move() == strongSide)?1:0))
-                result = 80 - 8*BitBoard.square_distance(wksq, psq);
+            else if (Types.Rank_of(bksq) <= RankS.RANK_3
+                    && BitBoard.Square_distance(bksq, psq) == 1
+                    && Types.Rank_of(wksq) >= RankS.RANK_4
+                    && BitBoard.Square_distance(wksq, psq) > 2 + ((pos.side_to_move() == strongSide)?1:0))
+                result = 80 - 8*BitBoard.Square_distance(wksq, psq);
             else
-                result = (Value)(200) - 8 * (BitBoard.square_distance(wksq, psq + SquareS.DELTA_S)
-                                  - BitBoard.square_distance(bksq, psq + SquareS.DELTA_S)
-                                  - BitBoard.square_distance(psq, queeningSq));
+                result = (Value)(200) - 8 * (BitBoard.Square_distance(wksq, psq + SquareS.DELTA_S)
+                                  - BitBoard.Square_distance(bksq, psq + SquareS.DELTA_S)
+                                  - BitBoard.Square_distance(psq, queeningSq));
 
             return strongSide == pos.side_to_move() ? result : -result;
         }
@@ -349,7 +350,7 @@ namespace StockFish
 
             Square bksq = pos.king_square(weakSide);
             Square bnsq = pos.list(weakSide, PieceTypeS.KNIGHT)[0];
-            Value result = (PushToEdges[bksq] + PushAway[BitBoard.square_distance(bksq, bnsq)]);
+            Value result = (PushToEdges[bksq] + PushAway[BitBoard.Square_distance(bksq, bnsq)]);
             return strongSide == pos.side_to_move() ? result : -result;
         }
 
@@ -366,10 +367,10 @@ namespace StockFish
             Square loserKSq = pos.king_square(weakSide);
             Square pawnSq = pos.list(weakSide, PieceTypeS.PAWN)[0];
 
-            Value result = (PushClose[BitBoard.square_distance(winnerKSq, loserKSq)]);
+            Value result = (PushClose[BitBoard.Square_distance(winnerKSq, loserKSq)]);
 
-            if (Types.relative_rank_square(weakSide, pawnSq) != RankS.RANK_7
-              || BitBoard.square_distance(loserKSq, pawnSq) != 1
+            if (Types.Relative_rank_square(weakSide, pawnSq) != RankS.RANK_7
+              || BitBoard.Square_distance(loserKSq, pawnSq) != 1
               || 0==((BitBoard.FileABB | BitBoard.FileCBB | BitBoard.FileFBB | BitBoard.FileHBB) & BitBoard.SquareBB[pawnSq]))
                 result += ValueS.QueenValueEg - ValueS.PawnValueEg;
 
@@ -391,7 +392,7 @@ namespace StockFish
             Value result = ValueS.QueenValueEg
                         - ValueS.RookValueEg
                         + PushToEdges[loserKSq]
-                        + PushClose[BitBoard.square_distance(winnerKSq, loserKSq)];
+                        + PushClose[BitBoard.Square_distance(winnerKSq, loserKSq)];
 
             return strongSide == pos.side_to_move() ? result : -result;
         }
@@ -415,29 +416,29 @@ namespace StockFish
             // be detected even when the weaker side has some pawns.
 
             Bitboard pawns = pos.pieces_color_piecetype(strongSide, PieceTypeS.PAWN);
-            File pawnFile = Types.file_of(pos.list(strongSide, PieceTypeS.PAWN)[0]);
+            File pawnFile = Types.File_of(pos.list(strongSide, PieceTypeS.PAWN)[0]);
 
             // All pawns are on a single rook file ?
             if ((pawnFile == FileS.FILE_A || pawnFile == FileS.FILE_H)
-              && 0==(pawns & ~BitBoard.file_bb_file(pawnFile)))
+              && 0==(pawns & ~BitBoard.File_bb_file(pawnFile)))
             {
                 Square bishopSq = pos.list(strongSide, PieceTypeS.BISHOP)[0];
-                Square queeningSq = Types.relative_square(strongSide, Types.make_square(pawnFile, RankS.RANK_8));
+                Square queeningSq = Types.Relative_square(strongSide, Types.Make_square(pawnFile, RankS.RANK_8));
                 Square kingSq = pos.king_square(weakSide);
 
-                if (Types.opposite_colors(queeningSq, bishopSq)
-                    && BitBoard.square_distance(queeningSq, kingSq) <= 1)                                   
+                if (Types.Opposite_colors(queeningSq, bishopSq)
+                    && BitBoard.Square_distance(queeningSq, kingSq) <= 1)                                   
                     return ScaleFactorS.SCALE_FACTOR_DRAW;                
             }
 
             // If all the pawns are on the same B or G file, then it's potentially a draw
             if ((pawnFile == FileS.FILE_B || pawnFile == FileS.FILE_G)
-                && 0==(pos.pieces_piecetype(PieceTypeS.PAWN) & ~BitBoard.file_bb_file(pawnFile))
+                && 0==(pos.pieces_piecetype(PieceTypeS.PAWN) & ~BitBoard.File_bb_file(pawnFile))
                 && pos.non_pawn_material(weakSide) == 0
                 && pos.count(weakSide, PieceTypeS.PAWN) >= 1)
             {
                 // Get weakSide pawn that is closest to the home rank
-                Square weakPawnSq = BitBoard.backmost_sq(weakSide, pos.pieces_color_piecetype(weakSide, PieceTypeS.PAWN));
+                Square weakPawnSq = BitBoard.Backmost_sq(weakSide, pos.pieces_color_piecetype(weakSide, PieceTypeS.PAWN));
 
                 Square strongKingSq = pos.king_square(strongSide);
                 Square weakKingSq = pos.king_square(weakSide);
@@ -445,12 +446,12 @@ namespace StockFish
 
                 // There's potential for a draw if our pawn is blocked on the 7th rank,
                 // the bishop cannot attack it or they only have one pawn left
-                if (Types.relative_rank_square(strongSide, weakPawnSq) == RankS.RANK_7
-                    && (pos.pieces_color_piecetype(strongSide, PieceTypeS.PAWN) & BitBoard.SquareBB[(weakPawnSq + Types.pawn_push(weakSide))])!=0
-                    && (Types.opposite_colors(bishopSq, weakPawnSq) || pos.count(strongSide, PieceTypeS.PAWN) == 1))
+                if (Types.Relative_rank_square(strongSide, weakPawnSq) == RankS.RANK_7
+                    && (pos.pieces_color_piecetype(strongSide, PieceTypeS.PAWN) & BitBoard.SquareBB[(weakPawnSq + Types.Pawn_push(weakSide))])!=0
+                    && (Types.Opposite_colors(bishopSq, weakPawnSq) || pos.count(strongSide, PieceTypeS.PAWN) == 1))
                 {
-                    int strongKingDist = BitBoard.square_distance(weakPawnSq, strongKingSq);
-                    int weakKingDist = BitBoard.square_distance(weakPawnSq, weakKingSq);
+                    int strongKingDist = BitBoard.Square_distance(weakPawnSq, strongKingSq);
+                    int weakKingDist = BitBoard.Square_distance(weakPawnSq, weakKingSq);
 
                     // It's a draw if the weak king is on its back two ranks, within 2
                     // squares of the blocking pawn and the strong king is not
@@ -458,7 +459,7 @@ namespace StockFish
                     // unreachable positions such as 5k1K/6p1/6P1/8/8/3B4/8/8 w
                     // and positions where qsearch will immediately correct the
                     // problem such as 8/4k1p1/6P1/1K6/3B4/8/8/8 w)
-                    if (Types.relative_rank_square(strongSide, weakKingSq) >= RankS.RANK_7
+                    if (Types.Relative_rank_square(strongSide, weakKingSq) >= RankS.RANK_7
                         && weakKingDist <= 2
                         && weakKingDist <= strongKingDist)
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
@@ -479,9 +480,9 @@ namespace StockFish
             Square kingSq = pos.king_square(weakSide);
             Square rsq = pos.list(weakSide, PieceTypeS.ROOK)[0];
 
-            if (Types.relative_rank_square(weakSide, kingSq) <= RankS.RANK_2
-            && Types.relative_rank_square(weakSide, pos.king_square(strongSide)) >= RankS.RANK_4
-            && Types.relative_rank_square(weakSide, rsq) == RankS.RANK_3
+            if (Types.Relative_rank_square(weakSide, kingSq) <= RankS.RANK_2
+            && Types.Relative_rank_square(weakSide, pos.king_square(strongSide)) >= RankS.RANK_4
+            && Types.Relative_rank_square(weakSide, rsq) == RankS.RANK_3
             && (pos.pieces_color_piecetype(weakSide, PieceTypeS.PAWN)
                 & pos.attacks_from_square_piecetype(kingSq, PieceTypeS.KING)
                 & pos.attacks_from_pawn(rsq, strongSide))!=0)
@@ -508,31 +509,31 @@ namespace StockFish
             Square wpsq = normalize(pos, strongSide, pos.list(strongSide, PieceTypeS.PAWN)[0]);
             Square brsq = normalize(pos, strongSide, pos.list(weakSide, PieceTypeS.ROOK)[0]);           
 
-            File f = Types.file_of(wpsq);
-            Rank r = Types.rank_of(wpsq);
-            Square queeningSq = Types.make_square(f, RankS.RANK_8);
+            File f = Types.File_of(wpsq);
+            Rank r = Types.Rank_of(wpsq);
+            Square queeningSq = Types.Make_square(f, RankS.RANK_8);
             int tempo = (pos.side_to_move() == strongSide ? 1 : 0);
 
             // If the pawn is not too far advanced and the defending king defends the
             // queening square, use the third-rank defence.
             if (r <= RankS.RANK_5
-              && BitBoard.square_distance(bksq, queeningSq) <= 1
+              && BitBoard.Square_distance(bksq, queeningSq) <= 1
               && wksq <= SquareS.SQ_H5
-              && (Types.rank_of(brsq) == RankS.RANK_6 || (r <= RankS.RANK_3 && Types.rank_of(wrsq) != RankS.RANK_6)))
+              && (Types.Rank_of(brsq) == RankS.RANK_6 || (r <= RankS.RANK_3 && Types.Rank_of(wrsq) != RankS.RANK_6)))
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
 
             // The defending side saves a draw by checking from behind in case the pawn
             // has advanced to the 6th rank with the king behind.
             if (r == RankS.RANK_6
-              && BitBoard.square_distance(bksq, queeningSq) <= 1
-              && Types.rank_of(wksq) + tempo <= RankS.RANK_6
-              && (Types.rank_of(brsq) == RankS.RANK_1 || (0==tempo && Math.Abs(Types.file_of(brsq) - f) >= 3)))
+              && BitBoard.Square_distance(bksq, queeningSq) <= 1
+              && Types.Rank_of(wksq) + tempo <= RankS.RANK_6
+              && (Types.Rank_of(brsq) == RankS.RANK_1 || (0==tempo && Math.Abs(Types.File_of(brsq) - f) >= 3)))
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
 
             if (r >= RankS.RANK_6
               && bksq == queeningSq
-              && Types.rank_of(brsq) == RankS.RANK_1
-              && (0==tempo || BitBoard.square_distance(wksq, wpsq) >= 2))
+              && Types.Rank_of(brsq) == RankS.RANK_1
+              && (0==tempo || BitBoard.Square_distance(wksq, wpsq) >= 2))
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
 
             // White pawn on a7 and rook on a8 is a draw if black's king is on g7 or h7
@@ -540,16 +541,16 @@ namespace StockFish
             if (wpsq == SquareS.SQ_A7
               && wrsq == SquareS.SQ_A8
               && (bksq == SquareS.SQ_H7 || bksq == SquareS.SQ_G7)
-              && Types.file_of(brsq) == FileS.FILE_A
-              && (Types.rank_of(brsq) <= RankS.RANK_3 || Types.file_of(wksq) >= FileS.FILE_D || Types.rank_of(wksq) <= RankS.RANK_5))
+              && Types.File_of(brsq) == FileS.FILE_A
+              && (Types.Rank_of(brsq) <= RankS.RANK_3 || Types.File_of(wksq) >= FileS.FILE_D || Types.Rank_of(wksq) <= RankS.RANK_5))
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
 
             // If the defending king blocks the pawn and the attacking king is too far
             // away, it's a draw.
             if (r <= RankS.RANK_5
               && bksq == wpsq + SquareS.DELTA_N
-              && BitBoard.square_distance(wksq, wpsq) - tempo >= 2
-              && BitBoard.square_distance(wksq, brsq) - tempo >= 2)
+              && BitBoard.Square_distance(wksq, wpsq) - tempo >= 2
+              && BitBoard.Square_distance(wksq, brsq) - tempo >= 2)
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
 
             // Pawn on the 7th rank supported by the rook from behind usually wins if the
@@ -557,34 +558,34 @@ namespace StockFish
             // and the defending king cannot gain tempi by threatening the attacking rook.
             if (r == RankS.RANK_7
               && f != FileS.FILE_A
-              && Types.file_of(wrsq) == f
+              && Types.File_of(wrsq) == f
               && wrsq != queeningSq
-              && (BitBoard.square_distance(wksq, queeningSq) < BitBoard.square_distance(bksq, queeningSq) - 2 + tempo)
-              && (BitBoard.square_distance(wksq, queeningSq) < BitBoard.square_distance(bksq, wrsq) + tempo))
-                return (ScaleFactor)(ScaleFactorS.SCALE_FACTOR_MAX - 2 * BitBoard.square_distance(wksq, queeningSq));
+              && (BitBoard.Square_distance(wksq, queeningSq) < BitBoard.Square_distance(bksq, queeningSq) - 2 + tempo)
+              && (BitBoard.Square_distance(wksq, queeningSq) < BitBoard.Square_distance(bksq, wrsq) + tempo))
+                return (ScaleFactor)(ScaleFactorS.SCALE_FACTOR_MAX - 2 * BitBoard.Square_distance(wksq, queeningSq));
 
             // Similar to the above, but with the pawn further back
             if (f != FileS.FILE_A
-              && Types.file_of(wrsq) == f
+              && Types.File_of(wrsq) == f
               && wrsq < wpsq
-              && (BitBoard.square_distance(wksq, queeningSq) < BitBoard.square_distance(bksq, queeningSq) - 2 + tempo)
-              && (BitBoard.square_distance(wksq, wpsq + SquareS.DELTA_N) < BitBoard.square_distance(bksq, wpsq + SquareS.DELTA_N) - 2 + tempo)
-              && (BitBoard.square_distance(bksq, wrsq) + tempo >= 3
-                  || (BitBoard.square_distance(wksq, queeningSq) < BitBoard.square_distance(bksq, wrsq) + tempo
-                      && (BitBoard.square_distance(wksq, wpsq + SquareS.DELTA_N) < BitBoard.square_distance(bksq, wrsq) + tempo))))
+              && (BitBoard.Square_distance(wksq, queeningSq) < BitBoard.Square_distance(bksq, queeningSq) - 2 + tempo)
+              && (BitBoard.Square_distance(wksq, wpsq + SquareS.DELTA_N) < BitBoard.Square_distance(bksq, wpsq + SquareS.DELTA_N) - 2 + tempo)
+              && (BitBoard.Square_distance(bksq, wrsq) + tempo >= 3
+                  || (BitBoard.Square_distance(wksq, queeningSq) < BitBoard.Square_distance(bksq, wrsq) + tempo
+                      && (BitBoard.Square_distance(wksq, wpsq + SquareS.DELTA_N) < BitBoard.Square_distance(bksq, wrsq) + tempo))))
                 return (ScaleFactor)(ScaleFactorS.SCALE_FACTOR_MAX
-                                   - 8 * BitBoard.square_distance(wpsq, queeningSq)
-                                   - 2 * BitBoard.square_distance(wksq, queeningSq));
+                                   - 8 * BitBoard.Square_distance(wpsq, queeningSq)
+                                   - 2 * BitBoard.Square_distance(wksq, queeningSq));
 
             // If the pawn is not far advanced, and the defending king is somewhere in
             // the pawn's path, it's probably a draw.
             if (r <= RankS.RANK_4 && bksq > wpsq)
             {
-                if (Types.file_of(bksq) == Types.file_of(wpsq))
+                if (Types.File_of(bksq) == Types.File_of(wpsq))
                     return 10;
-                if (Math.Abs(Types.file_of(bksq) - Types.file_of(wpsq)) == 1
-                  && BitBoard.square_distance(wksq, bksq) > 2)
-                    return (24 - 2 * BitBoard.square_distance(wksq, bksq));
+                if (Math.Abs(Types.File_of(bksq) - Types.File_of(wpsq)) == 1
+                  && BitBoard.Square_distance(wksq, bksq) > 2)
+                    return (24 - 2 * BitBoard.Square_distance(wksq, bksq));
             }
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
@@ -600,17 +601,17 @@ namespace StockFish
                 Square ksq = pos.king_square(weakSide);
                 Square bsq = pos.list(weakSide, PieceTypeS.BISHOP)[0];
                 Square psq = pos.list(strongSide, PieceTypeS.PAWN)[0];
-                Rank rk = Types.relative_rank_square(strongSide, psq);
-                Square push = Types.pawn_push(strongSide);
+                Rank rk = Types.Relative_rank_square(strongSide, psq);
+                Square push = Types.Pawn_push(strongSide);
 
                 // If the pawn is on the 5th rank and the pawn (currently) is on
                 // the same color square as the bishop then there is a chance of
                 // a fortress. Depending on the king position give a moderate
                 // reduction or a stronger one if the defending king is near the
                 // corner but not trapped there.
-                if (rk == RankS.RANK_5 && !Types.opposite_colors(bsq, psq))
+                if (rk == RankS.RANK_5 && !Types.Opposite_colors(bsq, psq))
                 {
-                    int d = BitBoard.square_distance(psq + 3 * push, ksq);
+                    int d = BitBoard.Square_distance(psq + 3 * push, ksq);
 
                     if (d <= 2 && !(d == 0 && ksq == pos.king_square(strongSide) + 2 * push))
                         return (24);
@@ -623,9 +624,9 @@ namespace StockFish
                 // pawn from a reasonable distance and the defending king is near
                 // the corner
                 if (rk == RankS.RANK_6
-                    && BitBoard.square_distance(psq + 2 * push, ksq) <= 1
+                    && BitBoard.Square_distance(psq + 2 * push, ksq) <= 1
                     && (BitBoard.PseudoAttacks[PieceTypeS.BISHOP][bsq] & BitBoard.SquareBB[(psq + push)]) != 0
-                    && BitBoard.file_distance(bsq, psq) >= 2)
+                    && BitBoard.File_distance(bsq, psq) >= 2)
                     return (8);
             }
 
@@ -647,11 +648,11 @@ namespace StockFish
             if (pos.pawn_passed(strongSide, wpsq1) || pos.pawn_passed(strongSide, wpsq2))
                 return ScaleFactorS.SCALE_FACTOR_NONE;
 
-            Rank r = Math.Max(Types.relative_rank_square(strongSide, wpsq1), Types.relative_rank_square(strongSide, wpsq2));
+            Rank r = Math.Max(Types.Relative_rank_square(strongSide, wpsq1), Types.Relative_rank_square(strongSide, wpsq2));
 
-            if (BitBoard.file_distance(bksq, wpsq1) <= 1
-              && BitBoard.file_distance(bksq, wpsq2) <= 1
-              && Types.relative_rank_square(strongSide, bksq) > r)
+            if (BitBoard.File_distance(bksq, wpsq1) <= 1
+              && BitBoard.File_distance(bksq, wpsq2) <= 1
+              && Types.Relative_rank_square(strongSide, bksq) > r)
             {
                 switch (r)
                 {
@@ -680,9 +681,9 @@ namespace StockFish
 
             // If all pawns are ahead of the king, on a single rook file and
             // the king is within one file of the pawns, it's a draw.
-            if (0==(pawns & ~BitBoard.in_front_bb(weakSide, Types.rank_of(ksq)))
+            if (0==(pawns & ~BitBoard.In_front_bb(weakSide, Types.Rank_of(ksq)))
                 && !((pawns & ~BitBoard.FileABB)!=0 && (pawns & ~BitBoard.FileHBB)!=0)
-                && BitBoard.file_distance(ksq, psq) <= 1)
+                && BitBoard.File_distance(ksq, psq) <= 1)
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
@@ -703,14 +704,14 @@ namespace StockFish
             Square weakerKingSq = pos.king_square(weakSide);
 
             // Case 1: Defending king blocks the pawn, and cannot be driven away
-            if (Types.file_of(weakerKingSq) == Types.file_of(pawnSq)
-                && Types.relative_rank_square(strongSide, pawnSq) < Types.relative_rank_square(strongSide, weakerKingSq)
-                && (Types.opposite_colors(weakerKingSq, strongerBishopSq)
-                    || Types.relative_rank_square(strongSide, weakerKingSq) <= RankS.RANK_6))
+            if (Types.File_of(weakerKingSq) == Types.File_of(pawnSq)
+                && Types.Relative_rank_square(strongSide, pawnSq) < Types.Relative_rank_square(strongSide, weakerKingSq)
+                && (Types.Opposite_colors(weakerKingSq, strongerBishopSq)
+                    || Types.Relative_rank_square(strongSide, weakerKingSq) <= RankS.RANK_6))
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
 
             // Case 2: Opposite colored bishops
-            if (Types.opposite_colors(strongerBishopSq, weakerBishopSq))
+            if (Types.Opposite_colors(strongerBishopSq, weakerBishopSq))
             {
                 // We assume that the position is drawn in the following three situations:
                 //
@@ -722,17 +723,17 @@ namespace StockFish
                 // These rules are probably not perfect, but in practice they work
                 // reasonably well.
 
-                if (Types.relative_rank_square(strongSide, pawnSq) <= RankS.RANK_5)
+                if (Types.Relative_rank_square(strongSide, pawnSq) <= RankS.RANK_5)
                     return ScaleFactorS.SCALE_FACTOR_DRAW;
                 else
                 {
-                    Bitboard path = BitBoard.forward_bb(strongSide, pawnSq);
+                    Bitboard path = BitBoard.Forward_bb(strongSide, pawnSq);
 
                     if ((path & pos.pieces_color_piecetype(weakSide, PieceTypeS.KING)) != 0)
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
 
                     if (((pos.attacks_from_square_piecetype(weakerBishopSq, PieceTypeS.BISHOP) & path) != 0)
-                        && BitBoard.square_distance(weakerBishopSq, pawnSq) >= 3)
+                        && BitBoard.Square_distance(weakerBishopSq, pawnSq) >= 3)
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
                 }
             }
@@ -749,35 +750,35 @@ namespace StockFish
             Square wbsq = pos.list(strongSide, PieceTypeS.BISHOP)[0];
             Square bbsq = pos.list(weakSide, PieceTypeS.BISHOP)[0];
 
-            if (!Types.opposite_colors(wbsq, bbsq))
+            if (!Types.Opposite_colors(wbsq, bbsq))
                 return ScaleFactorS.SCALE_FACTOR_NONE;
 
             Square ksq = pos.king_square(weakSide);
             Square psq1 = pos.list(strongSide, PieceTypeS.PAWN)[0];
             Square psq2 = pos.list(strongSide, PieceTypeS.PAWN)[1];
-            Rank r1 = Types.rank_of(psq1);
-            Rank r2 = Types.rank_of(psq2);
+            Rank r1 = Types.Rank_of(psq1);
+            Rank r2 = Types.Rank_of(psq2);
             Square blockSq1, blockSq2;
 
-            if (Types.relative_rank_square(strongSide, psq1) > Types.relative_rank_square(strongSide, psq2))
+            if (Types.Relative_rank_square(strongSide, psq1) > Types.Relative_rank_square(strongSide, psq2))
             {
-                blockSq1 = psq1 + Types.pawn_push(strongSide);
-                blockSq2 = Types.make_square(Types.file_of(psq2), Types.rank_of(psq1));
+                blockSq1 = psq1 + Types.Pawn_push(strongSide);
+                blockSq2 = Types.Make_square(Types.File_of(psq2), Types.Rank_of(psq1));
             }
             else
             {
-                blockSq1 = psq2 + Types.pawn_push(strongSide);
-                blockSq2 = Types.make_square(Types.file_of(psq1), Types.rank_of(psq2));
+                blockSq1 = psq2 + Types.Pawn_push(strongSide);
+                blockSq2 = Types.Make_square(Types.File_of(psq1), Types.Rank_of(psq2));
             }
 
-            switch (BitBoard.file_distance(psq1, psq2))
+            switch (BitBoard.File_distance(psq1, psq2))
             {
                 case 0:
                     // Both pawns are on the same file. It's an easy draw if the defender firmly
                     // controls some square in the frontmost pawn's path.
-                    if (Types.file_of(ksq) == Types.file_of(blockSq1)
-                        && Types.relative_rank_square(strongSide, ksq) >= Types.relative_rank_square(strongSide, blockSq1)
-                        && Types.opposite_colors(ksq, wbsq))
+                    if (Types.File_of(ksq) == Types.File_of(blockSq1)
+                        && Types.Relative_rank_square(strongSide, ksq) >= Types.Relative_rank_square(strongSide, blockSq1)
+                        && Types.Opposite_colors(ksq, wbsq))
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
                     else
                         return ScaleFactorS.SCALE_FACTOR_NONE;
@@ -787,14 +788,14 @@ namespace StockFish
                     // square in front of the frontmost pawn's path, and the square diagonally
                     // behind this square on the file of the other pawn.
                     if (ksq == blockSq1
-                        && Types.opposite_colors(ksq, wbsq)
+                        && Types.Opposite_colors(ksq, wbsq)
                         && (bbsq == blockSq2
                             || (pos.attacks_from_square_piecetype(blockSq2, PieceTypeS.BISHOP) & pos.pieces_color_piecetype(weakSide, PieceTypeS.BISHOP)) != 0
                             || Math.Abs(r1 - r2) >= 2))
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
 
                     else if (ksq == blockSq2
-                        && Types.opposite_colors(ksq, wbsq)
+                        && Types.Opposite_colors(ksq, wbsq)
                         && (bbsq == blockSq1
                             || (pos.attacks_from_square_piecetype(blockSq1, PieceTypeS.BISHOP) & pos.pieces_color_piecetype(weakSide, PieceTypeS.BISHOP)) != 0))
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
@@ -819,10 +820,10 @@ namespace StockFish
             Square strongerBishopSq = pos.list(strongSide, PieceTypeS.BISHOP)[0];
             Square weakerKingSq = pos.king_square(weakSide);
 
-            if (Types.file_of(weakerKingSq) == Types.file_of(pawnSq)
-                && Types.relative_rank_square(strongSide, pawnSq) < Types.relative_rank_square(strongSide, weakerKingSq)
-                && (Types.opposite_colors(weakerKingSq, strongerBishopSq)
-                    || Types.relative_rank_square(strongSide, weakerKingSq) <= RankS.RANK_6))
+            if (Types.File_of(weakerKingSq) == Types.File_of(pawnSq)
+                && Types.Relative_rank_square(strongSide, pawnSq) < Types.Relative_rank_square(strongSide, weakerKingSq)
+                && (Types.Opposite_colors(weakerKingSq, strongerBishopSq)
+                    || Types.Relative_rank_square(strongSide, weakerKingSq) <= RankS.RANK_6))
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
@@ -840,7 +841,7 @@ namespace StockFish
             Square pawnSq = normalize(pos, strongSide, pos.list(strongSide, PieceTypeS.PAWN)[0]);
             Square weakKingSq = normalize(pos, strongSide, pos.king_square(weakSide));
 
-            if (pawnSq == SquareS.SQ_A7 && BitBoard.square_distance(SquareS.SQ_A8, weakKingSq) <= 1)
+            if (pawnSq == SquareS.SQ_A7 && BitBoard.Square_distance(SquareS.SQ_A8, weakKingSq) <= 1)
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
@@ -857,8 +858,8 @@ namespace StockFish
 
             // King needs to get close to promoting pawn to prevent knight from blocking.
             // Rules for this are very tricky, so just approximate.
-            if ((BitBoard.forward_bb(strongSide, pawnSq) & pos.attacks_from_square_piecetype(bishopSq, PieceTypeS.BISHOP)) != 0)
-                return BitBoard.square_distance(weakerKingSq, pawnSq);
+            if ((BitBoard.Forward_bb(strongSide, pawnSq) & pos.attacks_from_square_piecetype(bishopSq, PieceTypeS.BISHOP)) != 0)
+                return BitBoard.Square_distance(weakerKingSq, pawnSq);
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
@@ -882,12 +883,12 @@ namespace StockFish
 
             // If the pawn has advanced to the fifth rank or further, and is not a
             // rook pawn, it's too dangerous to assume that it's at least a draw.
-            if (Types.rank_of(psq) >= RankS.RANK_5 && Types.file_of(psq) != FileS.FILE_A)
+            if (Types.Rank_of(psq) >= RankS.RANK_5 && Types.File_of(psq) != FileS.FILE_A)
                 return ScaleFactorS.SCALE_FACTOR_NONE;
 
             // Probe the KPK bitbase with the weakest side's pawn removed. If it's a draw,
             // it's probably at least a draw even with the pawn.
-            return Bitbases.probe_kpk(wksq, psq, bksq, us) ? ScaleFactorS.SCALE_FACTOR_NONE : ScaleFactorS.SCALE_FACTOR_DRAW;
+            return Bitbases.Probe_kpk(wksq, psq, bksq, us) ? ScaleFactorS.SCALE_FACTOR_NONE : ScaleFactorS.SCALE_FACTOR_DRAW;
         }
 
         public Endgame(Color c, EndgameType E)

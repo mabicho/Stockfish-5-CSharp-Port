@@ -35,9 +35,38 @@ namespace StockFish
             "6k1/6p1/P6p/r1N5/5p2/7P/1b3PP1/4R1K1 w - - 0 1",
             "1r3k2/4q3/2Pp3b/3Bp3/2Q2p2/1p1P2P1/1P2KP2/3N4 w - - 0 1",
             "6k1/4pp1p/3p2p1/P1pPb3/R7/1r2P1PP/3B1P2/6K1 w - - 0 1",
-            "8/3p3B/5p2/5P2/p7/PP5b/k7/6K1 w - - 0 1"
+            "8/3p3B/5p2/5P2/p7/PP5b/k7/6K1 w - - 0 1",
+            "4rrk1/1p1nq3/p7/2p1P1pp/3P2bp/3Q1Bn1/PPPB4/1K2R1NR w - - 40 21",
+            "r3k2r/3nnpbp/q2pp1p1/p7/Pp1PPPP1/4BNN1/1P5P/R2Q1RK1 w kq - 0 16",
+            "3Qb1k1/1r2ppb1/pN1n2q1/Pp1Pp1Pr/4P2p/4BP2/4B1R1/1R5K b - - 11 40",
+            "4k3/3q1r2/1N2r1b1/3ppN2/2nPP3/1B1R2n1/2R1Q3/3K4 w - - 5 1",
+
+              // 5-man positions
+            "8/8/8/8/5kp1/P7/8/1K1N4 w - - 0 1",     // Kc2 - mate
+            "8/8/8/5N2/8/p7/8/2NK3k w - - 0 1",      // Na2 - mate
+            "8/3k4/8/8/8/4B3/4KB2/2B5 w - - 0 1",    // draw
+
+            // 6-man positions
+            "8/8/1P6/5pr1/8/4R3/7k/2K5 w - - 0 1",   // Re5 - mate
+            "8/2p4P/8/kr6/6R1/8/8/1K6 w - - 0 1",    // Ka2 - mate
+            "8/8/3P3k/8/1p6/8/1P6/1K3n2 b - - 0 1",  // Nd2 - draw
+
+            // 7-man positions
+            "8/R7/2q5/8/6k1/8/1P5p/K6R w - - 0 124", // Draw
+
+            // Mate and stalemate positions
+            "6k1/3b3r/1p1p4/p1n2p2/1PPNpP1q/P3Q1p1/1R1RB1P1/5K2 b - - 0 1",
+            "r2r1n2/pp2bk2/2p1p2p/3q4/3PN1QP/2P3R1/P4PP1/5RK1 w - - 0 1",
+            "8/8/8/8/8/6k1/6p1/6K1 w - -",
+            "7k/7P/6K1/8/3B4/8/8/8 b - -",
+
+            // Chess 960
+            "setoption name UCI_Chess960 value true",
+            "bbqnnrkr/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w KQkq - 0 1 moves g2g3 d7d5 d2d4 c8h3 c1g5 e8d6 g5e7 f7f6",
+            "setoption name UCI_Chess960 value false"
         };
 
+        /// <summary>
         /// benchmark() runs a simple benchmark by letting Stockfish analyze a set
         /// of positions for a given limit each. There are five parameters: the
         /// transposition table size, the number of search threads that should
@@ -45,7 +74,8 @@ namespace StockFish
         /// depth 13), an optional file name where to look for positions in FEN
         /// format (defaults are the positions defined above) and the type of the
         /// limit value: depth (default), time in secs or number of nodes.
-        public static void benchmark(Position current, Stack<string> stack)
+        /// </summary>
+        public static void Benchmark(Position current, Stack<string> stack)
         {
             LimitsType limits = new LimitsType();
             List<string> fens = new List<string>();
@@ -64,62 +94,79 @@ namespace StockFish
             //string limit = (stack.Count > 0) ? (stack.Pop()) : "21";
             //string fenFile = (stack.Count > 0) ? (stack.Pop()) : "default";
             //string ttSize = (stack.Count > 0) ? (stack.Pop()) : "32";
-            //string threads = (stack.Count > 0) ? (stack.Pop()) : "1";                        
+            //string threads = (stack.Count > 0) ? (stack.Pop()) : "1";
             //string limitType = (stack.Count > 0) ? (stack.Pop()) : "depth";
-
 
             Options["Hash"].setCurrentValue(ttSize);
             Options["Threads"].setCurrentValue(threads);
-            TT.clear();
+            TT.Clear();
 
-            if (limitType == "time")
-                limits.movetime = 1000 * int.Parse(limit); // movetime is in ms
-
-            else if (limitType == "nodes")
-                limits.nodes = int.Parse(limit);
-
-            else if (limitType == "mate")
-                limits.mate = int.Parse(limit);
-
-            else
-                limits.depth = int.Parse(limit);
-
-            if (fenFile == "default")
-                fens.AddRange(Defaults);
-
-            else if (fenFile == "current")
-                fens.Add(current.fen());
-
-            else
+            switch (limitType)
             {
-                String fen;
-                System.IO.StreamReader sr = new System.IO.StreamReader(fenFile, true);
-                int leidos = 0;
-                int ingresados = 0;
-                int init = Int32.Parse(desde);
-                int n = Int32.Parse(cantidad);
-                while (!sr.EndOfStream)
+                case  "time":
                 {
-                    fen = sr.ReadLine().Trim();
-                    leidos++;
-
-                    if (leidos >= init && ingresados <= n)
-                    {
-                        fens.Add(fen);
-                        ingresados++;
-                        if (ingresados >= n)
-                            break;
-                    }
+                    limits.movetime = 1000 * int.Parse(limit); // movetime is in ms
+                    break;
                 }
+                case "nodes":
+                {
+                    limits.nodes = int.Parse(limit);
+                    break;
+                }
+                case "mate":
+                {
+                    limits.mate = int.Parse(limit);
+                    break;
+                }
+                default:
+                {
+                    limits.depth = int.Parse(limit);
+                    break;
+                }
+            }
 
-                sr.Close();
-                sr.Dispose();
+            switch (fenFile)
+            {
+                case "default":
+                    {
+                        fens.AddRange(Defaults);
+                        break;
+                    }
+                case "current":
+                    {
+                        fens.Add(current.fen());
+                        break;
+                    }
+                default:
+                    {
+                        String fen;
+                        System.IO.StreamReader sr = new System.IO.StreamReader(fenFile, true);
+                        int leidos = 0;
+                        int ingresados = 0;
+                        int init = Int32.Parse(desde);
+                        int n = Int32.Parse(cantidad);
+                        while (!sr.EndOfStream)
+                        {
+                            fen = sr.ReadLine().Trim();
+                            leidos++;
 
+                            if (leidos >= init && ingresados <= n)
+                            {
+                                fens.Add(fen);
+                                ingresados++;
+                                if (ingresados >= n)
+                                    break;
+                            }
+                        }
+                        sr.Close();
+                        sr.Dispose();
+                        break;
+                    }
             }
 
             Int64 nodes = 0;
             StateStackPtr st = new StateStackPtr();
-            long elapsed = Time.now();
+            long elapsed = Time.Now();
 
             for (int i = 0; i < fens.Count; ++i)
             {
@@ -127,11 +174,11 @@ namespace StockFish
                 Position pos = new Position(fens[i], Options["UCI_Chess960"].getInt()!=0 ? 1 : 0, Threads.main());
 
                 inOut.Write(Types.newline + "Position: " + (i + 1).ToString() + "/" + fens.Count.ToString() + Types.newline);
-                                                
                 inOut.Write(": ");
                 inOut.Write(fens[i]);
                 inOut.Write(Types.newline);
-                if (limitType == "divide") {
+                if (limitType == "divide")
+                {
                     /**
                      * for (MoveList<LEGAL> it(pos); *it; ++it)
                       {
@@ -143,7 +190,8 @@ namespace StockFish
                           nodes += cnt;
                       }
                      */
-                }if (limitType == "perft")
+                }
+                if (limitType == "perft")
                 {
                     /**
                      uint64_t cnt = Search::perft(pos, limits.depth * ONE_PLY);
@@ -159,17 +207,25 @@ namespace StockFish
                 }
             }
 
-            elapsed = Time.now() - elapsed + 1; // Assure positive to avoid a 'divide by zero'
+            elapsed = Time.Now() - elapsed + 1; // Assure positive to avoid a 'divide by zero'
 
             inOut.Write(Types.newline + "===========================");
             inOut.Write(Types.newline + "Total time (ms) : " + elapsed.ToString());
             inOut.Write(Types.newline + "Nodes searched  : " + nodes.ToString());
-            inOut.Write(Types.newline + "Nodes/second    : " + (1000 * nodes / elapsed).ToString() + Types.newline);                                    
+            inOut.Write(Types.newline + "Nodes/second    : " + (1000 * nodes / elapsed).ToString() + Types.newline);
         }
-
-
-        public static void benchfile(Position current, Stack<string> stack)
+        public static void Benchfile(Position current, Stack<string> stack)
         {
+            if (current is null)
+            {
+                throw new ArgumentNullException(nameof(current));
+            }
+
+            if (stack is null)
+            {
+                throw new ArgumentNullException(nameof(stack));
+            }
+
             LimitsType limits = new LimitsType();
 
             // Assign default values to missing arguments
@@ -188,23 +244,33 @@ namespace StockFish
             string threads = (stack.Count > 0) ? (stack.Pop()) : "1";
             string limitType = (stack.Count > 0) ? (stack.Pop()) : "depth";
 
-
             Options["Hash"].setCurrentValue(ttSize);
             Options["Threads"].setCurrentValue(threads);
-            TT.clear();
+            TT.Clear();
 
-            if (limitType == "time")
-                limits.movetime = 1000 * int.Parse(limit); // movetime is in ms
-
-            else if (limitType == "nodes")
-                limits.nodes = int.Parse(limit);
-
-            else if (limitType == "mate")
-                limits.mate = int.Parse(limit);
-
-            else
-                limits.depth = int.Parse(limit);
-
+            switch (limitType)
+            {
+                case "time":
+                {
+                    limits.movetime = 1000 * int.Parse(limit); // movetime is in ms
+                    break;
+                }
+                case "nodes":
+                {
+                    limits.nodes = int.Parse(limit);
+                    break;
+                }
+                case "mate":
+                {
+                     limits.mate = int.Parse(limit);
+                     break;
+                }
+                default:
+                {
+                    limits.depth = int.Parse(limit);
+                    break;
+                }
+            }
 
             String fen;
             System.IO.StreamReader sr = new System.IO.StreamReader(fenFile, true);
@@ -214,7 +280,7 @@ namespace StockFish
             Int64 nodes = 0;
             StateStackPtr st = new StateStackPtr();
             //Stopwatch time = new Stopwatch();
-            long elapsed = Time.now();
+            long elapsed = Time.Now();
             int inicio = Int32.Parse(desde);
             while (!sr.EndOfStream)
             {
@@ -247,8 +313,8 @@ namespace StockFish
                     Engine.Threads.start_thinking(pos, limits, st);
                     Threads.wait_for_think_finished();
                     nodes += (Int64)Search.RootPos.nodes_searched();
-                    outfile.WriteLine(i + "\t" + Search.RootPos.nodes_searched() + "\t" + Search.RootMoves[0].pv[0] + "\t" + Search.RootMoves[0].pv[1] + "\t" + nodes + "\t" + fen);
-
+                    outfile.WriteLine(i + "\t" + Search.RootPos.nodes_searched() + "\t" + Search.RootMoves[0].pv[0] + "\t" +
+                     Search.RootMoves[0].pv[1] + "\t" + nodes + "\t" + fen);
                 }
 
                 if (i % 10000 == 0)
@@ -264,8 +330,7 @@ namespace StockFish
             outfile.Close();
             outfile.Dispose();
 
-
-            elapsed = Time.now() - elapsed + 1; // Assure positive to avoid a 'divide by zero'
+            elapsed = Time.Now() - elapsed + 1; // Assure positive to avoid a 'divide by zero'
 
             inOut.Write(Types.newline);
             inOut.Write("===========================");
@@ -283,6 +348,5 @@ namespace StockFish
             inOut.Write((1000 * nodes / elapsed).ToString());
             inOut.Write(Types.newline);
         }
-
     }
 }

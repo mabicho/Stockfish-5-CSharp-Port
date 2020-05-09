@@ -17,12 +17,13 @@ namespace StockFish
     {
         public static string[] PieceToChar = new string[ColorS.COLOR_NB] { " PNBRQK", " pnbrqk" };
 
+        /// <summary>
         /// score_to_uci() converts a value to a string suitable for use with the UCI
         /// protocol specifications:
         ///
         /// cp <x>     The score from the engine's point of view in centipawns.
         /// mate <y>   Mate in y moves, not plies. If the engine is getting mated
-        ///            use negative values for y.
+        ///            use negative values for y.</summary>
         public static string score_to_uci(Value v, Value alpha = -ValueS.VALUE_INFINITE, Value beta = ValueS.VALUE_INFINITE)
         {
             StringBuilder ss = new StringBuilder();
@@ -37,14 +38,16 @@ namespace StockFish
             return ss.ToString();
         }
 
+        /// <summary>
         /// move_to_uci() converts a move to a string in coordinate notation
         /// (g1f3, a7a8q, etc.). The only special case is castling moves, where we print
         /// in the e1g1 notation in normal chess mode, and in e1h1 notation in chess960
         /// mode. Internally castling moves are always encoded as "king captures rook".
+        /// </summary>
         public static string move_to_uci(Move m, bool chess960)
         {
-            Square from = Types.from_sq(m);
-            Square to = Types.to_sq(m);
+            Square from = Types.From_sq(m);
+            Square to = Types.To_sq(m);
 
             if (m == MoveS.MOVE_NONE)
                 return "(none)";
@@ -52,19 +55,19 @@ namespace StockFish
             if (m == MoveS.MOVE_NULL)
                 return "0000";
 
-            if (Types.type_of_move(m) == MoveTypeS.CASTLING && !chess960)
-                to = Types.make_square((to > from ? FileS.FILE_G : FileS.FILE_C), Types.rank_of(from));
+            if (Types.Type_of_move(m) == MoveTypeS.CASTLING && !chess960)
+                to = Types.Make_square((to > from ? FileS.FILE_G : FileS.FILE_C), Types.Rank_of(from));
 
-            string move = Types.square_to_string(from) + Types.square_to_string(to);
+            string move = Types.Square_to_string(from) + Types.Square_to_string(to);
 
-            if (Types.type_of_move(m) == MoveTypeS.PROMOTION)
-                move += PieceToChar[ColorS.BLACK][Types.promotion_type(m)]; // Lower case
+            if (Types.Type_of_move(m) == MoveTypeS.PROMOTION)
+                move += PieceToChar[ColorS.BLACK][Types.Promotion_type(m)]; // Lower case
 
             return move;
         }
 
-        /// move_from_uci() takes a position and a string representing a move in
-        /// simple coordinate notation and returns an equivalent legal Move if any.
+        // move_from_uci() takes a position and a string representing a move in
+        // simple coordinate notation and returns an equivalent legal Move if any.
         public static Move move_from_uci(Position pos, string str)
         {
             if (str.Length == 5)
@@ -75,14 +78,14 @@ namespace StockFish
             }
 
             for (MoveList it = new MoveList(pos, GenTypeS.LEGAL); it.mlist[it.cur].move != MoveS.MOVE_NONE; ++it)
-                if (str == move_to_uci(it.move(), pos.is_chess960() != 0))
-                    return it.move();
-
+              {  if (str == move_to_uci(it.Move(), pos.is_chess960() != 0))
+                    return it.Move();
+              }
             return MoveS.MOVE_NONE;
         }
 
-        /// move_to_san() takes a position and a legal Move as input and returns its
-        /// short algebraic notation representation.
+        // move_to_san() takes a position and a legal Move as input and returns its
+        // short algebraic notation representation.
         public static string move_to_san(Position pos, Move m)
         {
             if (m == MoveS.MOVE_NONE)
@@ -91,18 +94,20 @@ namespace StockFish
             if (m == MoveS.MOVE_NULL)
                 return "(null)";
 
-            Debug.Assert((new MoveList(pos, GenTypeS.LEGAL).contains(m)));
+            Debug.Assert((new MoveList(pos, GenTypeS.LEGAL).Contains(m)));
 
             Bitboard others, b;
             string san = "";
             Color us = pos.side_to_move();
-            Square from = Types.from_sq(m);
-            Square to = Types.to_sq(m);
+            Square from = Types.From_sq(m);
+            Square to = Types.To_sq(m);
             Piece pc = pos.piece_on(from);
-            PieceType pt = Types.type_of_piece(pc);
+            PieceType pt = Types.Type_of_piece(pc);
 
-            if (Types.type_of_move(m) == MoveTypeS.CASTLING)
+            if (Types.Type_of_move(m) == MoveTypeS.CASTLING)
+            {
                 san = to > from ? "O-O" : "O-O-O";
+            }
             else
             {
                 if (pt != PieceTypeS.PAWN)
@@ -115,50 +120,55 @@ namespace StockFish
 
                     while (b != 0)
                     {
-                        Square s = BitBoard.pop_lsb(ref b);
-                        if (!pos.legal(Types.make_move(s, to), pos.pinned_pieces(us)))
+                        Square s = BitBoard.Pop_lsb(ref b);
+                        if (!pos.legal(Types.Make_move(s, to), pos.pinned_pieces(us)))
                             others ^= BitBoard.SquareBB[s];
                     }
 
-                    if (0==others)
+                    if (0 == others)
                     { /* Disambiguation is not needed */ }
-
-                    else if (0==(others & BitBoard.file_bb_square(from)))
-                        san += Types.file_to_char(Types.file_of(from));
-
-                    else if (0 == (others & BitBoard.rank_bb_square(from)))
-                        san += Types.rank_to_char(Types.rank_of(from));
-
+                    else if (0 == (others & BitBoard.File_bb_square(from)))
+                    {
+                        san += Types.File_to_char(Types.File_of(from));
+                    }
+                    else if (0 == (others & BitBoard.Rank_bb_square(from)))
+                    {
+                        san += Types.Rank_to_char(Types.Rank_of(from));
+                    }
                     else
-                        san += Types.square_to_string(from);                    
+                    {
+                        san += Types.Square_to_string(from);
+                    }
                 }
                 else if (pos.capture(m))
-                    san = "" + Types.file_to_char(Types.file_of(from));
+                {
+                    san = "" + Types.File_to_char(Types.File_of(from));
+                }
 
                 if (pos.capture(m))
                     san += 'x';
 
-                san += Types.square_to_string(to);
+                san += Types.Square_to_string(to);
 
-                if (Types.type_of_move(m) == MoveTypeS.PROMOTION)
-                    san += "=" + PieceToChar[ColorS.WHITE][Types.promotion_type(m)];
+                if (Types.Type_of_move(m) == MoveTypeS.PROMOTION)
+                    san += "=" + PieceToChar[ColorS.WHITE][Types.Promotion_type(m)];
             }
 
             if (pos.gives_check(m, new CheckInfo(pos)))
             {
                 StateInfo st = new StateInfo();
                 pos.do_move(m, st);
-                san += (new MoveList(pos, GenTypeS.LEGAL)).size() > 0 ? "+" : "#";
+                san += (new MoveList(pos, GenTypeS.LEGAL)).Size() > 0 ? "+" : "#";
                 pos.undo_move(m);
             }
 
             return san;
         }
 
-        /// pretty_pv() formats human-readable search information, typically to be
-        /// appended to the search log file. It uses the two helpers below to pretty
-        /// format the time and score respectively.
-        public static string format(Int64 msecs)
+        // pretty_pv() formats human-readable search information, typically to be
+        // appended to the search log file. It uses the two helpers below to pretty
+        // format the time and score respectively.
+        public static string Format(Int64 msecs)
         {
             const int MSecMinute = 1000 * 60;
             const int MSecHour = 1000 * 60 * 60;
@@ -169,28 +179,32 @@ namespace StockFish
 
             StringBuilder s = new StringBuilder();
 
-            if (hours != 0)            
+            if (hours != 0)
                 s.Append(hours + ':');
 
-            s.Append(minutes.ToString().PadLeft(2, '0') + ':' + seconds.ToString().PadLeft(2, '0'));            
+            s.Append(minutes.ToString().PadLeft(2, '0')).Append(':').Append(seconds.ToString().PadLeft(2, '0'));            
 
             return s.ToString();
         }
 
-        public static string format(Value v)
+        public static string Format(Value v)
         {
             StringBuilder s = new StringBuilder();
 
-            if (v >= ValueS.VALUE_MATE_IN_MAX_PLY)            
-                s.Append("#" + ((ValueS.VALUE_MATE - v + 1) / 2));                
-            else if (v <= ValueS.VALUE_MATED_IN_MAX_PLY)            
-                s.Append("-#" + ((ValueS.VALUE_MATE + v) / 2));                                    
+            if (v >= ValueS.VALUE_MATE_IN_MAX_PLY)
+            {
+                s.Append('#').Append((ValueS.VALUE_MATE - v + 1) / 2);
+            }
+            else if (v <= ValueS.VALUE_MATED_IN_MAX_PLY)
+            {
+                s.Append("-#" + ((ValueS.VALUE_MATE + v) / 2));
+            }
             else
             {
-                    float v2 = ((float)v / ValueS.PawnValueEg);
-                    if (v2 > 0)
-                        s.Append('+');
-                    s.Append(v2.ToString("0.00"));
+                float v2 = ((float)v / ValueS.PawnValueEg);
+                if (v2 > 0)
+                    s.Append('+');
+                s.Append(v2.ToString("0.00"));
             }
 
             return s.ToString();
@@ -199,23 +213,27 @@ namespace StockFish
         string pretty_pv(Position pos, int depth, Value value, Int64 msecs, Move[] pv)
         {
             const Int64 K = 1000;
-            const Int64 M = 1000000;            
+            const Int64 M = 1000000;
 
-            Stack<StateInfo> st = new Stack<StateInfo>();            
+            Stack<StateInfo> st = new Stack<StateInfo>();
             int m = 0;
-            string san, str, padding;            
+            string san, str, padding;
             StringBuilder ss = new StringBuilder();
 
-            ss.Append(depth.ToString().PadLeft(2, '0') + format(value).PadLeft(8, '0') + format(msecs).PadLeft(8, '0'));            
+            ss.Append(depth.ToString().PadLeft(2, '0') + Format(value).PadLeft(8, '0') + Format(msecs).PadLeft(8, '0'));
 
             if (pos.nodes_searched() < M)
-                ss.Append((pos.nodes_searched() / 1).ToString().PadLeft(8, '0') + "  ");            
-            
-            else if (pos.nodes_searched() < K * M)            
-                ss.Append((pos.nodes_searched() / K).ToString().PadLeft(7, '0') + "K  ");                
-            
-            else            
+            {
+                ss.Append((pos.nodes_searched() / 1).ToString().PadLeft(8, '0') + "  ");
+            }
+            else if (pos.nodes_searched() < K * M)
+            {
+                ss.Append((pos.nodes_searched() / K).ToString().PadLeft(7, '0') + "K  ");
+            }
+            else
+            {
                 ss.Append((pos.nodes_searched() / M).ToString().PadLeft(7, '0') + "M  ");
+            }
 
             str = ss.ToString();
             padding = new String(' ', str.Length);            
