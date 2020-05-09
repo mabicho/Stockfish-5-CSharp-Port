@@ -140,7 +140,7 @@ namespace StockFish
                 else if (token == "infinite") limits.infinite = 1;
                 else if (token == "ponder") limits.ponder = 1;
             }
-            Engine.Threads.start_thinking(pos, limits, SetupStates);
+            Engine.Threads.Start_thinking(pos, limits, SetupStates);
         }
 
         /// Wait for a command from the user, parse this text string as an UCI command,

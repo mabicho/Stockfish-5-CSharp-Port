@@ -11,6 +11,7 @@ using PieceType = System.Int32;
 
 namespace StockFish
 {
+    /// <summary>
     /// The Stats struct stores moves statistics. According to the template parameter
     /// the class can store History, Gains and Countermoves. History records how often
     /// different moves have been successful or unsuccessful during the current search
@@ -19,6 +20,7 @@ namespace StockFish
     /// Countermoves store the move that refute a previous one. Entries are stored
     /// using only the moving piece and destination square, hence two moves with
     /// different origin but same destination and piece will be considered identical.
+    /// </summary>
     public abstract class Stats<T>
     {
         public const Value Max = 2000;
@@ -108,12 +110,14 @@ namespace StockFish
         public const int STOP = 17;
     };
 
+    /// <summary>
     /// MovePicker class is used to pick one pseudo legal move at a time from the
     /// current position. The most important method is next_move(), which returns a
     /// new pseudo legal move each time it is called, until there are no moves left,
     /// when MOVE_NONE is returned. In order to improve the efficiency of the alpha
     /// beta algorithm, MovePicker attempts to return the moves which are most likely
     /// to get a cut-off first.
+    /// </summary>
     public class MovePicker
     {
         public Position pos;
@@ -150,7 +154,7 @@ namespace StockFish
         #if AGGR_INLINE
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
-        public bool has_positive_score(ref ExtMove ms) { return ms.value > 0; }
+        public bool Has_positive_score(ref ExtMove ms) { return ms.value > 0; }
 
         // Picks and moves to the front the best move in the range [begin, end),
         // it is faster than sorting all the moves in advance when moves are few, as
@@ -158,7 +162,7 @@ namespace StockFish
 #if AGGR_INLINE
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-        public static int pick_best(ExtMove[] moves, int begin, int end)
+        public static int Pick_best(ExtMove[] moves, int begin, int end)
         {
 
             if (begin != end)
@@ -179,13 +183,15 @@ namespace StockFish
             return begin;
         }
 
+        /// <summary>
         /// Constructors of the MovePicker class. As arguments we pass information
         /// to help it to return the (presumably) good moves first, to decide which
         /// moves to return (in the quiescence search, for instance, we only want to
         /// search captures, promotions and some checks) and how important good move
-        /// ordering is at the current node.        
+        /// ordering is at the current node.
+        /// </summary>
         public MovePicker(Position p, Move ttm, Depth d, HistoryStats h, Move[] cm, Move[] fm, Stack s)
-        {            
+        {
             pos = p;
             history = h;
             depth = d;
@@ -208,7 +214,7 @@ namespace StockFish
         }
 
         public MovePicker(Position p, Move ttm, Depth d, HistoryStats h, Square sq)
-        {            
+        {
             pos = p;
             history = h;
             cur = 0;
@@ -217,11 +223,13 @@ namespace StockFish
             Debug.Assert(d <= DepthS.DEPTH_ZERO);
 
             if (p.checkers() != 0)
+            {
                 stage = StagesS.EVASION;
-
+            }
             else if (d > DepthS.DEPTH_QS_NO_CHECKS)
+            {
                 stage = StagesS.QSEARCH_0;
-
+            }
             else if (d > DepthS.DEPTH_QS_RECAPTURES)
             {
                 stage = StagesS.QSEARCH_1;
@@ -265,8 +273,10 @@ namespace StockFish
             end += ((ttMove != MoveS.MOVE_NONE) ? 1 : 0);
         }
 
+        /// <summary>
         /// score() assign a numerical value to each move in a move list. The moves with
         /// highest values will be picked first.
+        /// </summary>
         public void score_captures()
         {
             // Winning and equal captures in the main search are ordered by MVV/LVA.
@@ -291,14 +301,17 @@ namespace StockFish
                          - Types.Type_of_piece(pos.moved_piece(m));
 
                 if (Types.Type_of_move(m) == MoveTypeS.ENPASSANT)
-                    moves[it].value += Position.PieceValue[PhaseS.MG][PieceTypeS.PAWN];                
-
+                  {
+                        moves[it].value += Position.PieceValue[PhaseS.MG][PieceTypeS.PAWN];
+                  }
                 else if (Types.Type_of_move(m) == MoveTypeS.PROMOTION)
-                    moves[it].value += Position.PieceValue[PhaseS.MG][Types.Promotion_type(m)] - Position.PieceValue[PhaseS.MG][PieceTypeS.PAWN];
+                    {
+                        moves[it].value += Position.PieceValue[PhaseS.MG][Types.Promotion_type(m)] - Position.PieceValue[PhaseS.MG][PieceTypeS.PAWN];
+                    }
             }
         }
 
-        public void score_quiets()
+        public void Score_quiets()
         {
             Move m;
 
@@ -309,7 +322,7 @@ namespace StockFish
             }
         }
 
-        public void score_evasions()
+        public void Score_evasions()
         {
             // Try good captures ordered by MVV/LVA, then non-captures if destination square
             // is not under attack, ordered by history value, then bad-captures and quiet
@@ -321,17 +334,22 @@ namespace StockFish
             {
                 m = moves[it].move;
                 if ((see = pos.see_sign(m)) < ValueS.VALUE_ZERO)
+                {
                     moves[it].value = see - HistoryStats.Max; // At the bottom
-
+                }
                 else if (pos.capture(m))
+                {
                     moves[it].value = Position.PieceValue[PhaseS.MG][pos.piece_on(Types.To_sq(m))]
-                             - Types.Type_of_piece(pos.moved_piece(m)) + HistoryStats.Max;
+                            - Types.Type_of_piece(pos.moved_piece(m)) + HistoryStats.Max;
+                }
                 else
+                {
                     moves[it].value = history[pos.moved_piece(m)][Types.To_sq(m)];
+                }
             }
         }
 
-        private static int partition(ExtMove[] moves, int first, int last)
+        private static int Partition(ExtMove[] moves, int first, int last)
         {
             // move elements satisfying _Pred to beginning of sequence
             for (; ; ++first)
@@ -351,9 +369,11 @@ namespace StockFish
             return first;
         }
 
+        /// <summary>
         /// generate_next_stage() generates, scores and sorts the next bunch of moves,
-        /// when there are no more moves to try for the current stage.    
-        public void generate_next_stage()
+        /// when there are no more moves to try for the current stage.
+        /// </summary>
+        public void Generate_next_stage()
         {
             cur = 0;
 
@@ -383,24 +403,31 @@ namespace StockFish
 
                     // Be sure countermoves are different from killers
                     for (int i = 0; i < 2; ++i)
-                        if (countermoves[i] != moves[cur].move 
-                            && countermoves[i] != moves[cur + 1].move)
-                            moves[end++].move = countermoves[i];
+                    {
+                        if (countermoves[i] != moves[cur].move && countermoves[i] != moves[cur + 1].move)
+                           {
+                                moves[end++].move = countermoves[i];
+                           }
+                    }
 
                     // Be sure followupmoves are different from killers and countermoves
                     for (int i = 0; i < 2; ++i)
+                    {
                         if (followupmoves[i] != moves[cur].move
                             && followupmoves[i] != moves[cur+1].move
                             && followupmoves[i] != moves[cur+2].move
                             && followupmoves[i] != moves[cur+3].move)
-                            moves[end++].move = followupmoves[i];                    
+                        {
+                            moves[end++].move = followupmoves[i];
+                        }
+                    }
 
                     return;
 
                 case StagesS.QUIETS_1_S1:
                     endQuiets = end = MoveList.Generate(pos, moves, 0, GenTypeS.QUIETS);
-                    score_quiets();
-                    end = partition(moves, cur, end);
+                    Score_quiets();
+                    end = Partition(moves, cur, end);
                     insertion_sort(moves, cur, end);
                     return;
 
@@ -420,7 +447,7 @@ namespace StockFish
                 case StagesS.EVASIONS_S2:
                     end = MoveList.Generate(pos, moves, 0, GenTypeS.EVASIONS);
                     if (end > 1)
-                        score_evasions();
+                        Score_evasions();
                     return;
 
                 case StagesS.QUIET_CHECKS_S3:
@@ -446,22 +473,23 @@ namespace StockFish
             }
         }
 
+        /// <summary>
         /// next_move() is the most important method of the MovePicker class. It returns
         /// a new pseudo legal move every time it is called, until there are no more moves
         /// left. It picks the move with the biggest value from a list of generated moves
         /// taking care not to return the ttMove if it has already been searched.
-        public Move next_move_false()
+        /// </summary>
+        public Move Next_move_false()
         {
             Move move;
 
             while (true)
             {
                 while (cur == end)
-                    generate_next_stage();
+                    Generate_next_stage();
 
                 switch (stage)
                 {
-
                     case StagesS.MAIN_SEARCH:
                     case StagesS.EVASION:
                     case StagesS.QSEARCH_0:
@@ -471,7 +499,7 @@ namespace StockFish
                         return ttMove;
 
                     case StagesS.CAPTURES_S1:
-                        move = moves[pick_best(moves, cur++, end)].move;
+                        move = moves[Pick_best(moves, cur++, end)].move;
                         if (move != ttMove)
                         {
                             if (pos.see_sign(move) >= ValueS.VALUE_ZERO)
@@ -484,10 +512,7 @@ namespace StockFish
 
                     case StagesS.KILLERS_S1:
                         move = moves[cur++].move;
-                        if (move != MoveS.MOVE_NONE                            
-                            && move != ttMove
-                            && pos.pseudo_legal(move)
-                            && !pos.capture(move))
+                        if (move != MoveS.MOVE_NONE && move != ttMove && pos.pseudo_legal(move) && !pos.capture(move))
                             return move;
                         break;
 
@@ -510,19 +535,19 @@ namespace StockFish
                     case StagesS.EVASIONS_S2:
                     case StagesS.CAPTURES_S3:
                     case StagesS.CAPTURES_S4:
-                        move = moves[pick_best(moves, cur++, end)].move;
+                        move = moves[Pick_best(moves, cur++, end)].move;
                         if (move != ttMove)
                             return move;
                         break;
 
                     case StagesS.CAPTURES_S5:
-                        move = moves[pick_best(moves, cur++, end)].move;
+                        move = moves[Pick_best(moves, cur++, end)].move;
                         if (move != ttMove && pos.see(move) > captureThreshold)
                             return move;
                         break;
 
                     case StagesS.CAPTURES_S6:
-                        move = moves[pick_best(moves, cur++, end)].move;
+                        move = moves[Pick_best(moves, cur++, end)].move;
                         if (Types.To_sq(move) == recaptureSquare)
                             return move;
                         break;
@@ -537,16 +562,18 @@ namespace StockFish
                         return MoveS.MOVE_NONE;
 
                     default:
-                        Debug.Assert(false);
+                        Debug.Fail("next move false error");
                         break;
                 }
             }
         }
 
+        /// <summary>
         /// Version of next_move() to use at split point nodes where the move is grabbed
         /// from the split point's shared MovePicker object. This function is not thread
         /// safe so must be lock protected by the caller.
-        public Move next_move_true() { return ss.splitPoint.movePicker.next_move_false(); }
+        /// </summary>
+        public Move Next_move_true() { return ss.splitPoint.movePicker.Next_move_false(); }
 
     }
 }

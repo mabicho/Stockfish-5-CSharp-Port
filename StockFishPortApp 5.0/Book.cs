@@ -407,7 +407,7 @@ namespace StockFish
                 Square s = BitBoard.Pop_lsb(ref b);
                 Piece pc = pos.piece_on(s);
                 // PolyGlot pieces are: BP = 0, WP = 1, BN = 2, ... BK = 10, WK = 11
-                int pieceOfs = 2 * (Types.Type_of_piece(pc) - 1) + ((Types.Color_of(pc) == ColorS.WHITE) ? 1 : 0);
+                int pieceOfs = (2 * (Types.Type_of_piece(pc) - 1)) + ((Types.Color_of(pc) == ColorS.WHITE) ? 1 : 0);
                 key ^= PG[psq + (64 * pieceOfs + s)];
             }
 

@@ -17,9 +17,22 @@ using Piece = System.Int32;
 using PieceType = System.Int32;
 using MoveType = System.Int32;
 using CastlingRight = System.Int32;
-
 namespace StockFish
 {
+    [StructLayout(LayoutKind.Explicit, Size=4)]
+    public struct ScoreView
+    {
+        [FieldOffset(0)]
+        public UInt32 full;
+
+        [FieldOffset(0)]
+        public Int16 half_eg;
+
+        [FieldOffset(2)]
+        public Int16 half_mg;
+        //struct { int16_t eg, mg; } half;
+    }
+
     public sealed class Types
     {
         public static string newline = System.Environment.NewLine;

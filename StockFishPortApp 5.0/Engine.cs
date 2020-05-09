@@ -25,7 +25,7 @@ namespace StockFish
             Position.init();
             Bitbases.Init_kpk();
             Search.Init();
-            Pawns.init();
+            Pawns.Init();
             Eval.init();
             Threads.Init();
             TT.Resize((ulong)Options["Hash"].getInt());

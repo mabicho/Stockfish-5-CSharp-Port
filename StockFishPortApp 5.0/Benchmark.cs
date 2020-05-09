@@ -201,7 +201,7 @@ namespace StockFish
                 }
                 else
                 {
-                    Engine.Threads.start_thinking(pos, limits, st);
+                    Engine.Threads.Start_thinking(pos, limits, st);
                     Threads.wait_for_think_finished();
                     nodes += (Int64)Search.RootPos.nodes_searched();
                 }
@@ -310,7 +310,7 @@ namespace StockFish
                 }
                 else
                 {
-                    Engine.Threads.start_thinking(pos, limits, st);
+                    Engine.Threads.Start_thinking(pos, limits, st);
                     Threads.wait_for_think_finished();
                     nodes += (Int64)Search.RootPos.nodes_searched();
                     outfile.WriteLine(i + "\t" + Search.RootPos.nodes_searched() + "\t" + Search.RootMoves[0].pv[0] + "\t" +

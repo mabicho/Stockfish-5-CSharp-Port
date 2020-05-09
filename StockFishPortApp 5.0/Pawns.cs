@@ -84,9 +84,11 @@ namespace StockFish
 
         public static Bitboard MiddleEdges = (BitBoard.FileABB | BitBoard.FileHBB) & (BitBoard.Rank2BB | BitBoard.Rank3BB);
 
+        /// <summary>
         /// Pawns::Entry contains various information about a pawn structure. A lookup
         /// to the pawn hash table (performed by calling the probe function) returns a
         /// pointer to an Entry object.
+        /// </summary>
         public sealed class Entry
         {
             public Key key;
@@ -97,7 +99,7 @@ namespace StockFish
             public Square[] kingSquares = new Square[ColorS.COLOR_NB];
             public Score[] kingSafety = new Square[ColorS.COLOR_NB];
             public int[] minKPdistance = new int[ColorS.COLOR_NB];
-            public int[] castlingRights = new int[ColorS.COLOR_NB];            
+            public int[] castlingRights = new int[ColorS.COLOR_NB];
             public int[] semiopenFiles = new int[ColorS.COLOR_NB];
             public int[][] pawnsOnSquares = new int[][] { new int[ColorS.COLOR_NB], new int[ColorS.COLOR_NB] }; // [color][light/dark squares]
 
@@ -105,10 +107,9 @@ namespace StockFish
             public Bitboard pawn_attacks(Color c) { return pawnAttacks[c]; }
             public Bitboard passed_pawns(Color c) { return passedPawns[c]; }
             public Bitboard candidate_pawns(Color c) { return candidatePawns[c]; }
-            
-            public int semiopen_file(Color c, File f) 
-            { 
-                return semiopenFiles[c] & (1 << (int)(f)); 
+            public int semiopen_file(Color c, File f)
+            {
+                return semiopenFiles[c] & (1 << (int)(f));
             }
 
             public int semiopen_side(Color c, File f, bool leftSide)
@@ -116,9 +117,9 @@ namespace StockFish
                 return semiopenFiles[c] & (leftSide ? ((1 << f) - 1) : ~((1 << (f + 1)) - 1));
             }
 
-            public int pawns_on_same_color_squares(Color c, Square s) 
-            { 
-                return pawnsOnSquares[c][(BitBoard.DarkSquares & BitBoard.SquareBB[s]) != 0 ? 1 : 0]; 
+            public int pawns_on_same_color_squares(Color c, Square s)
+            {
+                return pawnsOnSquares[c][(BitBoard.DarkSquares & BitBoard.SquareBB[s]) != 0 ? 1 : 0];
             }
 
             public Score king_safety(Position pos, Square ksq, Color Us)
@@ -127,8 +128,10 @@ namespace StockFish
                     ? kingSafety[Us] : (kingSafety[Us] = do_king_safety(pos, ksq, Us));
             }
 
+            /// <summary>
             /// Entry::shelter_storm() calculates shelter and storm penalties for the file
-            /// the king is on, as well as the two adjacent files.     
+            /// the king is on, as well as the two adjacent files.
+            /// </summary>
             public Value shelter_storm(Position pos, Square ksq, Color Us)
             {
                 Color Them = (Us == ColorS.WHITE ? ColorS.BLACK : ColorS.WHITE);
@@ -138,7 +141,7 @@ namespace StockFish
                 Bitboard ourPawns = b & pos.pieces_color(Us);
                 Bitboard theirPawns = b & pos.pieces_color(Them);
                 Rank rkUs, rkThem;
-                File kf = Math.Max(FileS.FILE_B, Math.Min(FileS.FILE_G, Types.File_of(ksq)));                
+                File kf = Math.Max(FileS.FILE_B, Math.Min(FileS.FILE_G, Types.File_of(ksq)));
 
                 for (File f = kf - 1; f <= kf + 1; ++f)
                 {
@@ -149,20 +152,26 @@ namespace StockFish
                     b = theirPawns & BitBoard.File_bb_file(f);
                     rkThem = b != 0 ? Types.Relative_rank_square(Us, BitBoard.Frontmost_sq(Them, b)) : RankS.RANK_1;
 
-                    if ((MiddleEdges & BitBoard.SquareBB[Types.Make_square(f, rkThem)])!=0
+                    if ((MiddleEdges & BitBoard.SquareBB[Types.Make_square(f, rkThem)]) != 0
                         && Types.File_of(ksq) == f
                         && Types.Relative_rank_square(Us, ksq) == rkThem - 1)
+                    {
                         safety += 200;
+                    }
                     else
+                    {
                         safety -= ShelterWeakness[rkUs]
-                                + StormDanger[rkUs == RankS.RANK_1 ? 0 : rkThem == rkUs + 1 ? 2 : 1][rkThem];
+                               + StormDanger[rkUs == RankS.RANK_1 ? 0 : rkThem == rkUs + 1 ? 2 : 1][rkThem];
+                    }
                 }
 
                 return safety;
             }
 
+            /// <summary>
             /// Entry::do_king_safety() calculates a bonus for king safety. It is called only
             /// when king square changes, which is about 20% of total king_safety() calls.
+            /// </summary>
             public Score do_king_safety(Position pos, Square ksq, Color Us)
             {
                 kingSquares[Us] = ksq;
@@ -186,28 +195,29 @@ namespace StockFish
                     bonus = Math.Max(bonus, shelter_storm(pos, Types.Relative_square(Us, SquareS.SQ_C1), Us));
 
                 return Types.Make_score(bonus, -16 * minKPdistance[Us]);
-            }            
+            }
         }
 
-        public static void init()
+        public static void Init()
         {
             int bonus;
 
             //Score[/*FILE_NB*/][/*RANK_NB*/] Connected
             Connected= new Score[FileS.FILE_NB][];
             for (File f = FileS.FILE_A; f <= FileS.FILE_H; ++f){
-                Connected[f]= new Score[RankS.RANK_NB];                
+                Connected[f]= new Score[RankS.RANK_NB];
             }
 
             for (Rank r = RankS.RANK_1; r < RankS.RANK_8; ++r)
-                for (File f = FileS.FILE_A; f <= FileS.FILE_H; ++f)
+            {
+                 for (File f = FileS.FILE_A; f <= FileS.FILE_H; ++f)
                 {
-                    bonus = r * (r - 1) * (r - 2) + bonusesByFile[f] * (r / 2 + 1);
+                    bonus = (r * (r - 1) * (r - 2)) + (bonusesByFile[f] * ((r / 2) + 1));
                     Connected[f][r] = Types.Make_score(bonus, bonus);
                 }
+            }
         }
-
-        public static Score evaluate(Position pos, Pawns.Entry e, Color Us)
+        public static Score Evaluate(Position pos, Pawns.Entry e, Color Us)
         {
             Color Them = (Us == ColorS.WHITE ? ColorS.BLACK : ColorS.WHITE);
             Square Up = (Us == ColorS.WHITE ? SquareS.DELTA_N : SquareS.DELTA_S);
@@ -240,7 +250,6 @@ namespace StockFish
 
                 f = Types.File_of(s);
 
-
                 // This file cannot be semi-open
                 e.semiopenFiles[Us] &= ~(1 << f);
 
@@ -264,9 +273,11 @@ namespace StockFish
                 // backward. If there are friendly pawns behind on adjacent files
                 // or if it can capture an enemy pawn it cannot be backward either.
                 if ((passed | isolated | connected)
-                    || (ourPawns & BitBoard.Pawn_attack_span(Them, s))!=0
-                    || (pos.attacks_from_pawn(s, Us) & theirPawns)!=0)
+                    || (ourPawns & BitBoard.Pawn_attack_span(Them, s)) != 0
+                    || (pos.attacks_from_pawn(s, Us) & theirPawns) != 0)
+                {
                     backward = false;
+                }
                 else
                 {
                     // We now know that there are no friendly pawns beside or behind this
@@ -278,7 +289,7 @@ namespace StockFish
 
                     // If we have an enemy pawn in the same or next rank, the pawn is
                     // backward because it cannot advance without being captured.
-                    backward = ((b | BitBoard.Shift_bb(b, Up)) & theirPawns)!=0;
+                    backward = ((b | BitBoard.Shift_bb(b, Up)) & theirPawns) != 0;
                 }
 
                 Debug.Assert(opposed | passed | (BitBoard.Pawn_attack_span(Us, s) & theirPawns)!=0);
@@ -333,47 +344,23 @@ namespace StockFish
             return value;
         }
 
+        /// <summary>
         /// probe() takes a position object as input, computes a Entry object, and returns
         /// a pointer to it. The result is also stored in a hash table, so we don't have
         /// to recompute everything when the same pawn structure occurs again.
+        /// </summary>
         public static Pawns.Entry probe(Position pos, Pawns.Table entries)
         {
             Key key = pos.pawn_key();
             Pawns.Entry e = entries[key];
-            
+
             if (e.key == key)
                 return e;
 
             e.key = key;
-            e.value = evaluate(pos, e, ColorS.WHITE) - evaluate(pos, e, ColorS.BLACK);
+            e.value = Evaluate(pos, e, ColorS.WHITE) - Evaluate(pos, e, ColorS.BLACK);
 
             return e;
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-
-        
-
-
-        
-
-        
-
-        
-
     }
 }

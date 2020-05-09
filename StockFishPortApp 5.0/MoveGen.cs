@@ -72,7 +72,7 @@ namespace StockFish
             Square kfrom = pos.king_square(us);
             Square rfrom = pos.castling_rook_square(Cr);
             Square kto = Types.Relative_square(us, KingSide ? SquareS.SQ_G1 : SquareS.SQ_C1);
-            Bitboard enemies = pos.pieces_color(Types.NotColor(us));
+            Bitboard enemies = pos.pieces_color(us ^ ColorS.BLACK);
 
             Debug.Assert(0==pos.checkers());
 

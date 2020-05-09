@@ -209,7 +209,7 @@ namespace StockFish
 
 
             if (!Fake){
-                for (Thread slave; (slave = Engine.Threads.available_slave(this)) != null; )
+                for (Thread slave; (slave = Engine.Threads.Available_slave(this)) != null; )
                 {
                     sp.slavesMask[slave.idx] = true;
                     slave.activeSplitPoint = sp;
@@ -435,11 +435,12 @@ namespace StockFish
 
         // available_slave() tries to find an idle thread which is available as a slave
         // for the thread 'master'.
-        public Thread available_slave(Thread master)
+        public Thread Available_slave(Thread master)
         {
-            foreach (Thread it in this)            
-                if (it.Available_to(master))
-                    return it;                            
+            foreach (Thread it in this)
+               {
+                   if (it.Available_to(master)) return it;
+               }
 
             return null;
         }
@@ -455,7 +456,7 @@ namespace StockFish
 
         // start_thinking() wakes up the main thread sleeping in MainThread::idle_loop()
         // so to start a new search, then returns immediately.
-        public void start_thinking(Position pos, LimitsType limits, StateStackPtr states)
+        public void Start_thinking(Position pos, LimitsType limits, StateStackPtr states)
         {
             wait_for_think_finished();
 
@@ -470,17 +471,21 @@ namespace StockFish
 
             if (states.Count > 0) // If we don't set a new position, preserve current state
             {
-                Search.SetupStates = states; // Ownership transfer here                
+                Search.SetupStates = states; // Ownership transfer here
                 //Debug.Assert(states==null);
             }
 
             for (MoveList it = new MoveList(pos, GenTypeS.LEGAL); it.Move()!= 0; ++it)
+            {
                 if (limits.searchmoves.Count == 0
                     || Misc.ExistSearchMove(limits.searchmoves, it.Move()))
+                {
                     Search.RootMoves.Add(new RootMove(it.Move()));
+                }
+            }
 
             main().thinking = true;
             main().notify_one(); // Starts main thread
         }
-    }   
+    }
 }

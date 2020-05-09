@@ -598,7 +598,7 @@ namespace StockFish
 
                 MovePicker mp2 = new MovePicker(pos, ttMove, History, pos.captured_piece_type());
                 CheckInfo ci2 = new CheckInfo(pos);
-                while ((move = mp2.next_move_false()) != MoveS.MOVE_NONE)
+                while ((move = mp2.Next_move_false()) != MoveS.MOVE_NONE)
                     if (pos.legal(move, ci2.pinned))
                     {
                         ss[ssPos].currentMove = move;
@@ -651,7 +651,7 @@ namespace StockFish
 
             // Step 11. Loop through moves
             // Loop through all pseudo-legal moves until no moves remain or a beta cutoff occurs            
-            while ((move = (SpNode ? mp.next_move_true() : mp.next_move_false())) != MoveS.MOVE_NONE)
+            while ((move = (SpNode ? mp.Next_move_true() : mp.Next_move_false())) != MoveS.MOVE_NONE)
             {
                 Debug.Assert(Types.Is_ok_move(move));
 
@@ -1081,7 +1081,7 @@ namespace StockFish
             st = new StateInfo();
 
             // Loop through the moves until no moves remain or a beta cutoff occurs
-            while ((move = mp.next_move_false()) != MoveS.MOVE_NONE)
+            while ((move = mp.Next_move_false()) != MoveS.MOVE_NONE)
             {
                 Debug.Assert(Types.Is_ok_move(move));
 
@@ -1349,25 +1349,9 @@ namespace StockFish
                     data[q] = data[q - 1];
                 data[q] = tmp;
             }
-        }                               
+        }
     }
-}
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using System.Diagnostics;
-using System.Text;
 
-using Key = System.UInt64;
-using Move = System.Int32;
-using Depth = System.Int32;
-using Value = System.Int32;
-using Color = System.Int32;
-using NodeType = System.Int32;
-using Square = System.Int32;
-
-namespace StockFish
-{
     public sealed class StateStackPtr : Stack<StateInfo>
     {
     }
@@ -1512,7 +1496,7 @@ namespace StockFish
 
     public partial class Thread
     {
-        /// Thread::idle_loop() is where the thread is parked when it has no work to do
+        //Thread::idle_loop() is where the thread is parked when it has no work to do
         public override void idle_loop()
         {
             // Pointer 'this_sp' is not null only if we are called from split(), and not
@@ -1536,7 +1520,7 @@ namespace StockFish
                     // Grab the lock to avoid races with Thread::notify_one()
                     mutex.Lock();
 
-                    // If we are master and all slaves have finished then exit idle_loop                    
+                    // If we are master and all slaves have finished then exit idle_loop
                     if (this_sp != null && this_sp.slavesMask.None())
                     {
                         mutex.UnLock();
@@ -1571,7 +1555,6 @@ namespace StockFish
                     for (int i = 0; i < Types.MAX_PLY_PLUS_6; i++)
                         stack[i] = new Stack();
 
-                    
                     Position pos = new Position(sp.pos, this);
 
                     for (int i = sp.ssPos - 2, n = 0; n < 5; n++, i++)
@@ -1587,15 +1570,12 @@ namespace StockFish
 
                     if (sp.nodeType == NodeTypeS.NonPV)
                         Search.search(pos, stack, ss, sp.alpha, sp.beta, sp.depth, sp.cutNode, NodeTypeS.NonPV, true);
-
                     else if (sp.nodeType == NodeTypeS.PV)
                         Search.search(pos, stack, ss, sp.alpha, sp.beta, sp.depth, sp.cutNode, NodeTypeS.PV, true);
-
                     else if (sp.nodeType == NodeTypeS.Root)
                         Search.search(pos, stack, ss, sp.alpha, sp.beta, sp.depth, sp.cutNode, NodeTypeS.Root, true);
-
                     else
-                        Debug.Assert(false);
+                        Debug.Fail("bad node");
 
                     Debug.Assert(searching);
 
@@ -1606,9 +1586,8 @@ namespace StockFish
                     sp.nodes += (UInt32)pos.nodes_searched();
 
                     // Wake up the master thread so to allow it to return from the idle
-                    // loop in case we are the last slave of the split point.                    
-                    if (this != sp.masterThread
-                        && sp.slavesMask.None())
+                    // loop in case we are the last slave of the split point.
+                    if (this != sp.masterThread  && sp.slavesMask.None())
                     {
                         Debug.Assert(!sp.masterThread.searching);
                         sp.masterThread.notify_one();
