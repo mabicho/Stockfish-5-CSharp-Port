@@ -448,7 +448,7 @@ namespace StockFish
                 // Choose book move according to its score. If a move has a very
                 // high score it has higher probability to be choosen than a move
                 // with lower score. Note that first entry is always chosen.
-                if ((sum != 0 && ((((uint)RKiss.rand64()) % sum) < e.count))
+                if ((sum != 0 && ((((uint)RKiss.Rand64()) % sum) < e.count))
                     || (pickBest && e.count == best))
                 {
                     move = (e.move);
@@ -470,7 +470,7 @@ namespace StockFish
             // the special Move's flags (bit 14-15) that are not supported by PolyGlot.
             int pt = (move >> 12) & 7;
             if (pt != 0)
-                move = Types.make(Types.From_sq(move), Types.To_sq(move), MoveTypeS.PROMOTION, (pt + 1));
+                move = Types.Make(Types.From_sq(move), Types.To_sq(move), MoveTypeS.PROMOTION, (pt + 1));
 
             // Add 'special move' flags and verify it is legal
             for (MoveList ml = new MoveList(pos, GenTypeS.LEGAL); ml.mlist[ml.cur].move != MoveS.MOVE_NONE; ++ml)

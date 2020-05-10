@@ -346,7 +346,7 @@ namespace StockFish
         public ConditionVariable sleepCondition = new ConditionVariable();
         public TimerThread timer;
 
-        public MainThread main() { return (MainThread)this[0]; }
+        public MainThread Main() { return (MainThread)this[0]; }
 
         // start_routine() is the C function which is called when a new thread
         // is launched. It is a wrapper to the virtual function idle_loop().
@@ -446,9 +446,9 @@ namespace StockFish
         }
 
         // wait_for_think_finished() waits for main thread to go to sleep then returns
-        public void wait_for_think_finished()
+        public void Wait_for_think_finished()
         {
-            MainThread t = (MainThread)main();
+            MainThread t = (MainThread)Main();
             t.mutex.Lock();
             while (t.thinking) sleepCondition.wait(t.mutex);
             t.mutex.UnLock();
@@ -458,7 +458,7 @@ namespace StockFish
         // so to start a new search, then returns immediately.
         public void Start_thinking(Position pos, LimitsType limits, StateStackPtr states)
         {
-            wait_for_think_finished();
+            Wait_for_think_finished();
 
             Search.SearchTime = Time.Now(); // As early as possible
 
@@ -477,15 +477,14 @@ namespace StockFish
 
             for (MoveList it = new MoveList(pos, GenTypeS.LEGAL); it.Move()!= 0; ++it)
             {
-                if (limits.searchmoves.Count == 0
-                    || Misc.ExistSearchMove(limits.searchmoves, it.Move()))
+                if (limits.searchmoves.Count == 0 || Misc.ExistSearchMove(limits.searchmoves, it.Move()))
                 {
                     Search.RootMoves.Add(new RootMove(it.Move()));
                 }
             }
 
-            main().thinking = true;
-            main().notify_one(); // Starts main thread
+            Main().thinking = true;
+            Main().notify_one(); // Starts main thread
         }
     }
 }

@@ -68,15 +68,15 @@ namespace StockFish
         public static Score UnsupportedPawnPenalty = S(20, 10);
 
         // Weakness of our pawn shelter in front of the king indexed by [rank]
-        public static Value[] ShelterWeakness = new Value[RankS.RANK_NB] 
-        {(100), (0), (27), (73), (92), (101), (101), 0 };
+        public static Value[] ShelterWeakness = new Value[RankS.RANK_NB]
+        {100, 0, 27, 73, 92, 101, 101, 0 };
 
         // Danger of enemy pawns moving toward our king indexed by
         // [no friendly pawn | pawn unblocked | pawn blocked][rank of enemy pawn]
         public static Value[][] StormDanger = new Value[][] {
-            new Value[RankS.RANK_NB] { ( 0),  (64), (128), (51), (26), 0, 0, 0 },
-            new Value[RankS.RANK_NB] { (26),  (32), ( 96), (38), (20), 0, 0, 0 },
-            new Value[RankS.RANK_NB] { ( 0),  ( 0), (160), (25), (13), 0, 0, 0 }};
+            new Value[RankS.RANK_NB] { 0, 64, 128, 51, 26, 0, 0, 0 },
+            new Value[RankS.RANK_NB] { 26,  32,  96, 38, 20, 0, 0, 0 },
+            new Value[RankS.RANK_NB] {  0,   0, 160, 25, 13, 0, 0, 0 }};
 
         // Max bonus for king safety. Corresponds to start position with all the pawns
         // in front of the king and no enemy pawn on the horizon.
@@ -103,36 +103,36 @@ namespace StockFish
             public int[] semiopenFiles = new int[ColorS.COLOR_NB];
             public int[][] pawnsOnSquares = new int[][] { new int[ColorS.COLOR_NB], new int[ColorS.COLOR_NB] }; // [color][light/dark squares]
 
-            public Score pawns_value() { return value; }
-            public Bitboard pawn_attacks(Color c) { return pawnAttacks[c]; }
-            public Bitboard passed_pawns(Color c) { return passedPawns[c]; }
-            public Bitboard candidate_pawns(Color c) { return candidatePawns[c]; }
-            public int semiopen_file(Color c, File f)
+            public Score Pawns_value() { return value; }
+            public Bitboard Pawn_attacks(Color c) { return pawnAttacks[c]; }
+            public Bitboard Passed_pawns(Color c) { return passedPawns[c]; }
+            public Bitboard Candidate_pawns(Color c) { return candidatePawns[c]; }
+            public int Semiopen_file(Color c, File f)
             {
                 return semiopenFiles[c] & (1 << (int)(f));
             }
 
-            public int semiopen_side(Color c, File f, bool leftSide)
+            public int Semiopen_side(Color c, File f, bool leftSide)
             {
                 return semiopenFiles[c] & (leftSide ? ((1 << f) - 1) : ~((1 << (f + 1)) - 1));
             }
 
-            public int pawns_on_same_color_squares(Color c, Square s)
+            public int Pawns_on_same_color_squares(Color c, Square s)
             {
                 return pawnsOnSquares[c][(BitBoard.DarkSquares & BitBoard.SquareBB[s]) != 0 ? 1 : 0];
             }
 
-            public Score king_safety(Position pos, Square ksq, Color Us)
+            public Score King_safety(Position pos, Square ksq, Color Us)
             {
                 return kingSquares[Us] == ksq && castlingRights[Us] == pos.can_castle_color(Us)
-                    ? kingSafety[Us] : (kingSafety[Us] = do_king_safety(pos, ksq, Us));
+                    ? kingSafety[Us] : (kingSafety[Us] = Do_king_safety(pos, ksq, Us));
             }
 
             /// <summary>
             /// Entry::shelter_storm() calculates shelter and storm penalties for the file
             /// the king is on, as well as the two adjacent files.
             /// </summary>
-            public Value shelter_storm(Position pos, Square ksq, Color Us)
+            public Value Shelter_storm(Position pos, Square ksq, Color Us)
             {
                 Color Them = (Us == ColorS.WHITE ? ColorS.BLACK : ColorS.WHITE);
 
@@ -145,7 +145,6 @@ namespace StockFish
 
                 for (File f = kf - 1; f <= kf + 1; ++f)
                 {
-
                     b = ourPawns & BitBoard.File_bb_file(f);
                     rkUs = b != 0 ? Types.Relative_rank_square(Us, BitBoard.Backmost_sq(Us, b)) : RankS.RANK_1;
 
@@ -172,7 +171,7 @@ namespace StockFish
             /// Entry::do_king_safety() calculates a bonus for king safety. It is called only
             /// when king square changes, which is about 20% of total king_safety() calls.
             /// </summary>
-            public Score do_king_safety(Position pos, Square ksq, Color Us)
+            public Score Do_king_safety(Position pos, Square ksq, Color Us)
             {
                 kingSquares[Us] = ksq;
                 castlingRights[Us] = pos.can_castle_color(Us);
@@ -185,14 +184,14 @@ namespace StockFish
                 if (Types.Relative_rank_square(Us, ksq) > RankS.RANK_4)
                     return Types.Make_score(0, -16 * minKPdistance[Us]);
 
-                Value bonus = shelter_storm(pos, ksq, Us);
+                Value bonus = Shelter_storm(pos, ksq, Us);
 
                 // If we can castle use the bonus after the castle if is bigger
                 if (pos.can_castle_castleright((new MakeCastlingS(Us, CastlingSideS.KING_SIDE)).right) != 0)
-                    bonus = Math.Max(bonus, shelter_storm(pos, Types.Relative_square(Us, SquareS.SQ_G1), Us));
+                    bonus = Math.Max(bonus, Shelter_storm(pos, Types.Relative_square(Us, SquareS.SQ_G1), Us));
 
                 if (pos.can_castle_castleright((new MakeCastlingS(Us, CastlingSideS.QUEEN_SIDE)).right) != 0)
-                    bonus = Math.Max(bonus, shelter_storm(pos, Types.Relative_square(Us, SquareS.SQ_C1), Us));
+                    bonus = Math.Max(bonus, Shelter_storm(pos, Types.Relative_square(Us, SquareS.SQ_C1), Us));
 
                 return Types.Make_score(bonus, -16 * minKPdistance[Us]);
             }
@@ -349,7 +348,7 @@ namespace StockFish
         /// a pointer to it. The result is also stored in a hash table, so we don't have
         /// to recompute everything when the same pawn structure occurs again.
         /// </summary>
-        public static Pawns.Entry probe(Position pos, Pawns.Table entries)
+        public static Pawns.Entry Probe(Position pos, Pawns.Table entries)
         {
             Key key = pos.pawn_key();
             Pawns.Entry e = entries[key];

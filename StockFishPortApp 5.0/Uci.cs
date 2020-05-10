@@ -11,20 +11,24 @@ namespace StockFish
         public const string StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
         //public const string StartFEN = "1k3b2/p6r/1q1n1P1p/2p1N3/1pB2QPR/8/PP3K2/8 w - - 2 35";
         //
-        /// Keep a track of the position keys along the setup moves (from the start position
+        /// <summary>
+        /// /// Keep a track of the position keys along the setup moves (from the start position
+        /// </summary>
         // to the position just before the search starts). This is needed by the repetition
         // draw detection code.
         public static StateStackPtr SetupStates = new StateStackPtr();
 
-        /// 'On change' actions, triggered by an option's value change
+        // 'On change' actions, triggered by an option's value change
         public static void on_logger(Option o) { /*Misc.start_logger(o.getBool()); */}
-        public static void on_eval(Option o) { Eval.init();}
+        public static void on_eval(Option o) { Eval.Init();}
         public static void on_threads(Option o) { Engine.Threads.Read_uci_options();}
         public static void on_hash_size(Option o) {Engine.TT.Resize((UInt32)o.getInt());}
         public static void on_clear_hash(Option o) { Engine.TT.Clear();}
 
+        /// <summary>
         /// init() initializes the UCI options to their hard-coded default values
-        public static void init(Dictionary<string, Option> o)
+        /// </summary>
+        public static void Init(Dictionary<string, Option> o)
         {
             o["Write Debug Log"] = new Option("Write Debug Log", o.Count, false, on_logger);
             o["Write Search Log"] = new Option("Write Search Log", o.Count, false);
@@ -61,25 +65,28 @@ namespace StockFish
         // The function sets up the position described in the given FEN string ("fen")
         // or the starting position ("startpos") and then makes the moves given in the
         // following move list ("moves").
-        public static void position(Position pos, Stack<string> stack)
+        public static void Position(Position pos, Stack<string> stack)
         {
             Move m;
             string token, fen = string.Empty;
 
             token = stack.Pop();
 
-            if (token == "startpos")
+            switch (token)
             {
-                fen = StartFEN;
-                if (stack.Count > 0) { token = stack.Pop(); } // Consume "moves" token if any
+                case "startpos":
+                    fen = StartFEN;
+                    if (stack.Count > 0) { _ = stack.Pop(); } // Consume "moves" token if any
+                    break;
+                case "fen":
+                    while (stack.Count > 0 && (token = stack.Pop()) != "moves")
+                        fen += token + " ";
+                    break;
+                default:
+                    return;
             }
-            else if (token == "fen")
-                while ((stack.Count > 0) && (token = stack.Pop()) != "moves")
-                    fen += token + " ";
-            else
-                return;
 
-            pos.set(fen, Engine.Options["UCI_Chess960"].getInt(), Engine.Threads.main());
+            pos.set(fen, Engine.Options["UCI_Chess960"].getInt(), Engine.Threads.Main());
             SetupStates = new StateStackPtr();
 
             // Parse move list (if any)
@@ -92,11 +99,11 @@ namespace StockFish
 
         // setoption() is called when engine receives the "setoption" UCI command. The
         // function updates the UCI option ("name") to the given value ("value").
-        public static void setoption(Stack<string> stack)
+        public static void Setoption(Stack<string> stack)
         {
             string token, name = null, value = null;
 
-            token = stack.Pop(); // Consume "name" token
+            _ = stack.Pop(); // Consume "name" token
 
             // Read option name (can contain spaces)
             while ((stack.Count > 0) && ((token = stack.Pop()) != "value"))
@@ -115,46 +122,109 @@ namespace StockFish
         // go() is called when engine receives the "go" UCI command. The function sets
         // the thinking time and other parameters from the input string, and starts
         // the search.
-        public static void go(Position pos, Stack<string> stack)
+        public static void Go(Position pos, Stack<string> stack)
         {
             LimitsType limits = new LimitsType();
-            //List<Move> searchMoves = new List<Move>();
-            string token = string.Empty;
-
             while (stack.Count > 0)
             {
-                token = stack.Pop();
-                if (token == "searchmoves")
-                    while ((token = stack.Pop()) != null)
-                        limits.searchmoves.Add(Notation.move_from_uci(pos, token));
+                //List<Move> searchMoves = new List<Move>();
+                string token = stack.Pop();
+                switch (token)
+                {
+                    case "searchmoves":
+                        {
+                            while ((token = stack.Pop()) != null)
+                                limits.searchmoves.Add(Notation.move_from_uci(pos, token));
+                            break;
+                        }
 
-                else if (token == "wtime") limits.time[ColorS.WHITE] = int.Parse(stack.Pop());
-                else if (token == "btime") limits.time[ColorS.BLACK] = int.Parse(stack.Pop());
-                else if (token == "winc") limits.inc[ColorS.WHITE] = int.Parse(stack.Pop());
-                else if (token == "binc") limits.inc[ColorS.BLACK] = int.Parse(stack.Pop());
-                else if (token == "movestogo") limits.movestogo = int.Parse(stack.Pop());
-                else if (token == "depth") limits.depth = int.Parse(stack.Pop());
-                else if (token == "nodes") limits.nodes = int.Parse(stack.Pop());
-                else if (token == "movetime") limits.movetime = int.Parse(stack.Pop());
-                else if (token == "mate") limits.mate = int.Parse(stack.Pop());
-                else if (token == "infinite") limits.infinite = 1;
-                else if (token == "ponder") limits.ponder = 1;
+                    case "wtime":
+                        {
+                            limits.time[ColorS.WHITE] = int.Parse(stack.Pop());
+                            break;
+                        }
+
+                    case "btime":
+                        {
+                            limits.time[ColorS.BLACK] = int.Parse(stack.Pop());
+                            break;
+                        }
+
+                    case "winc":
+                        {
+                            limits.inc[ColorS.WHITE] = int.Parse(stack.Pop());
+                            break;
+                        }
+
+                    case "binc":
+                        {
+                            limits.inc[ColorS.BLACK] = int.Parse(stack.Pop());
+                            break;
+                        }
+
+                    case "movestogo":
+                        {
+                            limits.movestogo = int.Parse(stack.Pop());
+                            break;
+                        }
+
+                    case "depth":
+                        {
+                            limits.depth = int.Parse(stack.Pop());
+                            break;
+                        }
+
+                    case "nodes":
+                        {
+                            limits.nodes = int.Parse(stack.Pop());
+                            break;
+                        }
+
+                    case "movetime":
+                        {
+                            limits.movetime = int.Parse(stack.Pop());
+                            break;
+                        }
+
+                    case "mate":
+                        {
+                            limits.mate = int.Parse(stack.Pop());
+                            break;
+                        }
+
+                    case "infinite":
+                        {
+                            limits.infinite = 1;
+                            break;
+                        }
+
+                    case "ponder":
+                        {
+                            limits.ponder = 1;
+                            break;
+                        }
+                }
             }
             Engine.Threads.Start_thinking(pos, limits, SetupStates);
         }
 
+        /// <summary>
         /// Wait for a command from the user, parse this text string as an UCI command,
         /// and call the appropriate functions. Also intercepts EOF from stdin to ensure
         /// that we exit gracefully if the GUI dies unexpectedly. In addition to the UCI
         /// commands, the function also supports a few debug commands.
-        public static void loop(String[] argv)
+        /// </summary>
+        public static void Loop(String[] argv)
         {
-            Position pos = new Position(StartFEN, 0, Engine.Threads.main()); // The root position
-            string token = "", cmd = "";
+            Position pos = new Position(StartFEN, 0, Engine.Threads.Main()); // The root position
+            string cmd = "";
 
             for (int i = 0; i < argv.Length; ++i)
+            {
                 cmd += argv[i] + " ";
+            }
 
+            string token;
             do
             {
                 if (argv.Length == 0 && String.IsNullOrEmpty(cmd = Engine.inOut.ReadLine())) // Block here waiting for input
@@ -163,69 +233,133 @@ namespace StockFish
                 Stack<string> stack = Misc.CreateStack(cmd);
                 token = stack.Pop();
 
-                if (token == "quit" || token == "stop" || token == "ponderhit")
+                switch (token)
                 {
-                    // The GUI sends 'ponderhit' to tell us to ponder on the same move the
-                    // opponent has played. In case Signals.stopOnPonderhit is set we are
-                    // waiting for 'ponderhit' to stop the search (for instance because we
-                    // already ran out of time), otherwise we should continue searching but
-                    // switch from pondering to normal search.
+                    case "quit":
+                    case "stop":
+                    case "ponderhit":
+                        {
+                            // The GUI sends 'ponderhit' to tell us to ponder on the same move the
+                            // opponent has played. In case Signals.stopOnPonderhit is set we are
+                            // waiting for 'ponderhit' to stop the search (for instance because we
+                            // already ran out of time), otherwise we should continue searching but
+                            // switch from pondering to normal search.
 
-                    if (token != "ponderhit" || Search.Signals.stopOnPonderhit)
-                    {
-                        Search.Signals.stop = true;
-                        Engine.Threads.main().notify_one();// Could be sleeping                        
-                    }
-                    else
-                        Search.Limits.ponder = 0;
-                }
-                else if (token == "perft" || token == "divide")
-                {
-                    int depth = Int32.Parse(stack.Pop());
-                    Stack<string> ss = Misc.CreateStack(Engine.Options["Hash"].getInt() + " "
-                        + Engine.Options["Threads"].getInt() + " " + depth + " current " + token);
-                    Engine.Benchmark(pos, ss);                    
-                }
-                else if (token == "key")
-                {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append("position key: ");
-                    sb.Append(String.Format("{0:X}", pos.key()).PadLeft(16, '0'));
-                    sb.Append(Types.newline);
-                    sb.Append("material key: ");
-                    sb.Append(String.Format("{0:X}", pos.material_key()).PadLeft(16, '0'));
-                    sb.Append(Types.newline);
-                    sb.Append("pawn key: ");
-                    sb.Append(String.Format("{0:X}", pos.pawn_key()).PadLeft(16, '0'));
-                    Engine.inOut.WriteLine(sb.ToString(), MutexAction.ATOMIC);
-                }
-                else if (token == "uci")
-                {
-                    Engine.inOut.WriteLine("id name " + Misc.Engine_info(), MutexAction.ADQUIRE);
-                    Engine.inOut.WriteLine(ToString(Engine.Options));
-                    Engine.inOut.WriteLine("uciok", MutexAction.RELAX);
-                }
-                else if (token == "eval")
-                {
-                    Search.RootColor = pos.side_to_move();
-                    Engine.inOut.WriteLine(Eval.trace(pos), MutexAction.ATOMIC);
-                }
-                else if (token == "ucinewgame") { /* Avoid returning "Unknown command" */ }
-                else if (token == "go") go(pos, stack);
-                else if (token == "position") position(pos, stack);
-                else if (token == "setoption") setoption(stack);
-                else if (token == "flip") pos.flip();
-                else if (token == "bench") Engine.Benchmark(pos, stack);
-                else if (token == "benchfile") Engine.Benchfile(pos, stack);
-                else if (token == "d") Engine.inOut.WriteLine(pos.pretty(0), MutexAction.ATOMIC);
-                else if (token == "isready") Engine.inOut.WriteLine("readyok", MutexAction.ATOMIC);
+                            if (token != "ponderhit" || Search.Signals.stopOnPonderhit)
+                            {
+                                Search.Signals.stop = true;
+                                Engine.Threads.Main().notify_one();// Could be sleeping
+                            }
+                            else
+                            {
+                                Search.Limits.ponder = 0;
+                            }
 
-                else
-                    Engine.inOut.WriteLine("Unknown command: " + cmd, MutexAction.ATOMIC);
+                            break;
+                        }
 
+                    case "perft":
+                    case "divide":
+                        {
+                            int depth = Int32.Parse(stack.Pop());
+                            Stack<string> ss = Misc.CreateStack(Engine.Options["Hash"].getInt() + " "
+                                + Engine.Options["Threads"].getInt() + " " + depth + " current " + token);
+                            Engine.Benchmark(pos, ss);
+                            break;
+                        }
+
+                    case "key":
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            sb.Append("position key: ");
+                            sb.Append(String.Format("{0:X}", pos.key()).PadLeft(16, '0'));
+                            sb.Append(Types.newline);
+                            sb.Append("material key: ");
+                            sb.Append(String.Format("{0:X}", pos.material_key()).PadLeft(16, '0'));
+                            sb.Append(Types.newline);
+                            sb.Append("pawn key: ");
+                            sb.Append(String.Format("{0:X}", pos.pawn_key()).PadLeft(16, '0'));
+                            Engine.inOut.WriteLine(sb.ToString(), MutexAction.ATOMIC);
+                            break;
+                        }
+
+                    case "uci":
+                        {
+                            Engine.inOut.WriteLine("id name " + Misc.Engine_info(), MutexAction.ADQUIRE);
+                            Engine.inOut.WriteLine(ToString(Engine.Options));
+                            Engine.inOut.WriteLine("uciok", MutexAction.RELAX);
+                            break;
+                        }
+
+                    case "eval":
+                        {
+                            Search.RootColor = pos.side_to_move();
+                            Engine.inOut.WriteLine(Eval.trace(pos), MutexAction.ATOMIC);
+                            break;
+                        }
+
+                    case "ucinewgame":
+                        { /* Avoid returning "Unknown command" */
+                            break;
+                        }
+
+                    case "go":
+                        {
+                            Go(pos, stack);
+                            break;
+                        }
+
+                    case "position":
+                        {
+                            Position(pos, stack);
+                            break;
+                        }
+
+                    case "setoption":
+                        {
+                            Setoption(stack);
+                            break;
+                        }
+
+                    case "flip":
+                        {
+                            pos.flip();
+                            break;
+                        }
+
+                    case "bench":
+                        {
+                            Engine.Benchmark(pos, stack);
+                            break;
+                        }
+
+                    case "benchfile":
+                        {
+                            Engine.Benchfile(pos, stack);
+                            break;
+                        }
+
+                    case "d":
+                        {
+                            Engine.inOut.WriteLine(pos.pretty(0), MutexAction.ATOMIC);
+                            break;
+                        }
+
+                    case "isready":
+                        {
+                            Engine.inOut.WriteLine("readyok", MutexAction.ATOMIC);
+                            break;
+                        }
+
+                    default:
+                        {
+                            Engine.inOut.WriteLine("Unknown command: " + cmd, MutexAction.ATOMIC);
+                            break;
+                        }
+                }
             } while (token != "quit" && argv.Length == 0);// Passed args have one-shot behaviour
 
-            Engine.Threads.wait_for_think_finished(); // Cannot quit whilst the search is running
+            Engine.Threads.Wait_for_think_finished(); // Cannot quit whilst the search is running
         }
     }
 }

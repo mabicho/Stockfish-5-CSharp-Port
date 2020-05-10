@@ -29,7 +29,7 @@ namespace StockFish
             StringBuilder ss = new StringBuilder();
 
             if (Math.Abs(v) < ValueS.VALUE_MATE_IN_MAX_PLY)
-                ss.Append("cp " + (v * 100 / ValueS.PawnValueEg));                
+                ss.Append("cp " + (v * 100 / ValueS.PawnValueEg));
             else
                 ss.Append("mate " + ((v > 0 ? ValueS.VALUE_MATE - v + 1 : -ValueS.VALUE_MATE - v) / 2));
 

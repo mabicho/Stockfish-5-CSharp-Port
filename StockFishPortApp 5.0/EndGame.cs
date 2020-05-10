@@ -12,7 +12,6 @@ using ScaleFactor = System.Int32;
 using File = System.Int32;
 using Rank = System.Int32;
 
-
 namespace StockFish
 {
     /// <summary>
@@ -34,11 +33,8 @@ namespace StockFish
         public const int KRKN = 6;  // KR vs KN
         public const int KQKP = 7;  // KQ vs KP
         public const int KQKR = 8;  // KQ vs KR
-
-
         // Scaling functions
         public const int SCALE_FUNS = 9;
-
         public const int KBPsK = 10;   // KB and pawns vs K
         public const int KQKRPs = 11;  // KQ vs KR and pawns
         public const int KRPKR = 12;   // KRP vs KR
@@ -50,7 +46,7 @@ namespace StockFish
         public const int KBPKN = 18;   // KBP vs KN
         public const int KNPK = 19;    // KNP vs K
         public const int KNPKB = 20;   // KNP vs KB
-        public const int KPKP = 21;     // KP vs KP 
+        public const int KPKP = 21;     // KP vs KP
     };
 
     public class EndgameBase
@@ -138,55 +134,59 @@ namespace StockFish
                        + sides[1] + (char)(8 - sides[1].Length + '0') + " w - - 0 10";
 
             return new Position(fen, 0, null).material_key();
-        }        
+        }
     }
 
+    /// <summary>
     /// The Endgames class stores the pointers to endgame evaluation and scaling
     /// base objects in two std::map typedefs. We then use polymorphism to invoke
     /// the actual endgame function by calling its virtual operator().
+    /// </summary>
     public sealed class Endgames
     {
+        /// <summary>
         /// Endgames members definitions
+        /// </summary>
         public Dictionary<Key, EndgameBase> m1 = new Dictionary<Key, EndgameBase>();
         public Dictionary<Key, EndgameBase> m2 = new Dictionary<Key, EndgameBase>();
 
         public Endgames()
-        {                    
-            add("KPK", EndgameTypeS.KPK);
-            add("KNNK", EndgameTypeS.KNNK);
-            add("KBNK", EndgameTypeS.KBNK);
-            add("KRKP", EndgameTypeS.KRKP);
-            add("KRKB", EndgameTypeS.KRKB);
-            add("KRKN", EndgameTypeS.KRKN);
-            add("KQKP", EndgameTypeS.KQKP);
-            add("KQKR", EndgameTypeS.KQKR);
+        {
+            Add("KPK", EndgameTypeS.KPK);
+            Add("KNNK", EndgameTypeS.KNNK);
+            Add("KBNK", EndgameTypeS.KBNK);
+            Add("KRKP", EndgameTypeS.KRKP);
+            Add("KRKB", EndgameTypeS.KRKB);
+            Add("KRKN", EndgameTypeS.KRKN);
+            Add("KQKP", EndgameTypeS.KQKP);
+            Add("KQKR", EndgameTypeS.KQKR);
 
-            add("KNPK", EndgameTypeS.KNPK);
-            add("KNPKB", EndgameTypeS.KNPKB);
-            add("KRPKR", EndgameTypeS.KRPKR);
-            add("KRPKB", EndgameTypeS.KRPKB);
-            add("KBPKB", EndgameTypeS.KBPKB);
-            add("KBPKN", EndgameTypeS.KBPKN);
-            add("KBPPKB", EndgameTypeS.KBPPKB);
-            add("KRPPKRP", EndgameTypeS.KRPPKRP);
+            Add("KNPK", EndgameTypeS.KNPK);
+            Add("KNPKB", EndgameTypeS.KNPKB);
+            Add("KRPKR", EndgameTypeS.KRPKR);
+            Add("KRPKB", EndgameTypeS.KRPKB);
+            Add("KBPKB", EndgameTypeS.KBPKB);
+            Add("KBPKN", EndgameTypeS.KBPKN);
+            Add("KBPPKB", EndgameTypeS.KBPPKB);
+            Add("KRPPKRP", EndgameTypeS.KRPPKRP);
         }
 
-        public void add(string code, EndgameType E)
+        public void Add(string code, EndgameType E)
         {
-            map(E)[Endgame.key(code, ColorS.WHITE)] = new Endgame(ColorS.WHITE, E);
-            map(E)[Endgame.key(code, ColorS.BLACK)] = new Endgame(ColorS.BLACK, E);
-        }       
+            Map(E)[Endgame.key(code, ColorS.WHITE)] = new Endgame(ColorS.WHITE, E);
+            Map(E)[Endgame.key(code, ColorS.BLACK)] = new Endgame(ColorS.BLACK, E);
+        }
 
-        public EndgameBase probeScaleFunction(Key key, out EndgameBase eg)
-        {            
+        public EndgameBase ProbeScaleFunction(Key key, out EndgameBase eg)
+        {
             return eg = m2.ContainsKey(key) ? m2[key] : null;
         }
 
-        public EndgameBase probeValueFunction(Key key, out EndgameBase eg)
-        {         
+        public EndgameBase ProbeValueFunction(Key key, out EndgameBase eg)
+        {
             return eg = m1.ContainsKey(key) ? m1[key] : null;
         }
-        
+
         public Dictionary<Key, EndgameBase> map(EndgameBase eg)
         {
             Debug.Assert(eg != null);
@@ -196,7 +196,7 @@ namespace StockFish
             return m1;
         }
 
-        public Dictionary<Key, EndgameBase> map(EndgameType E)
+        public Dictionary<Key, EndgameBase> Map(EndgameType E)
         {
             if (E > EndgameTypeS.SCALE_FUNS)
                 return m2;
@@ -207,13 +207,15 @@ namespace StockFish
 
     public sealed class Endgame : EndgameBase
     {
+        /// <summary>
         /// Mate with KX vs K. This function is used to evaluate positions with
         /// king and plenty of material vs a lone king. It simply gives the
         /// attacking side a bonus for driving the defending king towards the edge
         /// of the board, and for keeping the distance between the two kings small.
+        /// </summary>
         public Value KXK(Position pos)
         {
-            Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 0));            
+            Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 0));
             Debug.Assert(0 == pos.checkers()); // Eval is never called when in check
 
             // Stalemate detection with lone king
@@ -224,7 +226,7 @@ namespace StockFish
             Square loserKSq = pos.king_square(weakSide);
 
             Value result = pos.non_pawn_material(strongSide)
-                         + pos.count(strongSide, PieceTypeS.PAWN) * ValueS.PawnValueEg
+                         + (pos.count(strongSide, PieceTypeS.PAWN) * ValueS.PawnValueEg)
                          + PushToEdges[loserKSq]
                          + PushClose[BitBoard.Square_distance(winnerKSq, loserKSq)];
 
@@ -239,8 +241,10 @@ namespace StockFish
             return strongSide == pos.side_to_move() ? result : -result;
         }
 
+        /// <summary>
         /// Mate with KBN vs K. This is similar to KX vs K, but we have to drive the
         /// defending king towards a corner square of the right color.
+        /// </summary>
         public Value KBNK(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.KnightValueMg + ValueS.BishopValueMg, 0));
@@ -266,7 +270,9 @@ namespace StockFish
             return strongSide == pos.side_to_move() ? result : -result;
         }
 
-        /// KP vs K. This endgame is evaluated with the help of a bitbase.
+        /// <summary>
+        /// /// KP vs K. This endgame is evaluated with the help of a bitbase.
+        /// </summary>
         public Value KPK(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.VALUE_ZERO, 1));
@@ -287,10 +293,12 @@ namespace StockFish
             return strongSide == pos.side_to_move() ? result : -result;
         }
 
+        /// <summary>
         /// KR vs KP. This is a somewhat tricky endgame to evaluate precisely without
         /// a bitbase. The function below returns drawish scores when the pawn is
         /// far advanced with support of the king, while the attacking king is far
         /// away.
+        /// </summary>
         public Value KRKP(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.RookValueMg, 0));
@@ -306,31 +314,41 @@ namespace StockFish
 
             // If the stronger side's king is in front of the pawn, it's a win
             if (wksq < psq && Types.File_of(wksq) == Types.File_of(psq))
+            {
                 result = ValueS.RookValueEg - (BitBoard.Square_distance(wksq, psq));
+            }
 
             // If the weaker side's king is too far from the pawn and the rook,
             // it's a win
-            else if (BitBoard.Square_distance(bksq, psq) >= 3 + ((pos.side_to_move() == weakSide)?1:0)
+            else if (BitBoard.Square_distance(bksq, psq) >= 3 + ((pos.side_to_move() == weakSide) ? 1 : 0)
                     && BitBoard.Square_distance(bksq, rsq) >= 3)
+            {
                 result = ValueS.RookValueEg - (BitBoard.Square_distance(wksq, psq));
+            }
 
             // If the pawn is far advanced and supported by the defending king,
             // the position is drawish
             else if (Types.Rank_of(bksq) <= RankS.RANK_3
                     && BitBoard.Square_distance(bksq, psq) == 1
                     && Types.Rank_of(wksq) >= RankS.RANK_4
-                    && BitBoard.Square_distance(wksq, psq) > 2 + ((pos.side_to_move() == strongSide)?1:0))
-                result = 80 - 8*BitBoard.Square_distance(wksq, psq);
+                    && BitBoard.Square_distance(wksq, psq) > 2 + ((pos.side_to_move() == strongSide) ? 1 : 0))
+            {
+                result = 80 - (8 * BitBoard.Square_distance(wksq, psq));
+            }
             else
-                result = (Value)(200) - 8 * (BitBoard.Square_distance(wksq, psq + SquareS.DELTA_S)
-                                  - BitBoard.Square_distance(bksq, psq + SquareS.DELTA_S)
-                                  - BitBoard.Square_distance(psq, queeningSq));
+            {
+                result = (Value)(200) - (8 * (BitBoard.Square_distance(wksq, psq + SquareS.DELTA_S)
+                                 - BitBoard.Square_distance(bksq, psq + SquareS.DELTA_S)
+                                 - BitBoard.Square_distance(psq, queeningSq)));
+            }
 
             return strongSide == pos.side_to_move() ? result : -result;
         }
 
-        /// KR vs KB. This is very simple, and always returns drawish scores.  The
+        /// <summary>
+        /// /// KR vs KB. This is very simple, and always returns drawish scores.  The
         /// score is slightly bigger when the defending king is close to the edge.
+        /// </summary>
         public Value KRKB(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.RookValueMg, 0));
@@ -341,8 +359,10 @@ namespace StockFish
             return strongSide == pos.side_to_move() ? result : -result;
         }
 
+        /// <summary>
         /// KR vs KN. The attacking side has slightly better winning chances than
         /// in KR vs KB, particularly if the king and the knight are far apart.
+        /// </summary>
         public Value KRKN(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.RookValueMg, 0));
@@ -354,10 +374,12 @@ namespace StockFish
             return strongSide == pos.side_to_move() ? result : -result;
         }
 
+        /// <summary>
         /// KQ vs KP. In general, this is a win for the stronger side, but there are a
         /// few important exceptions. A pawn on 7th rank and on the A,C,F or H files
         /// with a king positioned next to it can be a draw, so in that case, we only
-        /// use the distance between the kings.      
+        /// use the distance between the kings.
+        /// </summary>
         public Value KQKP(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.QueenValueMg, 0));
@@ -377,10 +399,12 @@ namespace StockFish
             return strongSide == pos.side_to_move() ? result : -result;
         }
 
+        /// <summary>
         /// KQ vs KR.  This is almost identical to KX vs K:  We give the attacking
         /// king a bonus for having the kings close together, and for forcing the
         /// defending king towards the edge. If we also take care to avoid null move for
         /// the defending side in the search, this is usually sufficient to win KQ vs KR.
+        /// </summary>
         public Value KQKR(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.QueenValueMg, 0));
@@ -397,16 +421,20 @@ namespace StockFish
             return strongSide == pos.side_to_move() ? result : -result;
         }
 
+        /// <summary>
         /// Some cases of trivial draws
+        /// </summary>
         public Value KNNK(Position pos)
         {
             return ValueS.VALUE_DRAW;
         }
 
+        /// <summary>
         /// KB and one or more pawns vs K. It checks for draws with rook pawns and
         /// a bishop of the wrong color. If such a draw is detected, SCALE_FACTOR_DRAW
         /// is returned. If not, the return value is SCALE_FACTOR_NONE, i.e. no scaling
         /// will be used.
+        /// </summary>
         public ScaleFactor KBPsK(Position pos)
         {
             Debug.Assert(pos.non_pawn_material(strongSide) == ValueS.BishopValueMg);
@@ -427,8 +455,10 @@ namespace StockFish
                 Square kingSq = pos.king_square(weakSide);
 
                 if (Types.Opposite_colors(queeningSq, bishopSq)
-                    && BitBoard.Square_distance(queeningSq, kingSq) <= 1)                                   
-                    return ScaleFactorS.SCALE_FACTOR_DRAW;                
+                    && BitBoard.Square_distance(queeningSq, kingSq) <= 1)
+                {
+                    return ScaleFactorS.SCALE_FACTOR_DRAW;
+                }
             }
 
             // If all the pawns are on the same B or G file, then it's potentially a draw
@@ -462,15 +492,19 @@ namespace StockFish
                     if (Types.Relative_rank_square(strongSide, weakKingSq) >= RankS.RANK_7
                         && weakKingDist <= 2
                         && weakKingDist <= strongKingDist)
+                    {
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
+                    }
                 }
             }
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
 
+        /// <summary>
         /// KQ vs KR and one or more pawns. It tests for fortress draws with a rook on
         /// the third rank defended by a pawn.
+        /// </summary>
         public ScaleFactor KQKRPs(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.QueenValueMg, 0));
@@ -491,12 +525,17 @@ namespace StockFish
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
 
+        /// <summary>
+        /// <para>
         /// KRP vs KR. This function knows a handful of the most important classes of
         /// drawn positions, but is far from perfect. It would probably be a good idea
         /// to add more knowledge in the future.
-        ///
+        /// </para>
+        /// <para>
         /// It would also be nice to rewrite the actual code for this function,
         /// which is mostly copied from Glaurung 1.x, and isn't very pretty.
+        /// </para>
+        /// </summary>
         public ScaleFactor KRPKR(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.RookValueMg, 1));
@@ -507,7 +546,7 @@ namespace StockFish
             Square bksq = normalize(pos, strongSide, pos.king_square(weakSide));
             Square wrsq = normalize(pos, strongSide, pos.list(strongSide, PieceTypeS.ROOK)[0]);
             Square wpsq = normalize(pos, strongSide, pos.list(strongSide, PieceTypeS.PAWN)[0]);
-            Square brsq = normalize(pos, strongSide, pos.list(weakSide, PieceTypeS.ROOK)[0]);           
+            Square brsq = normalize(pos, strongSide, pos.list(weakSide, PieceTypeS.ROOK)[0]);
 
             File f = Types.File_of(wpsq);
             Rank r = Types.Rank_of(wpsq);
@@ -520,7 +559,9 @@ namespace StockFish
               && BitBoard.Square_distance(bksq, queeningSq) <= 1
               && wksq <= SquareS.SQ_H5
               && (Types.Rank_of(brsq) == RankS.RANK_6 || (r <= RankS.RANK_3 && Types.Rank_of(wrsq) != RankS.RANK_6)))
+            {
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
+            }
 
             // The defending side saves a draw by checking from behind in case the pawn
             // has advanced to the 6th rank with the king behind.
@@ -528,13 +569,17 @@ namespace StockFish
               && BitBoard.Square_distance(bksq, queeningSq) <= 1
               && Types.Rank_of(wksq) + tempo <= RankS.RANK_6
               && (Types.Rank_of(brsq) == RankS.RANK_1 || (0==tempo && Math.Abs(Types.File_of(brsq) - f) >= 3)))
+            {
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
+            }
 
             if (r >= RankS.RANK_6
               && bksq == queeningSq
               && Types.Rank_of(brsq) == RankS.RANK_1
               && (0==tempo || BitBoard.Square_distance(wksq, wpsq) >= 2))
+            {
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
+            }
 
             // White pawn on a7 and rook on a8 is a draw if black's king is on g7 or h7
             // and the black rook is behind the pawn.
@@ -543,7 +588,9 @@ namespace StockFish
               && (bksq == SquareS.SQ_H7 || bksq == SquareS.SQ_G7)
               && Types.File_of(brsq) == FileS.FILE_A
               && (Types.Rank_of(brsq) <= RankS.RANK_3 || Types.File_of(wksq) >= FileS.FILE_D || Types.Rank_of(wksq) <= RankS.RANK_5))
+            {
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
+            }
 
             // If the defending king blocks the pawn and the attacking king is too far
             // away, it's a draw.
@@ -551,7 +598,9 @@ namespace StockFish
               && bksq == wpsq + SquareS.DELTA_N
               && BitBoard.Square_distance(wksq, wpsq) - tempo >= 2
               && BitBoard.Square_distance(wksq, brsq) - tempo >= 2)
+            {
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
+            }
 
             // Pawn on the 7th rank supported by the rook from behind usually wins if the
             // attacking king is closer to the queening square than the defending king,
@@ -562,7 +611,9 @@ namespace StockFish
               && wrsq != queeningSq
               && (BitBoard.Square_distance(wksq, queeningSq) < BitBoard.Square_distance(bksq, queeningSq) - 2 + tempo)
               && (BitBoard.Square_distance(wksq, queeningSq) < BitBoard.Square_distance(bksq, wrsq) + tempo))
+            {
                 return (ScaleFactor)(ScaleFactorS.SCALE_FACTOR_MAX - 2 * BitBoard.Square_distance(wksq, queeningSq));
+            }
 
             // Similar to the above, but with the pawn further back
             if (f != FileS.FILE_A
@@ -573,9 +624,11 @@ namespace StockFish
               && (BitBoard.Square_distance(bksq, wrsq) + tempo >= 3
                   || (BitBoard.Square_distance(wksq, queeningSq) < BitBoard.Square_distance(bksq, wrsq) + tempo
                       && (BitBoard.Square_distance(wksq, wpsq + SquareS.DELTA_N) < BitBoard.Square_distance(bksq, wrsq) + tempo))))
+            {
                 return (ScaleFactor)(ScaleFactorS.SCALE_FACTOR_MAX
-                                   - 8 * BitBoard.Square_distance(wpsq, queeningSq)
-                                   - 2 * BitBoard.Square_distance(wksq, queeningSq));
+                                   - (8 * BitBoard.Square_distance(wpsq, queeningSq))
+                                   - (2 * BitBoard.Square_distance(wksq, queeningSq)));
+            }
 
             // If the pawn is not far advanced, and the defending king is somewhere in
             // the pawn's path, it's probably a draw.
@@ -585,7 +638,9 @@ namespace StockFish
                     return 10;
                 if (Math.Abs(Types.File_of(bksq) - Types.File_of(wpsq)) == 1
                   && BitBoard.Square_distance(wksq, bksq) > 2)
-                    return (24 - 2 * BitBoard.Square_distance(wksq, bksq));
+                {
+                    return (24 - (2 * BitBoard.Square_distance(wksq, bksq)));
+                }
             }
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
@@ -611,12 +666,16 @@ namespace StockFish
                 // corner but not trapped there.
                 if (rk == RankS.RANK_5 && !Types.Opposite_colors(bsq, psq))
                 {
-                    int d = BitBoard.Square_distance(psq + 3 * push, ksq);
+                    int d = BitBoard.Square_distance(psq + (3 * push), ksq);
 
-                    if (d <= 2 && !(d == 0 && ksq == pos.king_square(strongSide) + 2 * push))
-                        return (24);
+                    if (d <= 2 && !(d == 0 && ksq == pos.king_square(strongSide) + (2 * push)))
+                    {
+                        return 24;
+                    }
                     else
-                        return (48);
+                    {
+                        return 48;
+                    }
                 }
 
                 // When the pawn has moved to the 6th rank we can be fairly sure
@@ -624,17 +683,21 @@ namespace StockFish
                 // pawn from a reasonable distance and the defending king is near
                 // the corner
                 if (rk == RankS.RANK_6
-                    && BitBoard.Square_distance(psq + 2 * push, ksq) <= 1
-                    && (BitBoard.PseudoAttacks[PieceTypeS.BISHOP][bsq] & BitBoard.SquareBB[(psq + push)]) != 0
+                    && BitBoard.Square_distance(psq + (2 * push), ksq) <= 1
+                    && (BitBoard.PseudoAttacks[PieceTypeS.BISHOP][bsq] & BitBoard.SquareBB[psq + push]) != 0
                     && BitBoard.File_distance(bsq, psq) >= 2)
-                    return (8);
+                {
+                    return 8;
+                }
             }
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
 
+        /// <summary>
         /// KRPP vs KRP. There is just a single rule: if the stronger side has no passed
         /// pawns and the defending king is actively placed, the position is drawish.
+        /// </summary>
         public ScaleFactor KRPPKRP(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.RookValueMg, 2));
@@ -667,8 +730,10 @@ namespace StockFish
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
 
+        /// <summary>
         /// K and two or more pawns vs K. There is just a single rule here: If all pawns
         /// are on the same rook file and are blocked by the defending king, it's a draw.
+        /// </summary>
         public ScaleFactor KPsK(Position pos)
         {
             Debug.Assert(pos.non_pawn_material(strongSide) == ValueS.VALUE_ZERO);
@@ -684,15 +749,19 @@ namespace StockFish
             if (0==(pawns & ~BitBoard.In_front_bb(weakSide, Types.Rank_of(ksq)))
                 && !((pawns & ~BitBoard.FileABB)!=0 && (pawns & ~BitBoard.FileHBB)!=0)
                 && BitBoard.File_distance(ksq, psq) <= 1)
+            {
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
+            }
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
 
+        /// <summary>
         /// KBP vs KB. There are two rules: if the defending king is somewhere along the
         /// path of the pawn, and the square of the king is not of the same color as the
         /// stronger side's bishop, it's a draw. If the two bishops have opposite color,
         /// it's almost always a draw.
+        /// </summary>
         public ScaleFactor KBPKB(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.BishopValueMg, 1));
@@ -708,7 +777,9 @@ namespace StockFish
                 && Types.Relative_rank_square(strongSide, pawnSq) < Types.Relative_rank_square(strongSide, weakerKingSq)
                 && (Types.Opposite_colors(weakerKingSq, strongerBishopSq)
                     || Types.Relative_rank_square(strongSide, weakerKingSq) <= RankS.RANK_6))
+            {
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
+            }
 
             // Case 2: Opposite colored bishops
             if (Types.Opposite_colors(strongerBishopSq, weakerBishopSq))
@@ -724,24 +795,27 @@ namespace StockFish
                 // reasonably well.
 
                 if (Types.Relative_rank_square(strongSide, pawnSq) <= RankS.RANK_5)
+                {
                     return ScaleFactorS.SCALE_FACTOR_DRAW;
+                }
                 else
                 {
                     Bitboard path = BitBoard.Forward_bb(strongSide, pawnSq);
 
-                    if ((path & pos.pieces_color_piecetype(weakSide, PieceTypeS.KING)) != 0)
+                    if ((path & pos.pieces_color_piecetype(weakSide, PieceTypeS.KING)) != 0 || (((pos.attacks_from_square_piecetype(weakerBishopSq, PieceTypeS.BISHOP) & path) != 0)
+                        && BitBoard.Square_distance(weakerBishopSq, pawnSq) >= 3))
+                    {
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
-
-                    if (((pos.attacks_from_square_piecetype(weakerBishopSq, PieceTypeS.BISHOP) & path) != 0)
-                        && BitBoard.Square_distance(weakerBishopSq, pawnSq) >= 3)
-                        return ScaleFactorS.SCALE_FACTOR_DRAW;
+                    }
                 }
             }
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
 
+        /// <summary>
         /// KBPP vs KB. It detects a few basic draws with opposite-colored bishops
+        /// </summary>
         public ScaleFactor KBPPKB(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.BishopValueMg, 2));
@@ -779,9 +853,13 @@ namespace StockFish
                     if (Types.File_of(ksq) == Types.File_of(blockSq1)
                         && Types.Relative_rank_square(strongSide, ksq) >= Types.Relative_rank_square(strongSide, blockSq1)
                         && Types.Opposite_colors(ksq, wbsq))
+                    {
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
+                    }
                     else
+                    {
                         return ScaleFactorS.SCALE_FACTOR_NONE;
+                    }
 
                 case 1:
                     // Pawns on adjacent files. It's a draw if the defender firmly controls the
@@ -792,15 +870,20 @@ namespace StockFish
                         && (bbsq == blockSq2
                             || (pos.attacks_from_square_piecetype(blockSq2, PieceTypeS.BISHOP) & pos.pieces_color_piecetype(weakSide, PieceTypeS.BISHOP)) != 0
                             || Math.Abs(r1 - r2) >= 2))
+                    {
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
-
+                    }
                     else if (ksq == blockSq2
                         && Types.Opposite_colors(ksq, wbsq)
                         && (bbsq == blockSq1
                             || (pos.attacks_from_square_piecetype(blockSq1, PieceTypeS.BISHOP) & pos.pieces_color_piecetype(weakSide, PieceTypeS.BISHOP)) != 0))
+                    {
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
+                    }
                     else
+                    {
                         return ScaleFactorS.SCALE_FACTOR_NONE;
+                    }
 
                 default:
                     // The pawns are not on the same file or adjacent files. No scaling.
@@ -808,9 +891,11 @@ namespace StockFish
             }
         }
 
+        /// <summary>
         /// KBP vs KN. There is a single rule: If the defending king is somewhere along
         /// the path of the pawn, and the square of the king is not of the same color as
         /// the stronger side's bishop, it's a draw.
+        /// </summary>
         public ScaleFactor KBPKN(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.BishopValueMg, 1));
@@ -824,16 +909,19 @@ namespace StockFish
                 && Types.Relative_rank_square(strongSide, pawnSq) < Types.Relative_rank_square(strongSide, weakerKingSq)
                 && (Types.Opposite_colors(weakerKingSq, strongerBishopSq)
                     || Types.Relative_rank_square(strongSide, weakerKingSq) <= RankS.RANK_6))
+            {
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
+            }
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
 
+        /// <summary>
         /// KNP vs K. There is a single rule: if the pawn is a rook pawn on the 7th rank
         /// and the defending king prevents the pawn from advancing, the position is drawn.
+        /// </summary>
         public ScaleFactor KNPK(Position pos)
         {
-
             Debug.Assert(verify_material(pos, strongSide, ValueS.KnightValueMg, 1));
             Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 0));
 
@@ -847,11 +935,12 @@ namespace StockFish
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
 
+        /// <summary>
         /// KNP vs KB. If knight can block bishop from taking pawn, it's a win.
         /// Otherwise the position is drawn.
+        /// </summary>
         public ScaleFactor KNPKB(Position pos)
         {
-
             Square pawnSq = pos.list(strongSide, PieceTypeS.PAWN)[0];
             Square bishopSq = pos.list(weakSide, PieceTypeS.BISHOP)[0];
             Square weakerKingSq = pos.king_square(weakSide);
@@ -864,11 +953,13 @@ namespace StockFish
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
 
+        /// <summary>
         /// KP vs KP. This is done by removing the weakest side's pawn and probing the
         /// KP vs K bitbase: If the weakest side has a draw without the pawn, it probably
         /// has at least a draw with the pawn as well. The exception is when the stronger
         /// side's pawn is far advanced and not on a rook file; in this case it is often
         /// possible to win (e.g. 8/4k3/3p4/3P4/6K1/8/8/8 w - - 0 1).
+        /// </summary>
         public ScaleFactor KPKP(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.VALUE_ZERO, 1));
@@ -891,15 +982,14 @@ namespace StockFish
             return Bitbases.Probe_kpk(wksq, psq, bksq, us) ? ScaleFactorS.SCALE_FACTOR_NONE : ScaleFactorS.SCALE_FACTOR_DRAW;
         }
 
-        public Endgame(Color c, EndgameType E)
-            : base(c, E)
+        public Endgame(Color c, EndgameType E) : base(c, E)
         {
             switch (E)
             {
                 case EndgameTypeS.KNNK: this.execute = this.KNNK; break;
-                case EndgameTypeS.KXK: this.execute = this.KXK; break;                
+                case EndgameTypeS.KXK: this.execute = this.KXK; break;
                 case EndgameTypeS.KBNK: this.execute = this.KBNK; break;
-                case EndgameTypeS.KPK: this.execute = this.KPK; break;                                                                
+                case EndgameTypeS.KPK: this.execute = this.KPK; break;
                 case EndgameTypeS.KRKP: this.execute = this.KRKP; break;
                 case EndgameTypeS.KRKB: this.execute = this.KRKB; break;
                 case EndgameTypeS.KRKN: this.execute = this.KRKN; break;
@@ -917,11 +1007,10 @@ namespace StockFish
                 case EndgameTypeS.KBPKN: this.execute = this.KBPKN; break;
                 case EndgameTypeS.KNPK: this.execute = this.KNPK; break;
                 case EndgameTypeS.KNPKB: this.execute = this.KNPKB; break;
-                case EndgameTypeS.KPKP: this.execute = this.KPKP; break;                
+                case EndgameTypeS.KPKP: this.execute = this.KPKP; break;
 
-                default: Debug.Assert(false); break;
+                default: Debug.Fail("fail switch E"); break;
             }
         }
     }
-    
 }

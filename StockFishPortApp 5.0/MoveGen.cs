@@ -93,7 +93,7 @@ namespace StockFish
             if (Chess960 && (BitBoard.Attacks_bb_SBBPT(kto, pos.pieces() ^ BitBoard.SquareBB[rfrom], PieceTypeS.ROOK) & pos.pieces_color_piecetype(Types.NotColor(us), PieceTypeS.ROOK, PieceTypeS.QUEEN))!=0)
                 return mPos;
 
-            Move m = Types.make(kfrom, rfrom, MoveTypeS.CASTLING);
+            Move m = Types.Make(kfrom, rfrom, MoveTypeS.CASTLING);
 
             if (Checks && !pos.gives_check(m, ci))
                 return mPos;
@@ -116,19 +116,19 @@ namespace StockFish
                 Square to = BitBoard.Pop_lsb(ref b);
 
                 if (Type == GenTypeS.CAPTURES || Type == GenTypeS.EVASIONS || Type == GenTypeS.NON_EVASIONS)
-                    mlist[mPos++].move = Types.make(to - Delta, to, MoveTypeS.PROMOTION, PieceTypeS.QUEEN);
+                    mlist[mPos++].move = Types.Make(to - Delta, to, MoveTypeS.PROMOTION, PieceTypeS.QUEEN);
 
                 if (Type == GenTypeS.QUIETS || Type == GenTypeS.EVASIONS || Type == GenTypeS.NON_EVASIONS)
                 {
-                    mlist[mPos++].move = Types.make(to - Delta, to, MoveTypeS.PROMOTION, PieceTypeS.ROOK);
-                    mlist[mPos++].move = Types.make(to - Delta, to, MoveTypeS.PROMOTION, PieceTypeS.BISHOP);
-                    mlist[mPos++].move = Types.make(to - Delta, to, MoveTypeS.PROMOTION, PieceTypeS.KNIGHT);
+                    mlist[mPos++].move = Types.Make(to - Delta, to, MoveTypeS.PROMOTION, PieceTypeS.ROOK);
+                    mlist[mPos++].move = Types.Make(to - Delta, to, MoveTypeS.PROMOTION, PieceTypeS.BISHOP);
+                    mlist[mPos++].move = Types.Make(to - Delta, to, MoveTypeS.PROMOTION, PieceTypeS.KNIGHT);
                 }
 
                 // Knight promotion is the only promotion that can give a direct check
                 // that's not already included in the queen promotion.
                 if (Type == GenTypeS.QUIET_CHECKS && (BitBoard.StepAttacksBB[PieceS.W_KNIGHT][to] & BitBoard.SquareBB[ci.ksq]) != 0)
-                    mlist[mPos++].move = Types.make(to - Delta, to, MoveTypeS.PROMOTION, PieceTypeS.KNIGHT);
+                    mlist[mPos++].move = Types.Make(to - Delta, to, MoveTypeS.PROMOTION, PieceTypeS.KNIGHT);
             }
 
             return mPos;
@@ -247,7 +247,7 @@ namespace StockFish
                     Debug.Assert(b1 != 0);
 
                     while (b1 != 0)
-                        mlist[mPos++].move = Types.make(BitBoard.Pop_lsb(ref b1), pos.ep_square(), MoveTypeS.ENPASSANT);
+                        mlist[mPos++].move = Types.Make(BitBoard.Pop_lsb(ref b1), pos.ep_square(), MoveTypeS.ENPASSANT);
                 }
             }
 

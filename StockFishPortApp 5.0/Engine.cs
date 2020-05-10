@@ -20,17 +20,17 @@ namespace StockFish
         {
             inOut.WriteLine(Misc.Engine_info(), MutexAction.ATOMIC);
 
-            Uci.init(Options);
+            Uci.Init(Options);
             BitBoard.Init();
             Position.init();
             Bitbases.Init_kpk();
             Search.Init();
             Pawns.Init();
-            Eval.init();
+            Eval.Init();
             Threads.Init();
             TT.Resize((ulong)Options["Hash"].getInt());
 
-            Uci.loop(args);
+            Uci.Loop(args);
 
             Threads.Exit();
         }

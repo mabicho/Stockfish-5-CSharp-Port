@@ -1,7 +1,5 @@
 ﻿using System;
-
 using Score = System.Int32;
-
 
 namespace StockFish
 {

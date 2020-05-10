@@ -76,21 +76,21 @@ namespace StockFish
         /// whether a given bit is set in a bitboard, and for setting and clearing bits.
         /// </summary>
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard BitboardAndSquare(Bitboard b, Square s) {
             return b & SquareBB[s];
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard BitboardOrEqSquare(ref Bitboard b, Square s) {
             return b |= SquareBB[s];
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard BitboardXorEqSquare(ref Bitboard b, Square s)
         {
@@ -98,14 +98,14 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard BitboardOrSquare(Bitboard b, Square s) {
             return b | SquareBB[s];
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard BitboardXorSquare(Bitboard b, Square s)
         {
@@ -113,7 +113,7 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static bool More_than_one(UInt64 b)
         {
@@ -121,7 +121,7 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static int Square_distance(Square s1, Square s2)
         {
@@ -129,7 +129,7 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static int File_distance(Square s1, Square s2)
         {
@@ -137,7 +137,7 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static int Rank_distance(Square s1, Square s2)
         {
@@ -146,7 +146,7 @@ namespace StockFish
 
         // shift_bb() moves bitboard one step along direction Delta. Mainly for pawns.
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Shift_bb(Bitboard b, Square Delta)
         {
@@ -159,7 +159,7 @@ namespace StockFish
         // rank_bb() and file_bb() take a file or a square as input and return
         // a bitboard representing all squares on the given file or rank.
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Rank_bb_rank(Rank r)
         {
@@ -167,7 +167,7 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Rank_bb_square(Square s)
         {
@@ -175,7 +175,7 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard File_bb_file(File f)
         {
@@ -183,7 +183,7 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard File_bb_square(Square s)
         {
@@ -193,7 +193,7 @@ namespace StockFish
         // adjacent_files_bb() takes a file as input and returns a bitboard representing
         // all squares on the adjacent files.
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Adjacent_files_bb(File f)
         {
@@ -205,7 +205,7 @@ namespace StockFish
         // given color's point of view. For instance, in_front_bb(BLACK, RANK_3) will
         // give all squares on ranks 1 and 2.
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard In_front_bb(Color c, Rank r)
         {
@@ -217,7 +217,7 @@ namespace StockFish
         // square d5 and e6 set.  If s1 and s2 are not on the same rank, file or diagonal,
         // 0 is returned.
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Between_bb(Square s1, Square s2)
         {
@@ -229,7 +229,7 @@ namespace StockFish
         // point of view of the given color. Definition of the table is:
         // ForwardBB[c][s] = in_front_bb(c, s) file_bb(s)
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Forward_bb(Color c, Square s)
         {
@@ -243,7 +243,7 @@ namespace StockFish
         /// PawnAttackSpan[c][s] = in_front_bb(c, s) + adjacent_files_bb(s);
         /// </summary>
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Pawn_attack_span(Color c, Square s)
         {
@@ -257,7 +257,7 @@ namespace StockFish
         /// PassedPawnMask[c][s] = pawn_attack_span(c, s) | forward_bb(c, s)
         /// </summary>
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Passed_pawn_mask(Color c, Square s)
         {
@@ -267,7 +267,7 @@ namespace StockFish
         // squares_of_color() returns a bitboard representing all squares with the same
         // color of the given square.
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Squares_of_color(Square s)
         {
@@ -277,7 +277,7 @@ namespace StockFish
         // aligned() returns true if the squares s1, s2 and s3 are aligned
         //  either on a straight or on a diagonal line.
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Aligned(Square s1, Square s2, Square s3)
         {
@@ -288,7 +288,7 @@ namespace StockFish
         // a square and a bitboard of occupied squares as input, and returns a bitboard
         // representing all squares attacked by Pt (bishop or rook) on the given square.
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static uint Magic_index(Square s, UInt64 occ, PieceType Pt)
         {
@@ -302,7 +302,7 @@ namespace StockFish
              }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Attacks_bb_SBBPT(Square s, Bitboard occ, PieceType Pt)
         {
@@ -310,7 +310,7 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Bitboard Attacks_bb_PSBB(Piece pc, Square s, Bitboard occ)
         {
@@ -327,17 +327,17 @@ namespace StockFish
         /// most/least advanced bit relative to the given color.
         /// </summary>
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Square Frontmost_sq(Color c, Bitboard b) { return c == ColorS.WHITE ? Msb(b) : Lsb(b); }
 
         #if AGGR_INLINE
-                        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Square Backmost_sq(Color c, Bitboard b) { return c == ColorS.WHITE ? Lsb(b) : Msb(b); }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static uint Bsf_index(Bitboard b)
         {
@@ -351,7 +351,7 @@ namespace StockFish
         /// pop_lsb() finds and clears the least significant bit in a non-zero bitboard.
         /// </summary>
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Square Lsb(Bitboard b)
         {
@@ -359,7 +359,7 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static int Pop_lsb(ref Bitboard b)
         {
@@ -369,7 +369,7 @@ namespace StockFish
         }
 
         #if AGGR_INLINE
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         #endif
         public static Square Msb(UInt64 b)
         {
@@ -618,7 +618,7 @@ namespace StockFish
                 // until we find the one that passes the verification test.
                 do
                 {
-                    do magics[s] = rk.magic_rand(booster);
+                    do magics[s] = rk.Magic_rand(booster);
                     while (Bitcount.Popcount_Max15((magics[s] * masks[s]) >> 56) < 6);
 
                     Array.Clear(attacks[s], 0, size);

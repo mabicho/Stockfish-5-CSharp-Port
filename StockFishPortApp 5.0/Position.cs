@@ -21,8 +21,10 @@ using CastlingSide = System.Int32;
 
 namespace StockFish
 {
+    /// <summary>
     /// The checkInfo struct is initialized at c'tor time and keeps info used
     /// to detect if a move gives check.
+    /// </summary>
     public sealed class CheckInfo
     {
         //explicit CheckInfo(const Position&);
@@ -644,12 +646,12 @@ namespace StockFish
                 {
                     Zobrist.psq[c][pt] = new Key[64];
                     for (Square s = SquareS.SQ_A1; s <= SquareS.SQ_H8; ++s)
-                        Zobrist.psq[c][pt][s] = rk.rand64();
+                        Zobrist.psq[c][pt][s] = rk.Rand64();
                 }
             }
 
             for (File f = FileS.FILE_A; f <= FileS.FILE_H; ++f)
-                Zobrist.enpassant[f] = rk.rand64();
+                Zobrist.enpassant[f] = rk.Rand64();
 
             for (int cf = CastlingRightS.NO_CASTLING; cf <= CastlingRightS.ANY_CASTLING; ++cf)
             {
@@ -657,12 +659,12 @@ namespace StockFish
                 while (b != 0)
                 {
                     Key k = Zobrist.castling[1UL << BitBoard.Pop_lsb(ref b)];
-                    Zobrist.castling[cf] ^= k != 0 ? k : rk.rand64();
+                    Zobrist.castling[cf] ^= k != 0 ? k : rk.Rand64();
                 }
             }
 
-            Zobrist.side = rk.rand64();
-            Zobrist.exclusion = rk.rand64();
+            Zobrist.side = rk.Rand64();
+            Zobrist.exclusion = rk.Rand64();
             
             for (int i = 0; i < ColorS.COLOR_NB; i++)
             {

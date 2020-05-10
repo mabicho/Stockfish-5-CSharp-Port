@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
-namespace StockFish 
+namespace StockFish
 {
     public delegate void OnChangeOption(Option opt);
 
@@ -70,7 +70,7 @@ namespace StockFish
         public int getInt()
         {
             Debug.Assert(type == "check" || type == "spin");
-            return (type == "spin" ? Convert.ToInt32(currentValue) : ((currentValue == "true")?1:0));            
+            return (type == "spin" ? Convert.ToInt32(currentValue) : ((currentValue == "true")?1:0));
         }
 
         public String getString()
@@ -79,9 +79,11 @@ namespace StockFish
             return currentValue;
         }
 
+        /// <summary>
         /// operator=() updates currentValue and triggers on_change() action. It's up to
         /// the GUI to check for option's limits, but we could receive the new value from
         /// the user by console window, so let's check the bounds anyway.
+        /// </summary>
         public Option setCurrentValue(string v)
         {
             Debug.Assert(!String.IsNullOrWhiteSpace(type));
@@ -103,8 +105,8 @@ namespace StockFish
 
     public sealed partial class Uci
     {
-        /// operator<<() is used to print all the options default values in chronological
-        /// insertion order (the idx field) and in the format defined by the UCI protocol.
+        // operator<<() is used to print all the options default values in chronological
+        // insertion order (the idx field) and in the format defined by the UCI protocol.
         public static string ToString(Dictionary<string, Option> o)
         {
             List<Option> list = new List<Option>();

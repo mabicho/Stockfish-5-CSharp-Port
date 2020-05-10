@@ -171,7 +171,7 @@ namespace StockFish
             for (int i = 0; i < fens.Count; ++i)
             {
                 //time.Reset(); time.Start();
-                Position pos = new Position(fens[i], Options["UCI_Chess960"].getInt()!=0 ? 1 : 0, Threads.main());
+                Position pos = new Position(fens[i], Options["UCI_Chess960"].getInt()!=0 ? 1 : 0, Threads.Main());
 
                 inOut.Write(Types.newline + "Position: " + (i + 1).ToString() + "/" + fens.Count.ToString() + Types.newline);
                 inOut.Write(": ");
@@ -202,7 +202,7 @@ namespace StockFish
                 else
                 {
                     Engine.Threads.Start_thinking(pos, limits, st);
-                    Threads.wait_for_think_finished();
+                    Threads.Wait_for_think_finished();
                     nodes += (Int64)Search.RootPos.nodes_searched();
                 }
             }
@@ -288,7 +288,7 @@ namespace StockFish
                 i++;
                 if (i < inicio)
                     continue;
-                Position pos = new Position(fen, Options["UCI_Chess960"].getInt()!=0 ? 1 : 0, Threads.main());
+                Position pos = new Position(fen, Options["UCI_Chess960"].getInt()!=0 ? 1 : 0, Threads.Main());
 
                 inOut.Write(Types.newline);
                 inOut.Write("Position: ");
@@ -311,10 +311,10 @@ namespace StockFish
                 else
                 {
                     Engine.Threads.Start_thinking(pos, limits, st);
-                    Threads.wait_for_think_finished();
+                    Threads.Wait_for_think_finished();
                     nodes += (Int64)Search.RootPos.nodes_searched();
-                    outfile.WriteLine(i + "\t" + Search.RootPos.nodes_searched() + "\t" + Search.RootMoves[0].pv[0] + "\t" +
-                     Search.RootMoves[0].pv[1] + "\t" + nodes + "\t" + fen);
+                    outfile.WriteLine(i + "\t" + Search.RootPos.nodes_searched() + "\t" + Search.RootMoves[0].pval[0] + "\t" +
+                     Search.RootMoves[0].pval[1] + "\t" + nodes + "\t" + fen);
                 }
 
                 if (i % 10000 == 0)
