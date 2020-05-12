@@ -124,7 +124,7 @@ namespace StockFish
 
             public Score King_safety(Position pos, Square ksq, Color Us)
             {
-                return kingSquares[Us] == ksq && castlingRights[Us] == pos.can_castle_color(Us)
+                return kingSquares[Us] == ksq && castlingRights[Us] == pos.Can_castle_color(Us)
                     ? kingSafety[Us] : (kingSafety[Us] = Do_king_safety(pos, ksq, Us));
             }
 
@@ -137,9 +137,9 @@ namespace StockFish
                 Color Them = (Us == ColorS.WHITE ? ColorS.BLACK : ColorS.WHITE);
 
                 Value safety = Pawns.MaxSafetyBonus;
-                Bitboard b = pos.pieces_piecetype(PieceTypeS.PAWN) & (BitBoard.In_front_bb(Us, Types.Rank_of(ksq)) | BitBoard.Rank_bb_square(ksq));
-                Bitboard ourPawns = b & pos.pieces_color(Us);
-                Bitboard theirPawns = b & pos.pieces_color(Them);
+                Bitboard b = pos.Pieces_piecetype(PieceTypeS.PAWN) & (BitBoard.In_front_bb(Us, Types.Rank_of(ksq)) | BitBoard.Rank_bb_square(ksq));
+                Bitboard ourPawns = b & pos.Pieces_color(Us);
+                Bitboard theirPawns = b & pos.Pieces_color(Them);
                 Rank rkUs, rkThem;
                 File kf = Math.Max(FileS.FILE_B, Math.Min(FileS.FILE_G, Types.File_of(ksq)));
 
@@ -174,10 +174,10 @@ namespace StockFish
             public Score Do_king_safety(Position pos, Square ksq, Color Us)
             {
                 kingSquares[Us] = ksq;
-                castlingRights[Us] = pos.can_castle_color(Us);
+                castlingRights[Us] = pos.Can_castle_color(Us);
                 minKPdistance[Us] = 0;
 
-                Bitboard pawns = pos.pieces_color_piecetype(Us, PieceTypeS.PAWN);
+                Bitboard pawns = pos.Pieces_color_piecetype(Us, PieceTypeS.PAWN);
                 if (pawns != 0)
                     while (0==(BitBoard.DistanceRingsBB[ksq][minKPdistance[Us]++] & pawns)) { }
 
@@ -187,10 +187,10 @@ namespace StockFish
                 Value bonus = Shelter_storm(pos, ksq, Us);
 
                 // If we can castle use the bonus after the castle if is bigger
-                if (pos.can_castle_castleright((new MakeCastlingS(Us, CastlingSideS.KING_SIDE)).right) != 0)
+                if (pos.Can_castle_castleright((new MakeCastlingS(Us, CastlingSideS.KING_SIDE)).right) != 0)
                     bonus = Math.Max(bonus, Shelter_storm(pos, Types.Relative_square(Us, SquareS.SQ_G1), Us));
 
-                if (pos.can_castle_castleright((new MakeCastlingS(Us, CastlingSideS.QUEEN_SIDE)).right) != 0)
+                if (pos.Can_castle_castleright((new MakeCastlingS(Us, CastlingSideS.QUEEN_SIDE)).right) != 0)
                     bonus = Math.Max(bonus, Shelter_storm(pos, Types.Relative_square(Us, SquareS.SQ_C1), Us));
 
                 return Types.Make_score(bonus, -16 * minKPdistance[Us]);
@@ -229,18 +229,18 @@ namespace StockFish
             Rank r;
             bool passed, isolated, opposed, connected, backward, candidate, unsupported;
             Score value = ScoreS.SCORE_ZERO;
-            Square[] pl = pos.list(Us, PieceTypeS.PAWN);
+            Square[] pl = pos.List(Us, PieceTypeS.PAWN);
             int plPos = 0;
 
-            Bitboard ourPawns = pos.pieces_color_piecetype(Us, PieceTypeS.PAWN);
-            Bitboard theirPawns = pos.pieces_color_piecetype(Them, PieceTypeS.PAWN);
+            Bitboard ourPawns = pos.Pieces_color_piecetype(Us, PieceTypeS.PAWN);
+            Bitboard theirPawns = pos.Pieces_color_piecetype(Them, PieceTypeS.PAWN);
 
             e.passedPawns[Us] = e.candidatePawns[Us] = 0;
             e.kingSquares[Us] = SquareS.SQ_NONE;
             e.semiopenFiles[Us] = 0xFF;
             e.pawnAttacks[Us] = BitBoard.Shift_bb(ourPawns, Right) | BitBoard.Shift_bb(ourPawns, Left);
             e.pawnsOnSquares[Us][ColorS.BLACK] = Bitcount.Popcount_Max15(ourPawns & BitBoard.DarkSquares);
-            e.pawnsOnSquares[Us][ColorS.WHITE] = pos.count(Us, PieceTypeS.PAWN) - e.pawnsOnSquares[Us][ColorS.BLACK];
+            e.pawnsOnSquares[Us][ColorS.WHITE] = pos.Count(Us, PieceTypeS.PAWN) - e.pawnsOnSquares[Us][ColorS.BLACK];
 
             // Loop through all pawns of the current color and score each pawn
             while ((s = pl[plPos++]) != SquareS.SQ_NONE)
@@ -273,7 +273,7 @@ namespace StockFish
                 // or if it can capture an enemy pawn it cannot be backward either.
                 if ((passed | isolated | connected)
                     || (ourPawns & BitBoard.Pawn_attack_span(Them, s)) != 0
-                    || (pos.attacks_from_pawn(s, Us) & theirPawns) != 0)
+                    || (pos.Attacks_from_pawn(s, Us) & theirPawns) != 0)
                 {
                     backward = false;
                 }
@@ -334,7 +334,7 @@ namespace StockFish
 
             // In endgame it's better to have pawns on both wings. So give a bonus according
             // to file distance between left and right outermost pawns.
-            if (pos.count(Us, PieceTypeS.PAWN) > 1)
+            if (pos.Count(Us, PieceTypeS.PAWN) > 1)
             {
                 b = (Bitboard)(e.semiopenFiles[Us] ^ 0xFF);
                 value += PawnsFileSpan * (BitBoard.Msb(b) - BitBoard.Lsb(b));
@@ -350,7 +350,7 @@ namespace StockFish
         /// </summary>
         public static Pawns.Entry Probe(Position pos, Pawns.Table entries)
         {
-            Key key = pos.pawn_key();
+            Key key = pos.Pawn_key();
             Pawns.Entry e = entries[key];
 
             if (e.key == key)

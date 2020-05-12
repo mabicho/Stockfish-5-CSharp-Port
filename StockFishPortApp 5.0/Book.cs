@@ -400,7 +400,7 @@ namespace StockFish
         {
 
             Key key = 0;
-            Bitboard b = pos.pieces();
+            Bitboard b = pos.Pieces();
 
             while (b != 0)
             {
@@ -411,13 +411,13 @@ namespace StockFish
                 key ^= PG[psq + (64 * pieceOfs + s)];
             }
 
-            b = (ulong)pos.can_castle_castleright(CastlingRightS.ANY_CASTLING);
+            b = (ulong)pos.Can_castle_castleright(CastlingRightS.ANY_CASTLING);
 
             while (b != 0)
                 key ^= PG[castle + BitBoard.Pop_lsb(ref b)];
 
-            if (pos.ep_square() != SquareS.SQ_NONE)
-                key ^= PG[enpassant + Types.File_of(pos.ep_square())];
+            if (pos.Ep_square() != SquareS.SQ_NONE)
+                key ^= PG[enpassant + Types.File_of(pos.Ep_square())];
 
             if (pos.side_to_move() == ColorS.WHITE)
                 key ^= PG[turn + 0];

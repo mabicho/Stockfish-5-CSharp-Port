@@ -100,16 +100,16 @@ namespace StockFish
         }
 
         public bool verify_material(Position pos, Color c, Value npm, int num_pawns) {
-            return pos.non_pawn_material(c) == npm && pos.count(c, PieceTypeS.PAWN) == num_pawns;
+            return pos.Non_pawn_material(c) == npm && pos.Count(c, PieceTypeS.PAWN) == num_pawns;
         }
 
         // Map the square as if strongSide is white and strongSide's only pawn
         // is on the left half of the board.
         public Square normalize(Position pos, Color strongSide, Square sq) {
 
-            Debug.Assert(pos.count(strongSide, PieceTypeS.PAWN) == 1);
+            Debug.Assert(pos.Count(strongSide, PieceTypeS.PAWN) == 1);
 
-            if (Types.File_of(pos.list(strongSide, PieceTypeS.PAWN)[0]) >= FileS.FILE_E)
+            if (Types.File_of(pos.List(strongSide, PieceTypeS.PAWN)[0]) >= FileS.FILE_E)
                 sq = (Square)(sq ^ 7); // Mirror SQ_H1 -> SQ_A1
 
             if (strongSide == ColorS.BLACK)
@@ -133,7 +133,7 @@ namespace StockFish
             string fen = sides[0] + (char)(8 - sides[0].Length + '0') + "/8/8/8/8/8/8/"
                        + sides[1] + (char)(8 - sides[1].Length + '0') + " w - - 0 10";
 
-            return new Position(fen, 0, null).material_key();
+            return new Position(fen, 0, null).Material_key();
         }
     }
 
@@ -216,24 +216,24 @@ namespace StockFish
         public Value KXK(Position pos)
         {
             Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 0));
-            Debug.Assert(0 == pos.checkers()); // Eval is never called when in check
+            Debug.Assert(0 == pos.Checkers()); // Eval is never called when in check
 
             // Stalemate detection with lone king
             if (pos.side_to_move() == weakSide && 0==(new MoveList(pos, GenTypeS.LEGAL)).Size())
                 return ValueS.VALUE_DRAW;
 
-            Square winnerKSq = pos.king_square(strongSide);
-            Square loserKSq = pos.king_square(weakSide);
+            Square winnerKSq = pos.King_square(strongSide);
+            Square loserKSq = pos.King_square(weakSide);
 
-            Value result = pos.non_pawn_material(strongSide)
-                         + (pos.count(strongSide, PieceTypeS.PAWN) * ValueS.PawnValueEg)
+            Value result = pos.Non_pawn_material(strongSide)
+                         + (pos.Count(strongSide, PieceTypeS.PAWN) * ValueS.PawnValueEg)
                          + PushToEdges[loserKSq]
                          + PushClose[BitBoard.Square_distance(winnerKSq, loserKSq)];
 
-            if (pos.count(strongSide, PieceTypeS.QUEEN) != 0
-                || pos.count(strongSide, PieceTypeS.ROOK) != 0
-                || (pos.count(strongSide, PieceTypeS.BISHOP)!=0 && pos.count(strongSide, PieceTypeS.KNIGHT)!=0)
-                || pos.bishop_pair(strongSide))
+            if (pos.Count(strongSide, PieceTypeS.QUEEN) != 0
+                || pos.Count(strongSide, PieceTypeS.ROOK) != 0
+                || (pos.Count(strongSide, PieceTypeS.BISHOP)!=0 && pos.Count(strongSide, PieceTypeS.KNIGHT)!=0)
+                || pos.Bishop_pair(strongSide))
             {
                 result += ValueS.VALUE_KNOWN_WIN;
             }
@@ -250,9 +250,9 @@ namespace StockFish
             Debug.Assert(verify_material(pos, strongSide, ValueS.KnightValueMg + ValueS.BishopValueMg, 0));
             Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 0));
 
-            Square winnerKSq = pos.king_square(strongSide);
-            Square loserKSq = pos.king_square(weakSide);
-            Square bishopSq = pos.list(strongSide, PieceTypeS.BISHOP)[0];
+            Square winnerKSq = pos.King_square(strongSide);
+            Square loserKSq = pos.King_square(weakSide);
+            Square bishopSq = pos.List(strongSide, PieceTypeS.BISHOP)[0];
 
             // kbnk_mate_table() tries to drive toward corners A1 or H8. If we have a
             // bishop that cannot reach the above squares, we flip the kings in order
@@ -279,9 +279,9 @@ namespace StockFish
             Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 0));
 
             // Assume strongSide is white and the pawn is on files A-D
-            Square wksq = normalize(pos, strongSide, pos.king_square(strongSide));
-            Square bksq = normalize(pos, strongSide, pos.king_square(weakSide));
-            Square psq = normalize(pos, strongSide, pos.list(strongSide, PieceTypeS.PAWN)[0]);
+            Square wksq = normalize(pos, strongSide, pos.King_square(strongSide));
+            Square bksq = normalize(pos, strongSide, pos.King_square(weakSide));
+            Square psq = normalize(pos, strongSide, pos.List(strongSide, PieceTypeS.PAWN)[0]);
 
             Color us = strongSide == pos.side_to_move() ? ColorS.WHITE : ColorS.BLACK;
 
@@ -304,10 +304,10 @@ namespace StockFish
             Debug.Assert(verify_material(pos, strongSide, ValueS.RookValueMg, 0));
             Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 1));
 
-            Square wksq = Types.Relative_square(strongSide, pos.king_square(strongSide));
-            Square bksq = Types.Relative_square(strongSide, pos.king_square(weakSide));
-            Square rsq = Types.Relative_square(strongSide, pos.list(strongSide, PieceTypeS.ROOK)[0]);
-            Square psq = Types.Relative_square(strongSide, pos.list(weakSide, PieceTypeS.PAWN)[0]);
+            Square wksq = Types.Relative_square(strongSide, pos.King_square(strongSide));
+            Square bksq = Types.Relative_square(strongSide, pos.King_square(weakSide));
+            Square rsq = Types.Relative_square(strongSide, pos.List(strongSide, PieceTypeS.ROOK)[0]);
+            Square psq = Types.Relative_square(strongSide, pos.List(weakSide, PieceTypeS.PAWN)[0]);
 
             Square queeningSq = Types.Make_square(Types.File_of(psq), RankS.RANK_1);
             Value result;
@@ -355,7 +355,7 @@ namespace StockFish
             Debug.Assert(verify_material(pos, weakSide, ValueS.BishopValueMg, 0));
 
 
-            Value result = (PushToEdges[pos.king_square(weakSide)]);
+            Value result = (PushToEdges[pos.King_square(weakSide)]);
             return strongSide == pos.side_to_move() ? result : -result;
         }
 
@@ -368,8 +368,8 @@ namespace StockFish
             Debug.Assert(verify_material(pos, strongSide, ValueS.RookValueMg, 0));
             Debug.Assert(verify_material(pos, weakSide, ValueS.KnightValueMg, 0));
 
-            Square bksq = pos.king_square(weakSide);
-            Square bnsq = pos.list(weakSide, PieceTypeS.KNIGHT)[0];
+            Square bksq = pos.King_square(weakSide);
+            Square bnsq = pos.List(weakSide, PieceTypeS.KNIGHT)[0];
             Value result = (PushToEdges[bksq] + PushAway[BitBoard.Square_distance(bksq, bnsq)]);
             return strongSide == pos.side_to_move() ? result : -result;
         }
@@ -385,9 +385,9 @@ namespace StockFish
             Debug.Assert(verify_material(pos, strongSide, ValueS.QueenValueMg, 0));
             Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 1));
 
-            Square winnerKSq = pos.king_square(strongSide);
-            Square loserKSq = pos.king_square(weakSide);
-            Square pawnSq = pos.list(weakSide, PieceTypeS.PAWN)[0];
+            Square winnerKSq = pos.King_square(strongSide);
+            Square loserKSq = pos.King_square(weakSide);
+            Square pawnSq = pos.List(weakSide, PieceTypeS.PAWN)[0];
 
             Value result = (PushClose[BitBoard.Square_distance(winnerKSq, loserKSq)]);
 
@@ -410,8 +410,8 @@ namespace StockFish
             Debug.Assert(verify_material(pos, strongSide, ValueS.QueenValueMg, 0));
             Debug.Assert(verify_material(pos, weakSide, ValueS.RookValueMg, 0));
 
-            Square winnerKSq = pos.king_square(strongSide);
-            Square loserKSq = pos.king_square(weakSide);
+            Square winnerKSq = pos.King_square(strongSide);
+            Square loserKSq = pos.King_square(weakSide);
 
             Value result = ValueS.QueenValueEg
                         - ValueS.RookValueEg
@@ -437,22 +437,22 @@ namespace StockFish
         /// </summary>
         public ScaleFactor KBPsK(Position pos)
         {
-            Debug.Assert(pos.non_pawn_material(strongSide) == ValueS.BishopValueMg);
-            Debug.Assert(pos.count(strongSide, PieceTypeS.PAWN) >= 1);
+            Debug.Assert(pos.Non_pawn_material(strongSide) == ValueS.BishopValueMg);
+            Debug.Assert(pos.Count(strongSide, PieceTypeS.PAWN) >= 1);
 
             // No assertions about the material of weakSide, because we want draws to
             // be detected even when the weaker side has some pawns.
 
-            Bitboard pawns = pos.pieces_color_piecetype(strongSide, PieceTypeS.PAWN);
-            File pawnFile = Types.File_of(pos.list(strongSide, PieceTypeS.PAWN)[0]);
+            Bitboard pawns = pos.Pieces_color_piecetype(strongSide, PieceTypeS.PAWN);
+            File pawnFile = Types.File_of(pos.List(strongSide, PieceTypeS.PAWN)[0]);
 
             // All pawns are on a single rook file ?
             if ((pawnFile == FileS.FILE_A || pawnFile == FileS.FILE_H)
               && 0==(pawns & ~BitBoard.File_bb_file(pawnFile)))
             {
-                Square bishopSq = pos.list(strongSide, PieceTypeS.BISHOP)[0];
+                Square bishopSq = pos.List(strongSide, PieceTypeS.BISHOP)[0];
                 Square queeningSq = Types.Relative_square(strongSide, Types.Make_square(pawnFile, RankS.RANK_8));
-                Square kingSq = pos.king_square(weakSide);
+                Square kingSq = pos.King_square(weakSide);
 
                 if (Types.Opposite_colors(queeningSq, bishopSq)
                     && BitBoard.Square_distance(queeningSq, kingSq) <= 1)
@@ -463,22 +463,22 @@ namespace StockFish
 
             // If all the pawns are on the same B or G file, then it's potentially a draw
             if ((pawnFile == FileS.FILE_B || pawnFile == FileS.FILE_G)
-                && 0==(pos.pieces_piecetype(PieceTypeS.PAWN) & ~BitBoard.File_bb_file(pawnFile))
-                && pos.non_pawn_material(weakSide) == 0
-                && pos.count(weakSide, PieceTypeS.PAWN) >= 1)
+                && 0==(pos.Pieces_piecetype(PieceTypeS.PAWN) & ~BitBoard.File_bb_file(pawnFile))
+                && pos.Non_pawn_material(weakSide) == 0
+                && pos.Count(weakSide, PieceTypeS.PAWN) >= 1)
             {
                 // Get weakSide pawn that is closest to the home rank
-                Square weakPawnSq = BitBoard.Backmost_sq(weakSide, pos.pieces_color_piecetype(weakSide, PieceTypeS.PAWN));
+                Square weakPawnSq = BitBoard.Backmost_sq(weakSide, pos.Pieces_color_piecetype(weakSide, PieceTypeS.PAWN));
 
-                Square strongKingSq = pos.king_square(strongSide);
-                Square weakKingSq = pos.king_square(weakSide);
-                Square bishopSq = pos.list(strongSide, PieceTypeS.BISHOP)[0];
+                Square strongKingSq = pos.King_square(strongSide);
+                Square weakKingSq = pos.King_square(weakSide);
+                Square bishopSq = pos.List(strongSide, PieceTypeS.BISHOP)[0];
 
                 // There's potential for a draw if our pawn is blocked on the 7th rank,
                 // the bishop cannot attack it or they only have one pawn left
                 if (Types.Relative_rank_square(strongSide, weakPawnSq) == RankS.RANK_7
-                    && (pos.pieces_color_piecetype(strongSide, PieceTypeS.PAWN) & BitBoard.SquareBB[(weakPawnSq + Types.Pawn_push(weakSide))])!=0
-                    && (Types.Opposite_colors(bishopSq, weakPawnSq) || pos.count(strongSide, PieceTypeS.PAWN) == 1))
+                    && (pos.Pieces_color_piecetype(strongSide, PieceTypeS.PAWN) & BitBoard.SquareBB[(weakPawnSq + Types.Pawn_push(weakSide))])!=0
+                    && (Types.Opposite_colors(bishopSq, weakPawnSq) || pos.Count(strongSide, PieceTypeS.PAWN) == 1))
                 {
                     int strongKingDist = BitBoard.Square_distance(weakPawnSq, strongKingSq);
                     int weakKingDist = BitBoard.Square_distance(weakPawnSq, weakKingSq);
@@ -508,19 +508,21 @@ namespace StockFish
         public ScaleFactor KQKRPs(Position pos)
         {
             Debug.Assert(verify_material(pos, strongSide, ValueS.QueenValueMg, 0));
-            Debug.Assert(pos.count(weakSide, PieceTypeS.ROOK) == 1);
-            Debug.Assert(pos.count(weakSide, PieceTypeS.PAWN) >= 1);
+            Debug.Assert(pos.Count(weakSide, PieceTypeS.ROOK) == 1);
+            Debug.Assert(pos.Count(weakSide, PieceTypeS.PAWN) >= 1);
 
-            Square kingSq = pos.king_square(weakSide);
-            Square rsq = pos.list(weakSide, PieceTypeS.ROOK)[0];
+            Square kingSq = pos.King_square(weakSide);
+            Square rsq = pos.List(weakSide, PieceTypeS.ROOK)[0];
 
             if (Types.Relative_rank_square(weakSide, kingSq) <= RankS.RANK_2
-            && Types.Relative_rank_square(weakSide, pos.king_square(strongSide)) >= RankS.RANK_4
+            && Types.Relative_rank_square(weakSide, pos.King_square(strongSide)) >= RankS.RANK_4
             && Types.Relative_rank_square(weakSide, rsq) == RankS.RANK_3
-            && (pos.pieces_color_piecetype(weakSide, PieceTypeS.PAWN)
-                & pos.attacks_from_square_piecetype(kingSq, PieceTypeS.KING)
-                & pos.attacks_from_pawn(rsq, strongSide))!=0)
+            && (pos.Pieces_color_piecetype(weakSide, PieceTypeS.PAWN)
+                & pos.Attacks_from_square_piecetype(kingSq, PieceTypeS.KING)
+                & pos.Attacks_from_pawn(rsq, strongSide))!=0)
+            {
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
+            }
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
         }
@@ -542,11 +544,11 @@ namespace StockFish
             Debug.Assert(verify_material(pos, weakSide, ValueS.RookValueMg, 0));
 
             // Assume strongSide is white and the pawn is on files A-D
-            Square wksq = normalize(pos, strongSide, pos.king_square(strongSide));
-            Square bksq = normalize(pos, strongSide, pos.king_square(weakSide));
-            Square wrsq = normalize(pos, strongSide, pos.list(strongSide, PieceTypeS.ROOK)[0]);
-            Square wpsq = normalize(pos, strongSide, pos.list(strongSide, PieceTypeS.PAWN)[0]);
-            Square brsq = normalize(pos, strongSide, pos.list(weakSide, PieceTypeS.ROOK)[0]);
+            Square wksq = normalize(pos, strongSide, pos.King_square(strongSide));
+            Square bksq = normalize(pos, strongSide, pos.King_square(weakSide));
+            Square wrsq = normalize(pos, strongSide, pos.List(strongSide, PieceTypeS.ROOK)[0]);
+            Square wpsq = normalize(pos, strongSide, pos.List(strongSide, PieceTypeS.PAWN)[0]);
+            Square brsq = normalize(pos, strongSide, pos.List(weakSide, PieceTypeS.ROOK)[0]);
 
             File f = Types.File_of(wpsq);
             Rank r = Types.Rank_of(wpsq);
@@ -651,11 +653,11 @@ namespace StockFish
             Debug.Assert(verify_material(pos, weakSide, ValueS.BishopValueMg, 0));
 
             // Test for a rook pawn
-            if ((pos.pieces_piecetype(PieceTypeS.PAWN) & (BitBoard.FileABB | BitBoard.FileHBB))!=0)
+            if ((pos.Pieces_piecetype(PieceTypeS.PAWN) & (BitBoard.FileABB | BitBoard.FileHBB))!=0)
             {
-                Square ksq = pos.king_square(weakSide);
-                Square bsq = pos.list(weakSide, PieceTypeS.BISHOP)[0];
-                Square psq = pos.list(strongSide, PieceTypeS.PAWN)[0];
+                Square ksq = pos.King_square(weakSide);
+                Square bsq = pos.List(weakSide, PieceTypeS.BISHOP)[0];
+                Square psq = pos.List(strongSide, PieceTypeS.PAWN)[0];
                 Rank rk = Types.Relative_rank_square(strongSide, psq);
                 Square push = Types.Pawn_push(strongSide);
 
@@ -668,7 +670,7 @@ namespace StockFish
                 {
                     int d = BitBoard.Square_distance(psq + (3 * push), ksq);
 
-                    if (d <= 2 && !(d == 0 && ksq == pos.king_square(strongSide) + (2 * push)))
+                    if (d <= 2 && !(d == 0 && ksq == pos.King_square(strongSide) + (2 * push)))
                     {
                         return 24;
                     }
@@ -703,12 +705,12 @@ namespace StockFish
             Debug.Assert(verify_material(pos, strongSide, ValueS.RookValueMg, 2));
             Debug.Assert(verify_material(pos, weakSide, ValueS.RookValueMg, 1));
 
-            Square wpsq1 = pos.list(strongSide, PieceTypeS.PAWN)[0];
-            Square wpsq2 = pos.list(strongSide, PieceTypeS.PAWN)[1];
-            Square bksq = pos.king_square(weakSide);
+            Square wpsq1 = pos.List(strongSide, PieceTypeS.PAWN)[0];
+            Square wpsq2 = pos.List(strongSide, PieceTypeS.PAWN)[1];
+            Square bksq = pos.King_square(weakSide);
 
             // Does the stronger side have a passed pawn?
-            if (pos.pawn_passed(strongSide, wpsq1) || pos.pawn_passed(strongSide, wpsq2))
+            if (pos.Pawn_passed(strongSide, wpsq1) || pos.Pawn_passed(strongSide, wpsq2))
                 return ScaleFactorS.SCALE_FACTOR_NONE;
 
             Rank r = Math.Max(Types.Relative_rank_square(strongSide, wpsq1), Types.Relative_rank_square(strongSide, wpsq2));
@@ -724,7 +726,7 @@ namespace StockFish
                     case RankS.RANK_4: return (15);
                     case RankS.RANK_5: return (20);
                     case RankS.RANK_6: return (40);
-                    default: Debug.Assert(false); break;
+                    default: Debug.Fail("false"); break;
                 }
             }
             return ScaleFactorS.SCALE_FACTOR_NONE;
@@ -736,13 +738,13 @@ namespace StockFish
         /// </summary>
         public ScaleFactor KPsK(Position pos)
         {
-            Debug.Assert(pos.non_pawn_material(strongSide) == ValueS.VALUE_ZERO);
-            Debug.Assert(pos.count(strongSide, PieceTypeS.PAWN) >= 2);
+            Debug.Assert(pos.Non_pawn_material(strongSide) == ValueS.VALUE_ZERO);
+            Debug.Assert(pos.Count(strongSide, PieceTypeS.PAWN) >= 2);
             Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 0));
 
-            Square ksq = pos.king_square(weakSide);
-            Bitboard pawns = pos.pieces_color_piecetype(strongSide, PieceTypeS.PAWN);
-            Square psq = pos.list(strongSide, PieceTypeS.PAWN)[0];
+            Square ksq = pos.King_square(weakSide);
+            Bitboard pawns = pos.Pieces_color_piecetype(strongSide, PieceTypeS.PAWN);
+            Square psq = pos.List(strongSide, PieceTypeS.PAWN)[0];
 
             // If all pawns are ahead of the king, on a single rook file and
             // the king is within one file of the pawns, it's a draw.
@@ -767,10 +769,10 @@ namespace StockFish
             Debug.Assert(verify_material(pos, strongSide, ValueS.BishopValueMg, 1));
             Debug.Assert(verify_material(pos, weakSide, ValueS.BishopValueMg, 0));
 
-            Square pawnSq = pos.list(strongSide, PieceTypeS.PAWN)[0];
-            Square strongerBishopSq = pos.list(strongSide, PieceTypeS.BISHOP)[0];
-            Square weakerBishopSq = pos.list(weakSide, PieceTypeS.BISHOP)[0];
-            Square weakerKingSq = pos.king_square(weakSide);
+            Square pawnSq = pos.List(strongSide, PieceTypeS.PAWN)[0];
+            Square strongerBishopSq = pos.List(strongSide, PieceTypeS.BISHOP)[0];
+            Square weakerBishopSq = pos.List(weakSide, PieceTypeS.BISHOP)[0];
+            Square weakerKingSq = pos.King_square(weakSide);
 
             // Case 1: Defending king blocks the pawn, and cannot be driven away
             if (Types.File_of(weakerKingSq) == Types.File_of(pawnSq)
@@ -802,7 +804,7 @@ namespace StockFish
                 {
                     Bitboard path = BitBoard.Forward_bb(strongSide, pawnSq);
 
-                    if ((path & pos.pieces_color_piecetype(weakSide, PieceTypeS.KING)) != 0 || (((pos.attacks_from_square_piecetype(weakerBishopSq, PieceTypeS.BISHOP) & path) != 0)
+                    if ((path & pos.Pieces_color_piecetype(weakSide, PieceTypeS.KING)) != 0 || (((pos.Attacks_from_square_piecetype(weakerBishopSq, PieceTypeS.BISHOP) & path) != 0)
                         && BitBoard.Square_distance(weakerBishopSq, pawnSq) >= 3))
                     {
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
@@ -821,15 +823,15 @@ namespace StockFish
             Debug.Assert(verify_material(pos, strongSide, ValueS.BishopValueMg, 2));
             Debug.Assert(verify_material(pos, weakSide, ValueS.BishopValueMg, 0));
 
-            Square wbsq = pos.list(strongSide, PieceTypeS.BISHOP)[0];
-            Square bbsq = pos.list(weakSide, PieceTypeS.BISHOP)[0];
+            Square wbsq = pos.List(strongSide, PieceTypeS.BISHOP)[0];
+            Square bbsq = pos.List(weakSide, PieceTypeS.BISHOP)[0];
 
             if (!Types.Opposite_colors(wbsq, bbsq))
                 return ScaleFactorS.SCALE_FACTOR_NONE;
 
-            Square ksq = pos.king_square(weakSide);
-            Square psq1 = pos.list(strongSide, PieceTypeS.PAWN)[0];
-            Square psq2 = pos.list(strongSide, PieceTypeS.PAWN)[1];
+            Square ksq = pos.King_square(weakSide);
+            Square psq1 = pos.List(strongSide, PieceTypeS.PAWN)[0];
+            Square psq2 = pos.List(strongSide, PieceTypeS.PAWN)[1];
             Rank r1 = Types.Rank_of(psq1);
             Rank r2 = Types.Rank_of(psq2);
             Square blockSq1, blockSq2;
@@ -868,7 +870,7 @@ namespace StockFish
                     if (ksq == blockSq1
                         && Types.Opposite_colors(ksq, wbsq)
                         && (bbsq == blockSq2
-                            || (pos.attacks_from_square_piecetype(blockSq2, PieceTypeS.BISHOP) & pos.pieces_color_piecetype(weakSide, PieceTypeS.BISHOP)) != 0
+                            || (pos.Attacks_from_square_piecetype(blockSq2, PieceTypeS.BISHOP) & pos.Pieces_color_piecetype(weakSide, PieceTypeS.BISHOP)) != 0
                             || Math.Abs(r1 - r2) >= 2))
                     {
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
@@ -876,7 +878,7 @@ namespace StockFish
                     else if (ksq == blockSq2
                         && Types.Opposite_colors(ksq, wbsq)
                         && (bbsq == blockSq1
-                            || (pos.attacks_from_square_piecetype(blockSq1, PieceTypeS.BISHOP) & pos.pieces_color_piecetype(weakSide, PieceTypeS.BISHOP)) != 0))
+                            || (pos.Attacks_from_square_piecetype(blockSq1, PieceTypeS.BISHOP) & pos.Pieces_color_piecetype(weakSide, PieceTypeS.BISHOP)) != 0))
                     {
                         return ScaleFactorS.SCALE_FACTOR_DRAW;
                     }
@@ -901,9 +903,9 @@ namespace StockFish
             Debug.Assert(verify_material(pos, strongSide, ValueS.BishopValueMg, 1));
             Debug.Assert(verify_material(pos, weakSide, ValueS.KnightValueMg, 0));
 
-            Square pawnSq = pos.list(strongSide, PieceTypeS.PAWN)[0];
-            Square strongerBishopSq = pos.list(strongSide, PieceTypeS.BISHOP)[0];
-            Square weakerKingSq = pos.king_square(weakSide);
+            Square pawnSq = pos.List(strongSide, PieceTypeS.PAWN)[0];
+            Square strongerBishopSq = pos.List(strongSide, PieceTypeS.BISHOP)[0];
+            Square weakerKingSq = pos.King_square(weakSide);
 
             if (Types.File_of(weakerKingSq) == Types.File_of(pawnSq)
                 && Types.Relative_rank_square(strongSide, pawnSq) < Types.Relative_rank_square(strongSide, weakerKingSq)
@@ -926,8 +928,8 @@ namespace StockFish
             Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 0));
 
             // Assume strongSide is white and the pawn is on files A-D
-            Square pawnSq = normalize(pos, strongSide, pos.list(strongSide, PieceTypeS.PAWN)[0]);
-            Square weakKingSq = normalize(pos, strongSide, pos.king_square(weakSide));
+            Square pawnSq = normalize(pos, strongSide, pos.List(strongSide, PieceTypeS.PAWN)[0]);
+            Square weakKingSq = normalize(pos, strongSide, pos.King_square(weakSide));
 
             if (pawnSq == SquareS.SQ_A7 && BitBoard.Square_distance(SquareS.SQ_A8, weakKingSq) <= 1)
                 return ScaleFactorS.SCALE_FACTOR_DRAW;
@@ -941,13 +943,13 @@ namespace StockFish
         /// </summary>
         public ScaleFactor KNPKB(Position pos)
         {
-            Square pawnSq = pos.list(strongSide, PieceTypeS.PAWN)[0];
-            Square bishopSq = pos.list(weakSide, PieceTypeS.BISHOP)[0];
-            Square weakerKingSq = pos.king_square(weakSide);
+            Square pawnSq = pos.List(strongSide, PieceTypeS.PAWN)[0];
+            Square bishopSq = pos.List(weakSide, PieceTypeS.BISHOP)[0];
+            Square weakerKingSq = pos.King_square(weakSide);
 
             // King needs to get close to promoting pawn to prevent knight from blocking.
             // Rules for this are very tricky, so just approximate.
-            if ((BitBoard.Forward_bb(strongSide, pawnSq) & pos.attacks_from_square_piecetype(bishopSq, PieceTypeS.BISHOP)) != 0)
+            if ((BitBoard.Forward_bb(strongSide, pawnSq) & pos.Attacks_from_square_piecetype(bishopSq, PieceTypeS.BISHOP)) != 0)
                 return BitBoard.Square_distance(weakerKingSq, pawnSq);
 
             return ScaleFactorS.SCALE_FACTOR_NONE;
@@ -966,9 +968,9 @@ namespace StockFish
             Debug.Assert(verify_material(pos, weakSide, ValueS.VALUE_ZERO, 1));
 
             // Assume strongSide is white and the pawn is on files A-D
-            Square wksq = normalize(pos, strongSide, pos.king_square(strongSide));
-            Square bksq = normalize(pos, strongSide, pos.king_square(weakSide));
-            Square psq = normalize(pos, strongSide, pos.list(strongSide, PieceTypeS.PAWN)[0]);
+            Square wksq = normalize(pos, strongSide, pos.King_square(strongSide));
+            Square bksq = normalize(pos, strongSide, pos.King_square(weakSide));
+            Square psq = normalize(pos, strongSide, pos.List(strongSide, PieceTypeS.PAWN)[0]);
 
             Color us = strongSide == pos.side_to_move() ? ColorS.WHITE : ColorS.BLACK;
 

@@ -204,12 +204,12 @@ namespace StockFish
             followupmoves = fm;
             ss = s;
 
-            if (p.checkers() != 0)
+            if (p.Checkers() != 0)
                 stage = StagesS.EVASION;
             else
                 stage = StagesS.MAIN_SEARCH;
 
-            ttMove = (ttm != 0 && pos.pseudo_legal(ttm) ? ttm : MoveS.MOVE_NONE);
+            ttMove = (ttm != 0 && pos.Pseudo_legal(ttm) ? ttm : MoveS.MOVE_NONE);
             end += ((ttMove != MoveS.MOVE_NONE) ? 1 : 0);
         }
 
@@ -222,7 +222,7 @@ namespace StockFish
 
             Debug.Assert(d <= DepthS.DEPTH_ZERO);
 
-            if (p.checkers() != 0)
+            if (p.Checkers() != 0)
             {
                 stage = StagesS.EVASION;
             }
@@ -237,7 +237,7 @@ namespace StockFish
                 // Skip TT move if is not a capture or a promotion. This avoids qsearch
                 // tree explosion due to a possible perpetual check or similar rare cases
                 // when TT table is full.
-                if (ttm != 0 && !pos.capture_or_promotion(ttm))
+                if (ttm != 0 && !pos.Capture_or_promotion(ttm))
                     ttm = MoveS.MOVE_NONE;
             }
             else
@@ -247,7 +247,7 @@ namespace StockFish
                 ttm = MoveS.MOVE_NONE;
             }
 
-            ttMove = (ttm != 0 && pos.pseudo_legal(ttm) ? ttm : MoveS.MOVE_NONE);
+            ttMove = (ttm != 0 && pos.Pseudo_legal(ttm) ? ttm : MoveS.MOVE_NONE);
             end += ((ttMove != MoveS.MOVE_NONE) ? 1 : 0);
         }
 
@@ -258,16 +258,16 @@ namespace StockFish
             cur = 0;
             end = 0;
 
-            Debug.Assert(pos.checkers() == 0);
+            Debug.Assert(pos.Checkers() == 0);
 
             stage = StagesS.PROBCUT;
 
             // In ProbCut we generate only captures that are better than the parent's
             // captured piece.
             captureThreshold = Position.PieceValue[PhaseS.MG][pt];
-            ttMove = (ttm != 0 && pos.pseudo_legal(ttm) ? ttm : MoveS.MOVE_NONE);
+            ttMove = (ttm != 0 && pos.Pseudo_legal(ttm) ? ttm : MoveS.MOVE_NONE);
 
-            if (ttMove != 0 && (!pos.capture(ttMove) || pos.see(ttMove) <= captureThreshold))
+            if (ttMove != 0 && (!pos.Capture(ttMove) || pos.See(ttMove) <= captureThreshold))
                 ttMove = MoveS.MOVE_NONE;
 
             end += ((ttMove != MoveS.MOVE_NONE) ? 1 : 0);
@@ -333,11 +333,11 @@ namespace StockFish
             for (int it = 0; it != end; ++it)
             {
                 m = moves[it].move;
-                if ((see = pos.see_sign(m)) < ValueS.VALUE_ZERO)
+                if ((see = pos.See_sign(m)) < ValueS.VALUE_ZERO)
                 {
                     moves[it].value = see - HistoryStats.Max; // At the bottom
                 }
-                else if (pos.capture(m))
+                else if (pos.Capture(m))
                 {
                     moves[it].value = Position.PieceValue[PhaseS.MG][pos.piece_on(Types.To_sq(m))]
                             - Types.Type_of_piece(pos.moved_piece(m)) + HistoryStats.Max;
@@ -502,7 +502,7 @@ namespace StockFish
                         move = moves[Pick_best(moves, cur++, end)].move;
                         if (move != ttMove)
                         {
-                            if (pos.see_sign(move) >= ValueS.VALUE_ZERO)
+                            if (pos.See_sign(move) >= ValueS.VALUE_ZERO)
                                 return move;
 
                             // Losing capture, move it to the tail of the array
@@ -512,7 +512,7 @@ namespace StockFish
 
                     case StagesS.KILLERS_S1:
                         move = moves[cur++].move;
-                        if (move != MoveS.MOVE_NONE && move != ttMove && pos.pseudo_legal(move) && !pos.capture(move))
+                        if (move != MoveS.MOVE_NONE && move != ttMove && pos.Pseudo_legal(move) && !pos.Capture(move))
                             return move;
                         break;
 
@@ -542,7 +542,7 @@ namespace StockFish
 
                     case StagesS.CAPTURES_S5:
                         move = moves[Pick_best(moves, cur++, end)].move;
-                        if (move != ttMove && pos.see(move) > captureThreshold)
+                        if (move != ttMove && pos.See(move) > captureThreshold)
                             return move;
                         break;
 

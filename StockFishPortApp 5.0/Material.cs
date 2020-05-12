@@ -102,26 +102,26 @@ namespace StockFish
         public static bool is_KXK(Position pos, Color Us)
         {
             Color Them = (Us == ColorS.WHITE ? ColorS.BLACK : ColorS.WHITE);
-            return pos.count(Them, PieceTypeS.PAWN) == 0
-              && pos.non_pawn_material(Them) == ValueS.VALUE_ZERO
-              && pos.non_pawn_material(Us) >= ValueS.RookValueMg;
+            return pos.Count(Them, PieceTypeS.PAWN) == 0
+              && pos.Non_pawn_material(Them) == ValueS.VALUE_ZERO
+              && pos.Non_pawn_material(Us) >= ValueS.RookValueMg;
         }
 
         public static bool Is_KBPsKs(Position pos, Color Us)
         {
-            return pos.non_pawn_material(Us) == ValueS.BishopValueMg
-              && pos.count(Us, PieceTypeS.BISHOP) == 1
-              && pos.count(Us, PieceTypeS.PAWN) >= 1;
+            return pos.Non_pawn_material(Us) == ValueS.BishopValueMg
+              && pos.Count(Us, PieceTypeS.BISHOP) == 1
+              && pos.Count(Us, PieceTypeS.PAWN) >= 1;
         }
 
         public static bool Is_KQKRPs(Position pos, Color Us)
         {
             Color Them = (Us == ColorS.WHITE ? ColorS.BLACK : ColorS.WHITE);
-            return pos.count(Us, PieceTypeS.PAWN) == 0
-              && pos.non_pawn_material(Us) == ValueS.QueenValueMg
-              && pos.count(Us, PieceTypeS.QUEEN) == 1
-              && pos.count(Them, PieceTypeS.ROOK) == 1
-              && pos.count(Them, PieceTypeS.PAWN) >= 1;
+            return pos.Count(Us, PieceTypeS.PAWN) == 0
+              && pos.Non_pawn_material(Us) == ValueS.QueenValueMg
+              && pos.Count(Us, PieceTypeS.QUEEN) == 1
+              && pos.Count(Them, PieceTypeS.ROOK) == 1
+              && pos.Count(Them, PieceTypeS.PAWN) >= 1;
         }
 
         /// <summary>
@@ -163,7 +163,7 @@ namespace StockFish
         /// </summary>
         public static Material.Entry Probe(Position pos, Material.Table entries, Endgames endgames)
         {
-            Key key = pos.material_key();
+            Key key = pos.Material_key();
             Material.Entry e = entries[key];
 
             // If e.key matches the position's material hash key, it means that we
@@ -225,22 +225,22 @@ namespace StockFish
             else if (Is_KQKRPs(pos, ColorS.BLACK))
                 e.scalingFunction[ColorS.BLACK] = ScaleKQKRPs[ColorS.BLACK];
 
-            Value npm_w = pos.non_pawn_material(ColorS.WHITE);
-            Value npm_b = pos.non_pawn_material(ColorS.BLACK);
+            Value npm_w = pos.Non_pawn_material(ColorS.WHITE);
+            Value npm_b = pos.Non_pawn_material(ColorS.BLACK);
 
-            if (npm_w + npm_b == ValueS.VALUE_ZERO && pos.pieces_piecetype(PieceTypeS.PAWN)!=0)
+            if (npm_w + npm_b == ValueS.VALUE_ZERO && pos.Pieces_piecetype(PieceTypeS.PAWN)!=0)
             {
-                if (0==pos.count(ColorS.BLACK, PieceTypeS.PAWN))
+                if (0==pos.Count(ColorS.BLACK, PieceTypeS.PAWN))
                 {
-                    Debug.Assert(pos.count(ColorS.WHITE, PieceTypeS.PAWN) >= 2);
+                    Debug.Assert(pos.Count(ColorS.WHITE, PieceTypeS.PAWN) >= 2);
                     e.scalingFunction[ColorS.WHITE] = ScaleKPsK[ColorS.WHITE];
                 }
-                else if (0==pos.count(ColorS.WHITE, PieceTypeS.PAWN))
+                else if (0==pos.Count(ColorS.WHITE, PieceTypeS.PAWN))
                 {
-                    Debug.Assert(pos.count(ColorS.BLACK, PieceTypeS.PAWN) >= 2);
+                    Debug.Assert(pos.Count(ColorS.BLACK, PieceTypeS.PAWN) >= 2);
                     e.scalingFunction[ColorS.BLACK] = ScaleKPsK[ColorS.BLACK];
                 }
-                else if (pos.count(ColorS.WHITE, PieceTypeS.PAWN) == 1 && pos.count(ColorS.BLACK, PieceTypeS.PAWN) == 1)
+                else if (pos.Count(ColorS.WHITE, PieceTypeS.PAWN) == 1 && pos.Count(ColorS.BLACK, PieceTypeS.PAWN) == 1)
                 {
                     // This is a special case because we set scaling functions
                     // for both colors instead of only one.
@@ -252,24 +252,24 @@ namespace StockFish
             // No pawns makes it difficult to win, even with a material advantage. This
             // catches some trivial draws like KK, KBK and KNK and gives a very drawish
             // scale factor for cases such as KRKBP and KmmKm (except for KBBKN).
-            if (0 == pos.count(ColorS.WHITE, PieceTypeS.PAWN) && npm_w - npm_b <= ValueS.BishopValueMg)
+            if (0 == pos.Count(ColorS.WHITE, PieceTypeS.PAWN) && npm_w - npm_b <= ValueS.BishopValueMg)
                 e.factor[ColorS.WHITE] = (byte)(npm_w < ValueS.RookValueMg ? ScaleFactorS.SCALE_FACTOR_DRAW : npm_b <= ValueS.BishopValueMg ? 4 : 12);
 
-            if (0 == pos.count(ColorS.BLACK, PieceTypeS.PAWN) && npm_b - npm_w <= ValueS.BishopValueMg)
+            if (0 == pos.Count(ColorS.BLACK, PieceTypeS.PAWN) && npm_b - npm_w <= ValueS.BishopValueMg)
                 e.factor[ColorS.BLACK] = (byte)(npm_b < ValueS.RookValueMg ? ScaleFactorS.SCALE_FACTOR_DRAW : npm_w <= ValueS.BishopValueMg ? 4 : 12);
 
-            if (pos.count(ColorS.WHITE, PieceTypeS.PAWN) == 1 && npm_w - npm_b <= ValueS.BishopValueMg)
+            if (pos.Count(ColorS.WHITE, PieceTypeS.PAWN) == 1 && npm_w - npm_b <= ValueS.BishopValueMg)
                 e.factor[ColorS.WHITE] = (byte)ScaleFactorS.SCALE_FACTOR_ONEPAWN;
 
-            if (pos.count(ColorS.BLACK, PieceTypeS.PAWN) == 1 && npm_b - npm_w <= ValueS.BishopValueMg)
+            if (pos.Count(ColorS.BLACK, PieceTypeS.PAWN) == 1 && npm_b - npm_w <= ValueS.BishopValueMg)
                 e.factor[ColorS.BLACK] = (byte)ScaleFactorS.SCALE_FACTOR_ONEPAWN;
 
             // Compute the space weight
             if (npm_w + npm_b >= (2 * ValueS.QueenValueMg) + (4 * ValueS.RookValueMg) + 
             (2 * ValueS.KnightValueMg))
             {
-                int minorPieceCount = pos.count(ColorS.WHITE, PieceTypeS.KNIGHT) + pos.count(ColorS.WHITE, PieceTypeS.BISHOP)
-                                    + pos.count(ColorS.BLACK, PieceTypeS.KNIGHT) + pos.count(ColorS.BLACK, PieceTypeS.BISHOP);
+                int minorPieceCount = pos.Count(ColorS.WHITE, PieceTypeS.KNIGHT) + pos.Count(ColorS.WHITE, PieceTypeS.BISHOP)
+                                    + pos.Count(ColorS.BLACK, PieceTypeS.KNIGHT) + pos.Count(ColorS.BLACK, PieceTypeS.BISHOP);
 
                 e.spaceWeight = Types.Make_score(minorPieceCount * minorPieceCount, 0);
             }
@@ -278,10 +278,10 @@ namespace StockFish
             // for the bishop pair "extended piece", this allow us to be more flexible
             // in defining bishop pair bonuses.
             int[][] pieceCount = new int[ColorS.COLOR_NB][]{
-            new int[]{   pos.count(ColorS.WHITE, PieceTypeS.BISHOP) > 1 ? 1 : 0, pos.count(ColorS.WHITE, PieceTypeS.PAWN), pos.count(ColorS.WHITE, PieceTypeS.KNIGHT),
-                         pos.count(ColorS.WHITE, PieceTypeS.BISHOP)            , pos.count(ColorS.WHITE, PieceTypeS.ROOK), pos.count(ColorS.WHITE, PieceTypeS.QUEEN) },
-            new int[]{   pos.count(ColorS.BLACK, PieceTypeS.BISHOP) > 1 ? 1 : 0, pos.count(ColorS.BLACK, PieceTypeS.PAWN), pos.count(ColorS.BLACK, PieceTypeS.KNIGHT),
-                         pos.count(ColorS.BLACK, PieceTypeS.BISHOP)            , pos.count(ColorS.BLACK, PieceTypeS.ROOK), pos.count(ColorS.BLACK, PieceTypeS.QUEEN) } };
+            new int[]{   pos.Count(ColorS.WHITE, PieceTypeS.BISHOP) > 1 ? 1 : 0, pos.Count(ColorS.WHITE, PieceTypeS.PAWN), pos.Count(ColorS.WHITE, PieceTypeS.KNIGHT),
+                         pos.Count(ColorS.WHITE, PieceTypeS.BISHOP)            , pos.Count(ColorS.WHITE, PieceTypeS.ROOK), pos.Count(ColorS.WHITE, PieceTypeS.QUEEN) },
+            new int[]{   pos.Count(ColorS.BLACK, PieceTypeS.BISHOP) > 1 ? 1 : 0, pos.Count(ColorS.BLACK, PieceTypeS.PAWN), pos.Count(ColorS.BLACK, PieceTypeS.KNIGHT),
+                         pos.Count(ColorS.BLACK, PieceTypeS.BISHOP)            , pos.Count(ColorS.BLACK, PieceTypeS.ROOK), pos.Count(ColorS.BLACK, PieceTypeS.QUEEN) } };
 
             e.value = (Int16)((Imbalance(pieceCount, ColorS.WHITE) - Imbalance(pieceCount, ColorS.BLACK)) / 16);
             return e;
@@ -294,7 +294,7 @@ namespace StockFish
         /// </summary>
         public static Phase Game_phase(Position pos)
         {
-            Value npm = pos.non_pawn_material(ColorS.WHITE) + pos.non_pawn_material(ColorS.BLACK);
+            Value npm = pos.Non_pawn_material(ColorS.WHITE) + pos.Non_pawn_material(ColorS.BLACK);
 
             if (npm >= ValueS.MidgameLimit)
             {

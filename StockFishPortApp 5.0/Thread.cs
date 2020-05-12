@@ -169,7 +169,7 @@ namespace StockFish
                                    ref Move bestMove, Depth depth, int moveCount,
                                    MovePicker movePicker, int nodeType, bool cutNode, bool Fake)
         {
-            Debug.Assert(pos.pos_is_ok());
+            Debug.Assert(pos.Pos_is_ok());
             Debug.Assert(-ValueS.VALUE_INFINITE < bestValue && bestValue <= alpha && alpha < beta && beta <= ValueS.VALUE_INFINITE);
             Debug.Assert(depth >= Engine.Threads.minimumSplitDepth);
             Debug.Assert(searching);

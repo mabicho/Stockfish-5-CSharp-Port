@@ -290,13 +290,13 @@ namespace StockFish
             Color Them = (Us == ColorS.WHITE ? ColorS.BLACK : ColorS.WHITE);
             Square Down = (Us == ColorS.WHITE ? SquareS.DELTA_S : SquareS.DELTA_N);
 
-            ei.pinnedPieces[Us] = pos.pinned_pieces(Us);
+            ei.pinnedPieces[Us] = pos.Pinned_pieces(Us);
 
-            Bitboard b = ei.attackedBy[Them][PieceTypeS.KING] = pos.attacks_from_square_piecetype(pos.king_square(Them), PieceTypeS.KING);
+            Bitboard b = ei.attackedBy[Them][PieceTypeS.KING] = pos.Attacks_from_square_piecetype(pos.King_square(Them), PieceTypeS.KING);
             ei.attackedBy[Us][PieceTypeS.ALL_PIECES] = ei.attackedBy[Us][PieceTypeS.PAWN] = ei.pi.Pawn_attacks(Us);
 
             // Init king safety tables only if we are going to use them
-            if (pos.count(Us, PieceTypeS.QUEEN) != 0 && pos.non_pawn_material(Us) > ValueS.QueenValueMg + ValueS.PawnValueMg)
+            if (pos.Count(Us, PieceTypeS.QUEEN) != 0 && pos.Non_pawn_material(Us) > ValueS.QueenValueMg + ValueS.PawnValueMg)
             {
                 ei.kingRing[Them] = b | BitBoard.Shift_bb(b, Down);
                 b &= ei.attackedBy[Us][PieceTypeS.PAWN];
@@ -324,8 +324,8 @@ namespace StockFish
             // no minor piece which can trade with the outpost piece.
             if (bonus != 0 && (ei.attackedBy[Us][PieceTypeS.PAWN] & BitBoard.SquareBB[s]) != 0)
             {
-                if (0 == pos.pieces_color_piecetype(Them, PieceTypeS.KNIGHT)
-                    && 0 == (BitBoard.Squares_of_color(s) & pos.pieces_color_piecetype(Them, PieceTypeS.BISHOP)))
+                if (0 == pos.Pieces_color_piecetype(Them, PieceTypeS.KNIGHT)
+                    && 0 == (BitBoard.Squares_of_color(s) & pos.Pieces_color_piecetype(Them, PieceTypeS.BISHOP)))
                 {
                     bonus += bonus + (bonus / 2);
                 }
@@ -351,7 +351,7 @@ namespace StockFish
 
             PieceType NextPt = (Us == ColorS.WHITE ? Pt : (Pt + 1));
             Color Them = (Us == ColorS.WHITE ? ColorS.BLACK : ColorS.WHITE);
-            Square[] pl = pos.list(Us, Pt);
+            Square[] pl = pos.List(Us, Pt);
             int plPos = 0;
 
             ei.attackedBy[Us][Pt] = 0;
@@ -359,12 +359,12 @@ namespace StockFish
             while ((s = pl[plPos++]) != SquareS.SQ_NONE)
             {
                 // Find attacked squares, including x-ray attacks for bishops and rooks
-                b = Pt == PieceTypeS.BISHOP ? BitBoard.Attacks_bb_SBBPT(s, pos.pieces() ^ pos.pieces_color_piecetype(Us, PieceTypeS.QUEEN), PieceTypeS.BISHOP)
-                  : Pt == PieceTypeS.ROOK ? BitBoard.Attacks_bb_SBBPT(s, pos.pieces() ^ pos.pieces_color_piecetype(Us, PieceTypeS.ROOK, PieceTypeS.QUEEN), PieceTypeS.ROOK)
-                                    : pos.attacks_from_square_piecetype(s, Pt);
+                b = Pt == PieceTypeS.BISHOP ? BitBoard.Attacks_bb_SBBPT(s, pos.Pieces() ^ pos.Pieces_color_piecetype(Us, PieceTypeS.QUEEN), PieceTypeS.BISHOP)
+                  : Pt == PieceTypeS.ROOK ? BitBoard.Attacks_bb_SBBPT(s, pos.Pieces() ^ pos.Pieces_color_piecetype(Us, PieceTypeS.ROOK, PieceTypeS.QUEEN), PieceTypeS.ROOK)
+                                    : pos.Attacks_from_square_piecetype(s, Pt);
 
                 if ((ei.pinnedPieces[Us] & BitBoard.SquareBB[s])!=0)
-                    b &= BitBoard.LineBB[pos.king_square(Us)][s];
+                    b &= BitBoard.LineBB[pos.King_square(Us)][s];
 
                 ei.attackedBy[Us][PieceTypeS.ALL_PIECES] |= ei.attackedBy[Us][Pt] |= b;
 
@@ -399,12 +399,12 @@ namespace StockFish
                         score -= BishopPawns * ei.pi.Pawns_on_same_color_squares(Us, s);
 
                     // Bishop and knight outposts squares
-                    if (0==(pos.pieces_color_piecetype(Them, PieceTypeS.PAWN) & BitBoard.Pawn_attack_span(Us, s)) )
+                    if (0==(pos.Pieces_color_piecetype(Them, PieceTypeS.PAWN) & BitBoard.Pawn_attack_span(Us, s)) )
                         score += evaluate_outposts(pos, ei, s, Pt, Us);
 
                     // Bishop or knight behind a pawn
                     if (Types.Relative_rank_square(Us, s) < RankS.RANK_5
-                        && (pos.pieces_piecetype(PieceTypeS.PAWN) & BitBoard.SquareBB[(s + Types.Pawn_push(Us))]) != 0)
+                        && (pos.Pieces_piecetype(PieceTypeS.PAWN) & BitBoard.SquareBB[(s + Types.Pawn_push(Us))]) != 0)
                         score += MinorBehindPawn;
                 }
                 
@@ -413,7 +413,7 @@ namespace StockFish
                     // Rook piece attacking enemy pawns on the same rank/file
                     if (Types.Relative_rank_square(Us, s) >= RankS.RANK_5)
                     {
-                        Bitboard pawns = pos.pieces_color_piecetype(Them, PieceTypeS.PAWN) & BitBoard.PseudoAttacks[PieceTypeS.ROOK][s];
+                        Bitboard pawns = pos.Pieces_color_piecetype(Them, PieceTypeS.PAWN) & BitBoard.PseudoAttacks[PieceTypeS.ROOK][s];
                         if (pawns != 0)
                             score += Bitcount.Popcount_Max15(pawns)* RookOnPawn;
                     }
@@ -425,21 +425,21 @@ namespace StockFish
                     if (mob > 3 || ei.pi.Semiopen_file(Us, Types.File_of(s)) != 0)
                         continue;
 
-                    Square ksq = pos.king_square(Us);
+                    Square ksq = pos.King_square(Us);
 
                     // Penalize rooks which are trapped by a king. Penalize more if the
                     // king has lost its castling capability.
                     if (((Types.File_of(ksq) < FileS.FILE_E) == (Types.File_of(s) < Types.File_of(ksq)))
                         && (Types.Rank_of(ksq) == Types.Rank_of(s) || Types.Relative_rank_square(Us, ksq) == RankS.RANK_1)
                         && 0 == ei.pi.Semiopen_side(Us, Types.File_of(ksq), Types.File_of(s) < Types.File_of(ksq)))
-                        score -= (TrappedRook - Types.Make_score(mob * 8, 0)) * (1 + (pos.can_castle_color(Us) == 0 ? 1 : 0));
+                        score -= (TrappedRook - Types.Make_score(mob * 8, 0)) * (1 + (pos.Can_castle_color(Us) == 0 ? 1 : 0));
                 }
 
                 // An important Chess960 pattern: A cornered bishop blocked by a friendly
                 // pawn diagonally in front of it is a very serious problem, especially
                 // when that pawn is also blocked.
                 if (Pt == PieceTypeS.BISHOP
-                    && pos.is_chess960() != 0
+                    && pos.Is_chess960() != 0
                     && (s == Types.Relative_square(Us, SquareS.SQ_A1) || s == Types.Relative_square(Us, SquareS.SQ_H1)))
                 {                    
                     Square d = Types.Pawn_push(Us) + (Types.File_of(s) == FileS.FILE_A ? SquareS.DELTA_E : SquareS.DELTA_W);
@@ -463,7 +463,7 @@ namespace StockFish
 
             Bitboard undefended, b, b1, b2, safe;
             int attackUnits;
-            Square ksq = pos.king_square(Us);
+            Square ksq = pos.King_square(Us);
 
             // King shelter and enemy pawns storm
             Score score = ei.pi.King_safety(pos, ksq, Us);
@@ -492,7 +492,7 @@ namespace StockFish
                 // Analyse the enemy's safe queen contact checks. Firstly, find the
                 // undefended squares around the king that are attacked by the enemy's
                 // queen...
-                b = undefended & ei.attackedBy[Them][PieceTypeS.QUEEN] & ~pos.pieces_color(Them);
+                b = undefended & ei.attackedBy[Them][PieceTypeS.QUEEN] & ~pos.Pieces_color(Them);
                 if (b != 0)
                 {
                     // ...and then remove squares not supported by another enemy piece
@@ -507,7 +507,7 @@ namespace StockFish
                 // Analyse the enemy's safe rook contact checks. Firstly, find the
                 // undefended squares around the king that are attacked by the enemy's
                 // rooks...
-                b = undefended & ei.attackedBy[Them][PieceTypeS.ROOK] & ~pos.pieces_color(Them);
+                b = undefended & ei.attackedBy[Them][PieceTypeS.ROOK] & ~pos.Pieces_color(Them);
 
                 // Consider only squares where the enemy rook gives check
                 b &= BitBoard.PseudoAttacks[PieceTypeS.ROOK][ksq];
@@ -525,10 +525,10 @@ namespace StockFish
                 }
 
                 // Analyse enemy's safe distance checks for sliders and knights
-                safe = ~(pos.pieces_color(Them) | ei.attackedBy[Us][PieceTypeS.ALL_PIECES]);
+                safe = ~(pos.Pieces_color(Them) | ei.attackedBy[Us][PieceTypeS.ALL_PIECES]);
 
-                b1 = pos.attacks_from_square_piecetype(ksq, PieceTypeS.ROOK) & safe;
-                b2 = pos.attacks_from_square_piecetype(ksq, PieceTypeS.BISHOP) & safe;
+                b1 = pos.Attacks_from_square_piecetype(ksq, PieceTypeS.ROOK) & safe;
+                b2 = pos.Attacks_from_square_piecetype(ksq, PieceTypeS.BISHOP) & safe;
 
                 // Enemy queen safe checks
                 b = (b1 | b2) & ei.attackedBy[Them][PieceTypeS.QUEEN];
@@ -546,7 +546,7 @@ namespace StockFish
                     attackUnits += BishopCheck * Bitcount.Popcount_Max15(b);
 
                 // Enemy knights safe checks
-                b = pos.attacks_from_square_piecetype(ksq, PieceTypeS.KNIGHT) & ei.attackedBy[Them][PieceTypeS.KNIGHT] & safe;
+                b = pos.Attacks_from_square_piecetype(ksq, PieceTypeS.KNIGHT) & ei.attackedBy[Them][PieceTypeS.KNIGHT] & safe;
                 if (b != 0)
                     attackUnits += KnightCheck * Bitcount.Popcount_Max15(b);
 
@@ -574,7 +574,7 @@ namespace StockFish
             Score score = ScoreS.SCORE_ZERO;
 
             // Enemies not defended by a pawn and under our attack
-            weakEnemies = pos.pieces_color(Them)
+            weakEnemies = pos.Pieces_color(Them)
                          & ~ei.attackedBy[Them][PieceTypeS.PAWN]
                          & ei.attackedBy[Us][PieceTypeS.ALL_PIECES];
 
@@ -615,7 +615,7 @@ namespace StockFish
             {
                 Square s = BitBoard.Pop_lsb(ref b);
 
-                Debug.Assert(pos.pawn_passed(Us, s));
+                Debug.Assert(pos.Pawn_passed(Us, s));
 
                 int r = (int)(Types.Relative_rank_square(Us, s) - RankS.RANK_2);
                 int rr = r * (r - 1);
@@ -628,12 +628,12 @@ namespace StockFish
                     Square blockSq = s + Types.Pawn_push(Us);
 
                     // Adjust bonus based on kings proximity
-                    ebonus += (BitBoard.Square_distance(pos.king_square(Them), blockSq) * 5 * rr)
-                            - (BitBoard.Square_distance(pos.king_square(Us), blockSq) * 2 * rr);
+                    ebonus += (BitBoard.Square_distance(pos.King_square(Them), blockSq) * 5 * rr)
+                            - (BitBoard.Square_distance(pos.King_square(Us), blockSq) * 2 * rr);
 
                     // If blockSq is not the queening square then consider also a second push
                     if (Types.Relative_rank_square(Us, blockSq) != RankS.RANK_8)
-                        ebonus -= (BitBoard.Square_distance(pos.king_square(Us), blockSq + Types.Pawn_push(Us)) * rr);
+                        ebonus -= (BitBoard.Square_distance(pos.King_square(Us), blockSq + Types.Pawn_push(Us)) * rr);
 
                     // If the pawn is free to advance, increase bonus
                     if (pos.empty(blockSq))
@@ -643,14 +643,14 @@ namespace StockFish
                         // If there is an enemy rook or queen attacking the pawn from behind,
                         // add all X-ray attacks by the rook or queen. Otherwise consider only
                         // the squares in the pawn's path attacked or occupied by the enemy.
-                        if ((BitBoard.Forward_bb(Them, s) & pos.pieces_color_piecetype(Them, PieceTypeS.ROOK, PieceTypeS.QUEEN)) != 0
-                            && (BitBoard.Forward_bb(Them, s) & pos.pieces_color_piecetype(Them, PieceTypeS.ROOK, PieceTypeS.QUEEN) & pos.attacks_from_square_piecetype(s, PieceTypeS.ROOK)) != 0)
+                        if ((BitBoard.Forward_bb(Them, s) & pos.Pieces_color_piecetype(Them, PieceTypeS.ROOK, PieceTypeS.QUEEN)) != 0
+                            && (BitBoard.Forward_bb(Them, s) & pos.Pieces_color_piecetype(Them, PieceTypeS.ROOK, PieceTypeS.QUEEN) & pos.Attacks_from_square_piecetype(s, PieceTypeS.ROOK)) != 0)
                             unsafeSquares = squaresToQueen;
                         else
-                            unsafeSquares = squaresToQueen & (ei.attackedBy[Them][PieceTypeS.ALL_PIECES] | pos.pieces_color(Them));
+                            unsafeSquares = squaresToQueen & (ei.attackedBy[Them][PieceTypeS.ALL_PIECES] | pos.Pieces_color(Them));
 
-                        if ((BitBoard.Forward_bb(Them, s) & pos.pieces_color_piecetype(Us, PieceTypeS.ROOK, PieceTypeS.QUEEN)) != 0
-                            && (BitBoard.Forward_bb(Them, s) & pos.pieces_color_piecetype(Us, PieceTypeS.ROOK, PieceTypeS.QUEEN) & pos.attacks_from_square_piecetype(s, PieceTypeS.ROOK))!=0)
+                        if ((BitBoard.Forward_bb(Them, s) & pos.Pieces_color_piecetype(Us, PieceTypeS.ROOK, PieceTypeS.QUEEN)) != 0
+                            && (BitBoard.Forward_bb(Them, s) & pos.Pieces_color_piecetype(Us, PieceTypeS.ROOK, PieceTypeS.QUEEN) & pos.Attacks_from_square_piecetype(s, PieceTypeS.ROOK))!=0)
                             defendedSquares = squaresToQueen;
                         else
                             defendedSquares = squaresToQueen & ei.attackedBy[Us][PieceTypeS.ALL_PIECES];
@@ -672,7 +672,7 @@ namespace StockFish
                     }
                 } // rr != 0
 
-                if (pos.count(Us, PieceTypeS.PAWN) < pos.count(Them, PieceTypeS.PAWN))
+                if (pos.Count(Us, PieceTypeS.PAWN) < pos.Count(Them, PieceTypeS.PAWN))
                     ebonus += ebonus / 4;
 
                 score += Types.Make_score(mbonus, ebonus);
@@ -693,7 +693,7 @@ namespace StockFish
         {
             Bitboard b = ei.pi.Passed_pawns(us) | ei.pi.Candidate_pawns(us);
 
-            if (0==b || pos.non_pawn_material(Types.NotColor(us))!=0)
+            if (0==b || pos.Non_pawn_material(Types.NotColor(us))!=0)
                 return ScoreS.SCORE_ZERO;
 
             return Unstoppable * (Types.Relative_rank_square(us, BitBoard.Frontmost_sq(us, b)));
@@ -713,12 +713,12 @@ namespace StockFish
             // SpaceMask[]. A square is unsafe if it is attacked by an enemy
             // pawn, or if it is undefended and attacked by an enemy piece.
             Bitboard safe = SpaceMask[Us]
-                       & ~pos.pieces_color_piecetype(Us, PieceTypeS.PAWN)
+                       & ~pos.Pieces_color_piecetype(Us, PieceTypeS.PAWN)
                        & ~ei.attackedBy[Them][PieceTypeS.PAWN]
                        & (ei.attackedBy[Us][PieceTypeS.ALL_PIECES] | ~ei.attackedBy[Them][PieceTypeS.ALL_PIECES]);
 
             // Find all squares which are at most three squares behind some friendly pawn
-            Bitboard behind = pos.pieces_color_piecetype(Us, PieceTypeS.PAWN);
+            Bitboard behind = pos.Pieces_color_piecetype(Us, PieceTypeS.PAWN);
             behind |= (Us == ColorS.WHITE ? behind >> 8 : behind << 8);
             behind |= (Us == ColorS.WHITE ? behind >> 16 : behind << 16);
 
@@ -732,17 +732,17 @@ namespace StockFish
         // do_evaluate() is the evaluation entry point, called directly from evaluate()
         public static Value do_evaluate(Position pos, bool Trace)
         {
-            Debug.Assert(0==pos.checkers());
+            Debug.Assert(0==pos.Checkers());
 
             EvalInfo ei = new EvalInfo();
             Score score;
             Score[] mobility= new Score[]{ScoreS.SCORE_ZERO, ScoreS.SCORE_ZERO};
-            Thread thisThread = pos.this_thread();
+            Thread thisThread = pos.This_thread();
 
             // Initialize score by reading the incrementally updated scores included
             // in the position object (material + piece square tables) and adding a
             // Tempo bonus. Score is computed from the point of view of white.
-            score = pos.psq_score() + (pos.side_to_move() == ColorS.WHITE ? Tempo : -Tempo);
+            score = pos.Psq_score() + (pos.side_to_move() == ColorS.WHITE ? Tempo : -Tempo);
 
             // Probe the material hash table
             ei.mi = Material.Probe(pos, thisThread.materialTable, thisThread.endgames);
@@ -765,8 +765,8 @@ namespace StockFish
             ei.attackedBy[ColorS.BLACK][PieceTypeS.ALL_PIECES] |= ei.attackedBy[ColorS.BLACK][PieceTypeS.KING];
 
             // Do not include in mobility squares protected by enemy pawns or occupied by our pawns or king
-            Bitboard[] mobilityArea = new Bitboard[]{   ~(ei.attackedBy[ColorS.BLACK][PieceTypeS.PAWN] | pos.pieces_color_piecetype(ColorS.WHITE, PieceTypeS.PAWN, PieceTypeS.KING)),
-                                                        ~(ei.attackedBy[ColorS.WHITE][PieceTypeS.PAWN] | pos.pieces_color_piecetype(ColorS.BLACK, PieceTypeS.PAWN, PieceTypeS.KING)) };
+            Bitboard[] mobilityArea = new Bitboard[]{   ~(ei.attackedBy[ColorS.BLACK][PieceTypeS.PAWN] | pos.Pieces_color_piecetype(ColorS.WHITE, PieceTypeS.PAWN, PieceTypeS.KING)),
+                                                        ~(ei.attackedBy[ColorS.WHITE][PieceTypeS.PAWN] | pos.Pieces_color_piecetype(ColorS.BLACK, PieceTypeS.PAWN, PieceTypeS.KING)) };
             // Evaluate pieces and mobility
             score += evaluate_pieces(pos, ei, mobility, mobilityArea, PieceTypeS.KNIGHT, ColorS.WHITE, Trace);
             score += Eval.apply_weight(mobility[ColorS.WHITE] - mobility[ColorS.BLACK], Weights[EvalWeightS.Mobility]);
@@ -785,7 +785,7 @@ namespace StockFish
                   - evaluate_passed_pawns(pos, ei, ColorS.BLACK, Trace);
 
             // If one side has only a king, check whether exists any unstoppable passed pawn
-            if (0==pos.non_pawn_material(ColorS.WHITE) || 0==pos.non_pawn_material(ColorS.BLACK))
+            if (0==pos.Non_pawn_material(ColorS.WHITE) || 0==pos.Non_pawn_material(ColorS.BLACK))
             {
                 score += evaluate_unstoppable_pawns(pos, ColorS.WHITE, ei)
                        - evaluate_unstoppable_pawns(pos, ColorS.BLACK, ei);
@@ -805,17 +805,17 @@ namespace StockFish
             // If we don't already have an unusual scale factor, check for opposite
             // colored bishop endgames, and use a lower scale for those.
             if (ei.mi.game_phase() < PhaseS.PHASE_MIDGAME
-                && pos.opposite_bishops()
+                && pos.Opposite_bishops()
                 && (sf == ScaleFactorS.SCALE_FACTOR_NORMAL || sf == ScaleFactorS.SCALE_FACTOR_ONEPAWN))
             {
                 // Ignoring any pawns, do both sides only have a single bishop and no
                 // other pieces?
-                if (pos.non_pawn_material(ColorS.WHITE) == ValueS.BishopValueMg
-                    && pos.non_pawn_material(ColorS.BLACK) == ValueS.BishopValueMg)
+                if (pos.Non_pawn_material(ColorS.WHITE) == ValueS.BishopValueMg
+                    && pos.Non_pawn_material(ColorS.BLACK) == ValueS.BishopValueMg)
                 {
                     // Check for KBP vs KB with only a single pawn that is almost
                     // certainly a draw or at least two pawns.
-                    bool one_pawn = (pos.count(ColorS.WHITE, PieceTypeS.PAWN) + pos.count(ColorS.BLACK, PieceTypeS.PAWN) == 1);
+                    bool one_pawn = (pos.Count(ColorS.WHITE, PieceTypeS.PAWN) + pos.Count(ColorS.BLACK, PieceTypeS.PAWN) == 1);
                     sf = one_pawn ? (8) : (32);
                 }
                 else

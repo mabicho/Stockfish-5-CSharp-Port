@@ -78,7 +78,7 @@ namespace StockFish
             }
 
             for (MoveList it = new MoveList(pos, GenTypeS.LEGAL); it.mlist[it.cur].move != MoveS.MOVE_NONE; ++it)
-              {  if (str == move_to_uci(it.Move(), pos.is_chess960() != 0))
+              {  if (str == move_to_uci(it.Move(), pos.Is_chess960() != 0))
                     return it.Move();
               }
             return MoveS.MOVE_NONE;
@@ -116,12 +116,12 @@ namespace StockFish
 
                     // A disambiguation occurs if we have more then one piece of type 'pt'
                     // that can reach 'to' with a legal move.
-                    others = b = (pos.attacks_from_piece_square(pc, to) & pos.pieces_color_piecetype(us, pt)) ^ BitBoard.SquareBB[from];
+                    others = b = (pos.Attacks_from_piece_square(pc, to) & pos.Pieces_color_piecetype(us, pt)) ^ BitBoard.SquareBB[from];
 
                     while (b != 0)
                     {
                         Square s = BitBoard.Pop_lsb(ref b);
-                        if (!pos.legal(Types.Make_move(s, to), pos.pinned_pieces(us)))
+                        if (!pos.legal(Types.Make_move(s, to), pos.Pinned_pieces(us)))
                             others ^= BitBoard.SquareBB[s];
                     }
 
@@ -140,12 +140,12 @@ namespace StockFish
                         san += Types.Square_to_string(from);
                     }
                 }
-                else if (pos.capture(m))
+                else if (pos.Capture(m))
                 {
                     san = "" + Types.File_to_char(Types.File_of(from));
                 }
 
-                if (pos.capture(m))
+                if (pos.Capture(m))
                     san += 'x';
 
                 san += Types.Square_to_string(to);
@@ -154,12 +154,12 @@ namespace StockFish
                     san += "=" + PieceToChar[ColorS.WHITE][Types.Promotion_type(m)];
             }
 
-            if (pos.gives_check(m, new CheckInfo(pos)))
+            if (pos.Gives_check(m, new CheckInfo(pos)))
             {
                 StateInfo st = new StateInfo();
                 pos.do_move(m, st);
                 san += (new MoveList(pos, GenTypeS.LEGAL)).Size() > 0 ? "+" : "#";
-                pos.undo_move(m);
+                pos.Undo_move(m);
             }
 
             return san;
@@ -252,7 +252,7 @@ namespace StockFish
             }
 
             while (m != 0)
-                pos.undo_move(pv[--m]);
+                pos.Undo_move(pv[--m]);
 
             return str;
         }

@@ -64,24 +64,24 @@ namespace StockFish
         {
             bool KingSide = (Cr == CastlingRightS.WHITE_OO || Cr == CastlingRightS.BLACK_OO);
 
-            if (pos.castling_impeded(Cr) || 0 == pos.can_castle_castleright(Cr))
+            if (pos.Castling_impeded(Cr) || 0 == pos.Can_castle_castleright(Cr))
                 return mPos;
 
             // After castling, the rook and king final positions are the same in Chess960
             // as they would be in standard chess.
-            Square kfrom = pos.king_square(us);
-            Square rfrom = pos.castling_rook_square(Cr);
+            Square kfrom = pos.King_square(us);
+            Square rfrom = pos.Castling_rook_square(Cr);
             Square kto = Types.Relative_square(us, KingSide ? SquareS.SQ_G1 : SquareS.SQ_C1);
-            Bitboard enemies = pos.pieces_color(us ^ ColorS.BLACK);
+            Bitboard enemies = pos.Pieces_color(us ^ ColorS.BLACK);
 
-            Debug.Assert(0==pos.checkers());
+            Debug.Assert(0==pos.Checkers());
 
             Square K = Chess960 ? kto > kfrom ? SquareS.DELTA_W : SquareS.DELTA_E
                               : KingSide ? SquareS.DELTA_W : SquareS.DELTA_E;
 
             for (Square s = kto; s != kfrom; s += K)
             {
-                if ((pos.attackers_to(s) & enemies) != 0)
+                if ((pos.Attackers_to(s) & enemies) != 0)
                 {
                     return mPos;
                 }
@@ -90,12 +90,12 @@ namespace StockFish
             // Because we generate only legal castling moves we need to verify that
             // when moving the castling rook we do not discover some hidden checker.
             // For instance an enemy queen in SQ_A1 when castling rook is in SQ_B1.
-            if (Chess960 && (BitBoard.Attacks_bb_SBBPT(kto, pos.pieces() ^ BitBoard.SquareBB[rfrom], PieceTypeS.ROOK) & pos.pieces_color_piecetype(Types.NotColor(us), PieceTypeS.ROOK, PieceTypeS.QUEEN))!=0)
+            if (Chess960 && (BitBoard.Attacks_bb_SBBPT(kto, pos.Pieces() ^ BitBoard.SquareBB[rfrom], PieceTypeS.ROOK) & pos.Pieces_color_piecetype(Types.NotColor(us), PieceTypeS.ROOK, PieceTypeS.QUEEN))!=0)
                 return mPos;
 
             Move m = Types.Make(kfrom, rfrom, MoveTypeS.CASTLING);
 
-            if (Checks && !pos.gives_check(m, ci))
+            if (Checks && !pos.Gives_check(m, ci))
                 return mPos;
 
             mlist[mPos++].move = m;
@@ -148,16 +148,16 @@ namespace StockFish
 
             Bitboard b1, b2, dc1, dc2, emptySquares = 0;
 
-            Bitboard pawnsOn7 = pos.pieces_color_piecetype(Us, PieceTypeS.PAWN) & TRank7BB;
-            Bitboard pawnsNotOn7 = pos.pieces_color_piecetype(Us, PieceTypeS.PAWN) & ~TRank7BB;
+            Bitboard pawnsOn7 = pos.Pieces_color_piecetype(Us, PieceTypeS.PAWN) & TRank7BB;
+            Bitboard pawnsNotOn7 = pos.Pieces_color_piecetype(Us, PieceTypeS.PAWN) & ~TRank7BB;
 
-            Bitboard enemies = (Type == GenTypeS.EVASIONS ? pos.pieces_color(Them) & target :
-                                Type == GenTypeS.CAPTURES ? target : pos.pieces_color(Them));
+            Bitboard enemies = (Type == GenTypeS.EVASIONS ? pos.Pieces_color(Them) & target :
+                                Type == GenTypeS.CAPTURES ? target : pos.Pieces_color(Them));
 
             // Single and double pawn pushes, no promotions
             if (Type != GenTypeS.CAPTURES)
             {
-                emptySquares = (Type == GenTypeS.QUIETS || Type == GenTypeS.QUIET_CHECKS ? target : ~pos.pieces());
+                emptySquares = (Type == GenTypeS.QUIETS || Type == GenTypeS.QUIET_CHECKS ? target : ~pos.Pieces());
 
                 b1 = BitBoard.Shift_bb(pawnsNotOn7, Up) & emptySquares;
                 b2 = BitBoard.Shift_bb(b1 & TRank3BB, Up) & emptySquares;
@@ -170,8 +170,8 @@ namespace StockFish
 
                 if (Type == GenTypeS.QUIET_CHECKS)
                 {
-                    b1 &= pos.attacks_from_pawn(ci.ksq, Them);
-                    b2 &= pos.attacks_from_pawn(ci.ksq, Them);
+                    b1 &= pos.Attacks_from_pawn(ci.ksq, Them);
+                    b2 &= pos.Attacks_from_pawn(ci.ksq, Them);
 
                     // Add pawn pushes which give discovered check. This is possible only
                     // if the pawn is not on the same file as the enemy king, because we
@@ -204,7 +204,7 @@ namespace StockFish
             if (pawnsOn7 != 0 && (Type != GenTypeS.EVASIONS || (target & TRank8BB) != 0))
             {
                 if (Type == GenTypeS.CAPTURES)
-                    emptySquares = ~pos.pieces();
+                    emptySquares = ~pos.Pieces();
 
                 if (Type == GenTypeS.EVASIONS)
                     emptySquares &= target;
@@ -232,22 +232,22 @@ namespace StockFish
                     mlist[mPos++].move = Types.Make_move(to - Left, to);
                 }
 
-                if (pos.ep_square() != SquareS.SQ_NONE)
+                if (pos.Ep_square() != SquareS.SQ_NONE)
                 {
-                    Debug.Assert(Types.Rank_of(pos.ep_square()) == Types.Relative_rank_rank(Us, RankS.RANK_6));
+                    Debug.Assert(Types.Rank_of(pos.Ep_square()) == Types.Relative_rank_rank(Us, RankS.RANK_6));
 
                     // An en passant capture can be an evasion only if the checking piece
                     // is the double pushed pawn and so is in the target. Otherwise this
                     // is a discovery check and we are forced to do otherwise.
-                    if (Type == GenTypeS.EVASIONS && (target & BitBoard.SquareBB[(pos.ep_square() - Up)]) == 0)
+                    if (Type == GenTypeS.EVASIONS && (target & BitBoard.SquareBB[(pos.Ep_square() - Up)]) == 0)
                         return mPos;
 
-                    b1 = pawnsNotOn7 & pos.attacks_from_pawn(pos.ep_square(), Them);
+                    b1 = pawnsNotOn7 & pos.Attacks_from_pawn(pos.Ep_square(), Them);
 
                     Debug.Assert(b1 != 0);
 
                     while (b1 != 0)
-                        mlist[mPos++].move = Types.Make(BitBoard.Pop_lsb(ref b1), pos.ep_square(), MoveTypeS.ENPASSANT);
+                        mlist[mPos++].move = Types.Make(BitBoard.Pop_lsb(ref b1), pos.Ep_square(), MoveTypeS.ENPASSANT);
                 }
             }
 
@@ -259,7 +259,7 @@ namespace StockFish
 
             Debug.Assert(Pt != PieceTypeS.KING && Pt != PieceTypeS.PAWN);
 
-            Square[] pieceList = pos.list(us, Pt);
+            Square[] pieceList = pos.List(us, Pt);
             int pl = 0;
 
             for (Square from = pieceList[pl]; from != SquareS.SQ_NONE; from = pieceList[++pl])
@@ -274,7 +274,7 @@ namespace StockFish
                         continue;
                 }
 
-                Bitboard b = pos.attacks_from_square_piecetype(from, Pt) & target;
+                Bitboard b = pos.Attacks_from_square_piecetype(from, Pt) & target;
 
                 if (Checks)
                     b &= ci.checkSq[Pt];
@@ -298,15 +298,15 @@ namespace StockFish
 
             if (Type != GenTypeS.QUIET_CHECKS && Type != GenTypeS.EVASIONS)
             {
-                Square ksq = pos.king_square(us);
-                Bitboard b = pos.attacks_from_square_piecetype(ksq, PieceTypeS.KING) & target;
+                Square ksq = pos.King_square(us);
+                Bitboard b = pos.Attacks_from_square_piecetype(ksq, PieceTypeS.KING) & target;
                 while (b != 0)
                     mlist[mPos++].move = Types.Make_move(ksq, BitBoard.Pop_lsb(ref b));
             }
 
-            if (Type != GenTypeS.CAPTURES && Type != GenTypeS.EVASIONS && pos.can_castle_color(us) != 0)
+            if (Type != GenTypeS.CAPTURES && Type != GenTypeS.EVASIONS && pos.Can_castle_color(us) != 0)
             {
-                if (pos.is_chess960() != 0)
+                if (pos.Is_chess960() != 0)
                 {
                     mPos = Generate_castling(pos, mlist, mPos, us, ci, (new MakeCastlingS(us, CastlingSideS.KING_SIDE)).right  , Checks, true);
                     mPos = Generate_castling(pos, mlist, mPos, us, ci, (new MakeCastlingS(us, CastlingSideS.QUEEN_SIDE)).right, Checks, true);
@@ -334,12 +334,12 @@ namespace StockFish
         public static int generate_captures_quiets_non_evasions(Position pos, ExtMove[] mlist, int mPos, GenType Type)
         {
             Debug.Assert(Type == GenTypeS.CAPTURES || Type == GenTypeS.QUIETS || Type == GenTypeS.NON_EVASIONS);
-            Debug.Assert(pos.checkers() == 0);
+            Debug.Assert(pos.Checkers() == 0);
             Color us = pos.side_to_move();
 
-            Bitboard target = Type == GenTypeS.CAPTURES ? pos.pieces_color(Types.NotColor(us))
-                  : Type == GenTypeS.QUIETS ? ~pos.pieces()
-                  : Type == GenTypeS.NON_EVASIONS ? ~pos.pieces_color(us) : 0;
+            Bitboard target = Type == GenTypeS.CAPTURES ? pos.Pieces_color(Types.NotColor(us))
+                  : Type == GenTypeS.QUIETS ? ~pos.Pieces()
+                  : Type == GenTypeS.NON_EVASIONS ? ~pos.Pieces_color(us) : 0;
 
             return us == ColorS.WHITE ? Generate_all(pos, mlist, mPos, target, ColorS.WHITE, Type)
                                       : Generate_all(pos, mlist, mPos, target, ColorS.BLACK, Type);
@@ -349,11 +349,11 @@ namespace StockFish
         // to move is in check. Returns a pointer to the end of the move list. 
         public static int generate_evasions(Position pos, ExtMove[] mlist, int mPos)
         {
-            Debug.Assert(pos.checkers() != 0);
+            Debug.Assert(pos.Checkers() != 0);
             Color us = pos.side_to_move();
-            Square ksq = pos.king_square(us);
+            Square ksq = pos.King_square(us);
             Bitboard sliderAttacks = 0;
-            Bitboard sliders = pos.checkers() & ~pos.pieces_piecetype(PieceTypeS.KNIGHT, PieceTypeS.PAWN);
+            Bitboard sliders = pos.Checkers() & ~pos.Pieces_piecetype(PieceTypeS.KNIGHT, PieceTypeS.PAWN);
 
             // Find all the squares attacked by slider checkers. We will remove them from
             // the king evasions in order to skip known illegal moves, which avoids any
@@ -365,16 +365,16 @@ namespace StockFish
             }
 
             // Generate evasions for king, capture and non capture moves
-            Bitboard b = pos.attacks_from_square_piecetype(ksq, PieceTypeS.KING) & ~pos.pieces_color(us) & ~sliderAttacks;
+            Bitboard b = pos.Attacks_from_square_piecetype(ksq, PieceTypeS.KING) & ~pos.Pieces_color(us) & ~sliderAttacks;
             while (b!=0)
                 mlist[mPos++].move = Types.Make_move(ksq, BitBoard.Pop_lsb(ref b));
 
-            if (BitBoard.More_than_one(pos.checkers()))
+            if (BitBoard.More_than_one(pos.Checkers()))
                 return mPos; // Double check, only a king move can save the day
 
 
             // Generate blocking evasions or captures of the checking piece
-            Square checksq2 = BitBoard.Lsb(pos.checkers());
+            Square checksq2 = BitBoard.Lsb(pos.Checkers());
             Bitboard target = BitBoard.Between_bb(checksq2, ksq) | BitBoard.SquareBB[checksq2];
 
             return us == ColorS.WHITE ? Generate_all(pos, mlist, mPos, target, ColorS.WHITE, GenTypeS.EVASIONS) :
@@ -385,10 +385,10 @@ namespace StockFish
         public static int Generate_legal(Position pos, ExtMove[] mlist, int mPos)
         {
             int end, cur = mPos;
-            Bitboard pinned = pos.pinned_pieces(pos.side_to_move());
-            Square ksq = pos.king_square(pos.side_to_move());
+            Bitboard pinned = pos.Pinned_pieces(pos.side_to_move());
+            Square ksq = pos.King_square(pos.side_to_move());
 
-            end = pos.checkers() != 0 ? generate_evasions(pos, mlist, mPos)
+            end = pos.Checkers() != 0 ? generate_evasions(pos, mlist, mPos)
                                : Generate(pos, mlist, mPos, GenTypeS.NON_EVASIONS);
             while (cur != end)
             {
@@ -411,7 +411,7 @@ namespace StockFish
         public static int Generate_quiet_checks(Position pos, ExtMove[] mlist, int mPos)
         {
 
-            Debug.Assert(0==pos.checkers());
+            Debug.Assert(0==pos.Checkers());
 
             Color us = pos.side_to_move();
             CheckInfo ci = new CheckInfo(pos);
@@ -425,7 +425,7 @@ namespace StockFish
                 if (pt == PieceTypeS.PAWN)
                     continue; // Will be generated togheter with direct checks
 
-                Bitboard b = pos.attacks_from_piece_square((Piece)pt, from) & ~pos.pieces();
+                Bitboard b = pos.Attacks_from_piece_square((Piece)pt, from) & ~pos.Pieces();
 
                 if (pt == PieceTypeS.KING)
                     b &= ~BitBoard.PseudoAttacks[PieceTypeS.QUEEN][ci.ksq];
@@ -434,8 +434,8 @@ namespace StockFish
                     mlist[mPos++].move = Types.Make_move(from, BitBoard.Pop_lsb(ref b));
             }
 
-            return us == ColorS.WHITE ? Generate_all(pos, mlist, mPos, ~pos.pieces(), ColorS.WHITE, GenTypeS.QUIET_CHECKS, ci) :
-                                        Generate_all(pos, mlist, mPos, ~pos.pieces(), ColorS.BLACK, GenTypeS.QUIET_CHECKS, ci);
+            return us == ColorS.WHITE ? Generate_all(pos, mlist, mPos, ~pos.Pieces(), ColorS.WHITE, GenTypeS.QUIET_CHECKS, ci) :
+                                        Generate_all(pos, mlist, mPos, ~pos.Pieces(), ColorS.BLACK, GenTypeS.QUIET_CHECKS, ci);
         }
 
         public static int Generate(Position pos, ExtMove[] mlist, int mPos, GenType Type)

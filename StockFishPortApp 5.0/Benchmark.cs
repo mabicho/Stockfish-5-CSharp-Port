@@ -134,7 +134,7 @@ namespace StockFish
                     }
                 case "current":
                     {
-                        fens.Add(current.fen());
+                        fens.Add(current.Fen());
                         break;
                     }
                 default:

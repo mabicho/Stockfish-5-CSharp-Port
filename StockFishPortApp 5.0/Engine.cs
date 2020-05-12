@@ -13,7 +13,7 @@ namespace StockFish
         public static ThreadPool Threads= new ThreadPool(); // Global object
 
         public static TranspositionTable TT= new TranspositionTable();
-        
+
         public static InOut inOut= new InOut(System.Console.In, System.Console.Out);
 
         public Engine(string[] args)
@@ -22,7 +22,7 @@ namespace StockFish
 
             Uci.Init(Options);
             BitBoard.Init();
-            Position.init();
+            Position.Init();
             Bitbases.Init_kpk();
             Search.Init();
             Pawns.Init();
@@ -38,6 +38,6 @@ namespace StockFish
         public void Dispose()
         {
             Threads.Exit();
-        }  
+        }
     }
 }

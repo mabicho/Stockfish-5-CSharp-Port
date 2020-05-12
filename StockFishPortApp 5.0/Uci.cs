@@ -86,7 +86,7 @@ namespace StockFish
                     return;
             }
 
-            pos.set(fen, Engine.Options["UCI_Chess960"].getInt(), Engine.Threads.Main());
+            pos.Set(fen, Engine.Options["UCI_Chess960"].getInt(), Engine.Threads.Main());
             SetupStates = new StateStackPtr();
 
             // Parse move list (if any)
@@ -275,10 +275,10 @@ namespace StockFish
                             sb.Append(String.Format("{0:X}", pos.key()).PadLeft(16, '0'));
                             sb.Append(Types.newline);
                             sb.Append("material key: ");
-                            sb.Append(String.Format("{0:X}", pos.material_key()).PadLeft(16, '0'));
+                            sb.Append(String.Format("{0:X}", pos.Material_key()).PadLeft(16, '0'));
                             sb.Append(Types.newline);
                             sb.Append("pawn key: ");
-                            sb.Append(String.Format("{0:X}", pos.pawn_key()).PadLeft(16, '0'));
+                            sb.Append(String.Format("{0:X}", pos.Pawn_key()).PadLeft(16, '0'));
                             Engine.inOut.WriteLine(sb.ToString(), MutexAction.ATOMIC);
                             break;
                         }
@@ -323,7 +323,7 @@ namespace StockFish
 
                     case "flip":
                         {
-                            pos.flip();
+                            pos.Flip();
                             break;
                         }
 
@@ -341,7 +341,7 @@ namespace StockFish
 
                     case "d":
                         {
-                            Engine.inOut.WriteLine(pos.pretty(0), MutexAction.ATOMIC);
+                            Engine.inOut.WriteLine(pos.Pretty(0), MutexAction.ATOMIC);
                             break;
                         }
 

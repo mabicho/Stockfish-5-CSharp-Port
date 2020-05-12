@@ -61,14 +61,14 @@ namespace StockFish
                 expectedScore = -expectedScore;
             } while (tte != null
                 && expectedScore == Search.value_from_tt(tte.value(), ply)
-                && pos.pseudo_legal(m = tte.move()) // Local copy, TT could change
-                && pos.legal(m, pos.pinned_pieces(pos.side_to_move()))
+                && pos.Pseudo_legal(m = tte.move()) // Local copy, TT could change
+                && pos.legal(m, pos.Pinned_pieces(pos.side_to_move()))
                 && ply < Types.MAX_PLY
-                && (!pos.is_draw() || ply <= 2));
+                && (!pos.Is_draw() || ply <= 2));
 
             pval.Add(MoveS.MOVE_NONE); // Must be zero-terminating
 
-            while (--ply != 0) pos.undo_move(pval[ply - 1]);
+            while (--ply != 0) pos.Undo_move(pval[ply - 1]);
         }
 
         //RootMove::insert_pv_in_tt() is called at the end of a search iteration, and
@@ -96,7 +96,7 @@ namespace StockFish
                 pos.do_move(pval[idx++], state[st++]);
             } while (pval[idx] != MoveS.MOVE_NONE);
 
-            while (idx != 0) pos.undo_move(pval[--idx]);
+            while (idx != 0) pos.Undo_move(pval[--idx]);
         }
     }
 
@@ -216,9 +216,9 @@ namespace StockFish
             bool leaf = depth == 2 * DepthS.ONE_PLY;
             for (MoveList it = new MoveList(pos, GenTypeS.LEGAL); it.Move() != MoveS.MOVE_NONE; ++it)
             {
-                pos.do_move(it.Move(), st, ci, pos.gives_check(it.Move(), ci));
+                pos.Do_move(it.Move(), st, ci, pos.Gives_check(it.Move(), ci));
                 cnt += leaf ? (UInt64)(new MoveList(pos, GenTypeS.LEGAL)).Size() : Search.Static_perft(pos, depth - DepthS.ONE_PLY);
-                pos.undo_move(it.Move());
+                pos.Undo_move(it.Move());
             }
             return cnt;
         }
@@ -233,7 +233,7 @@ namespace StockFish
         public static void Think()
         {
             RootColor = RootPos.side_to_move();
-            TimeMgr.init(Limits, RootPos.game_ply(), RootColor);
+            TimeMgr.init(Limits, RootPos.Game_ply(), RootColor);
 
             int cf = Engine.Options["Contempt Factor"].getInt() * ValueS.PawnValueEg / 100; // From centipawns
             DrawValue[RootColor] = ValueS.VALUE_DRAW - (cf);
@@ -243,7 +243,7 @@ namespace StockFish
             {
                 RootMoves.Add(item: new RootMove(MoveS.MOVE_NONE));
                 Engine.inOut.Write("info depth 0 score ", MutexAction.ADQUIRE);
-                Engine.inOut.Write(Notation.score_to_uci(RootPos.checkers() != 0 ? -ValueS.VALUE_MATE : ValueS.VALUE_DRAW), MutexAction.RELAX);
+                Engine.inOut.Write(Notation.score_to_uci(RootPos.Checkers() != 0 ? -ValueS.VALUE_MATE : ValueS.VALUE_DRAW), MutexAction.RELAX);
                 goto finalize;
             }
 
@@ -290,15 +290,15 @@ namespace StockFish
             {
                 Signals.stopOnPonderhit = true;
 #pragma warning disable 0420
-                RootPos.this_thread().wait_for(ref Signals.stop);
+                RootPos.This_thread().wait_for(ref Signals.stop);
 #pragma warning restore 0420
             }
 
             // Best move could be MOVE_NONE when searching on a stalemate position            
             Engine.inOut.Write("bestmove ", MutexAction.ADQUIRE);
-            Engine.inOut.Write(Notation.move_to_uci(RootMoves[0].pval[0], RootPos.is_chess960() != 0));
+            Engine.inOut.Write(Notation.move_to_uci(RootMoves[0].pval[0], RootPos.Is_chess960() != 0));
             Engine.inOut.Write(" ponder ");
-            Engine.inOut.Write(Notation.move_to_uci(RootMoves[0].pval[1], RootPos.is_chess960() != 0));
+            Engine.inOut.Write(Notation.move_to_uci(RootMoves[0].pval[1], RootPos.Is_chess960() != 0));
             Engine.inOut.Write(Types.newline, MutexAction.RELAX);
         }
 
@@ -482,8 +482,8 @@ namespace StockFish
             int moveCount=0, quietCount=0;
 
             // Step 1. Initialize node
-            Thread thisThread = pos.this_thread();
-            inCheck = pos.checkers() != 0;
+            Thread thisThread = pos.This_thread();
+            inCheck = pos.Checkers() != 0;
 
             if (SpNode)
             {
@@ -513,7 +513,7 @@ namespace StockFish
             if (!RootNode)
             {
                 // Step 2. Check for aborted search and immediate draw
-                if (Signals.stop || pos.is_draw() || ss[ssPos].ply > Types.MAX_PLY)
+                if (Signals.stop || pos.Is_draw() || ss[ssPos].ply > Types.MAX_PLY)
                     return ss[ssPos].ply > Types.MAX_PLY && !inCheck ? Eval.evaluate(pos) : DrawValue[pos.side_to_move()];
 
                 // Step 3. Mate distance pruning. Even if we mate at the next move our score
@@ -532,7 +532,7 @@ namespace StockFish
             // We don't want the score of a partial search to overwrite a previous full search
             // TT value, so we use a different position key in case of an excluded move.
             excludedMove = ss[ssPos].excludedMove;
-            posKey = excludedMove != 0 ? pos.exclusion_key() : pos.key();
+            posKey = excludedMove != 0 ? pos.Exclusion_key() : pos.key();
             tte = Engine.TT.Probe(posKey);
             ss[ssPos].ttMove = ttMove = RootNode ? RootMoves[PVIdx].pval[0] : tte != null ? tte.move() : MoveS.MOVE_NONE;
             ttValue = (tte != null) ? value_from_tt(tte.value(), ss[ssPos].ply) : ValueS.VALUE_NONE;
@@ -552,7 +552,7 @@ namespace StockFish
                 ss[ssPos].currentMove = ttMove; // Can be MOVE_NONE
 
                 // If ttMove is quiet, update killers, history, counter move and followup move on TT hit
-                if (ttValue >= beta && ttMove!=0 && !pos.capture_or_promotion(ttMove) && !inCheck)
+                if (ttValue >= beta && ttMove!=0 && !pos.Capture_or_promotion(ttMove) && !inCheck)
                     Update_stats(pos, ss, ssPos, ttMove, depth, null, 0);
 
                 return ttValue;
@@ -582,7 +582,7 @@ namespace StockFish
                 Engine.TT.store(posKey, ValueS.VALUE_NONE, BoundS.BOUND_NONE, DepthS.DEPTH_NONE, MoveS.MOVE_NONE, ss[ssPos].staticEval);
             }
             
-            if (0==pos.captured_piece_type()
+            if (0==pos.Captured_piece_type()
                 && ss[ssPos].staticEval != ValueS.VALUE_NONE
                 && ss[ssPos - 1].staticEval != ValueS.VALUE_NONE
                 && (move = ss[ssPos - 1].currentMove) != MoveS.MOVE_NULL
@@ -598,7 +598,7 @@ namespace StockFish
                 && eval + Razor_margin(depth) <= beta
                 && ttMove == MoveS.MOVE_NONE
                 && Math.Abs(beta) < ValueS.VALUE_MATE_IN_MAX_PLY
-                && !pos.pawn_on_7th(pos.side_to_move())
+                && !pos.Pawn_on_7th(pos.side_to_move())
                 )
             {
                 if (   depth <= DepthS.ONE_PLY
@@ -618,7 +618,7 @@ namespace StockFish
                 && eval - Futility_margin(depth) >= beta
                 && Math.Abs(beta) < ValueS.VALUE_MATE_IN_MAX_PLY
                 && Math.Abs(eval) < ValueS.VALUE_KNOWN_WIN
-                && pos.non_pawn_material(pos.side_to_move()) != 0)
+                && pos.Non_pawn_material(pos.side_to_move()) != 0)
                 return eval - Futility_margin(depth);
 
             // Step 8. Null move search with verification search (is omitted in PV nodes)
@@ -627,7 +627,7 @@ namespace StockFish
                 && depth >= 2 * DepthS.ONE_PLY
                 && eval >= beta
                 && Math.Abs(beta) < ValueS.VALUE_MATE_IN_MAX_PLY
-                && pos.non_pawn_material(pos.side_to_move()) != 0)
+                && pos.Non_pawn_material(pos.side_to_move()) != 0)
             {
                 ss[ssPos].currentMove = MoveS.MOVE_NULL;
 
@@ -639,12 +639,12 @@ namespace StockFish
                  + (eval - beta) / ValueS.PawnValueMg * DepthS.ONE_PLY;
                 
 
-                pos.do_null_move(st);
+                pos.Do_null_move(st);
                 ss[ssPos + 1].skipNullMove = 1;
                 nullValue = depth - R < DepthS.ONE_PLY ? -qsearch(pos, ss, ssPos+1, -beta, -beta+1, DepthS.DEPTH_ZERO, NodeTypeS.NonPV, false)
                                       : -search(pos, ss, ssPos + 1, -beta, -beta + 1, depth - R, !cutNode, NodeTypeS.NonPV, false);
                 ss[ssPos + 1].skipNullMove = 0;
-                pos.undo_null_move();
+                pos.Undo_null_move();
 
                 if (nullValue >= beta)
                 {
@@ -682,15 +682,15 @@ namespace StockFish
                 Debug.Assert(ss[ssPos - 1].currentMove != MoveS.MOVE_NONE);
                 Debug.Assert(ss[ssPos - 1].currentMove != MoveS.MOVE_NULL);
 
-                MovePicker mp2 = new MovePicker(pos, ttMove, History, pos.captured_piece_type());
+                MovePicker mp2 = new MovePicker(pos, ttMove, History, pos.Captured_piece_type());
                 CheckInfo ci2 = new CheckInfo(pos);
                 while ((move = mp2.Next_move_false()) != MoveS.MOVE_NONE)
                     if (pos.legal(move, ci2.pinned))
                     {
                         ss[ssPos].currentMove = move;
-                        pos.do_move(move, st, ci2, pos.gives_check(move, ci2));
+                        pos.Do_move(move, st, ci2, pos.Gives_check(move, ci2));
                         value = -search(pos, ss, ssPos + 1, -rbeta, -rbeta + 1, rdepth, !cutNode, NodeTypeS.NonPV, false);
-                        pos.undo_move(move);
+                        pos.Undo_move(move);
                         if (value >= rbeta)
                             return value;
                     }
@@ -771,7 +771,7 @@ namespace StockFish
                         Engine.inOut.Write("info depth ", MutexAction.ADQUIRE);
                         Engine.inOut.Write((depth / DepthS.ONE_PLY).ToString(), MutexAction.NONE);
                         Engine.inOut.Write(" currmove ", MutexAction.NONE);
-                        Engine.inOut.Write(Notation.move_to_uci(move, pos.is_chess960() != 0), MutexAction.NONE);
+                        Engine.inOut.Write(Notation.move_to_uci(move, pos.Is_chess960() != 0), MutexAction.NONE);
                         Engine.inOut.Write(" currmovenumber ", MutexAction.NONE);
                         Engine.inOut.Write((moveCount + PVIdx).ToString(), MutexAction.NONE);
                         Engine.inOut.Write(Types.newline, MutexAction.RELAX);
@@ -779,18 +779,18 @@ namespace StockFish
                 }
 
                 ext = DepthS.DEPTH_ZERO;
-                captureOrPromotion = pos.capture_or_promotion(move);
+                captureOrPromotion = pos.Capture_or_promotion(move);
 
                 givesCheck = Types.Type_of_move(move) == MoveTypeS.NORMAL && 0==ci.dcCandidates
                   ? (ci.checkSq[Types.Type_of_piece(pos.piece_on(Types.From_sq(move)))] & BitBoard.SquareBB[Types.To_sq(move)])!=0
-                  : pos.gives_check(move, ci);
+                  : pos.Gives_check(move, ci);
 
                 dangerous = givesCheck
                  || Types.Type_of_move(move) != MoveTypeS.NORMAL
-                 || pos.advanced_pawn_push(move);
+                 || pos.Advanced_pawn_push(move);
 
                 // Step 12. Extend checks
-                if (givesCheck && pos.see_sign(move) >= ValueS.VALUE_ZERO)
+                if (givesCheck && pos.See_sign(move) >= ValueS.VALUE_ZERO)
                     ext = DepthS.ONE_PLY;
 
                 // Singular extension search. If all moves but one fail low on a search of
@@ -861,7 +861,7 @@ namespace StockFish
                     }
 
                     // Prune moves with negative SEE at low depths
-                    if (predictedDepth < 4 * DepthS.ONE_PLY && pos.see_sign(move) < ValueS.VALUE_ZERO)                        
+                    if (predictedDepth < 4 * DepthS.ONE_PLY && pos.See_sign(move) < ValueS.VALUE_ZERO)                        
                     {
                         if (SpNode)
                             splitPoint.mutex.Lock();
@@ -883,7 +883,7 @@ namespace StockFish
                     quietsSearched[quietCount++] = move;
 
                 // Step 14. Make the move                       
-                pos.do_move(move, st, ci, givesCheck);
+                pos.Do_move(move, st, ci, givesCheck);
 
                 // Step 15. Reduced depth search (LMR). If the move fails high it will be
                 // re-searched at full depth.
@@ -947,7 +947,7 @@ namespace StockFish
                                      : -search(pos, ss, ssPos + 1, -beta, -alpha, newDepth, false, NodeTypeS.PV, false);
 
                 // Step 17. Undo move
-                pos.undo_move(move);
+                pos.Undo_move(move);
 
                 Debug.Assert(value > -ValueS.VALUE_INFINITE && value < ValueS.VALUE_INFINITE);
 
@@ -1052,7 +1052,7 @@ namespace StockFish
                    : inCheck ? Types.Mated_in(ss[ssPos].ply) : DrawValue[pos.side_to_move()];
 
             // Quiet best move: update killers, history, countermoves and followupmoves
-            else if (bestValue >= beta && !pos.capture_or_promotion(bestMove) && !inCheck)
+            else if (bestValue >= beta && !pos.Capture_or_promotion(bestMove) && !inCheck)
                 Update_stats(pos, ss, ssPos, bestMove, depth, quietsSearched, quietCount - 1);
 
             Engine.TT.store(posKey, value_to_tt(bestValue, ss[ssPos].ply),
@@ -1073,7 +1073,7 @@ namespace StockFish
             bool PvNode = (NT == NodeTypeS.PV);
 
             Debug.Assert(NT == NodeTypeS.PV || NT == NodeTypeS.NonPV);
-            Debug.Assert(InCheck == (pos.checkers() != 0));
+            Debug.Assert(InCheck == (pos.Checkers() != 0));
             Debug.Assert(alpha >= -ValueS.VALUE_INFINITE && alpha < beta && beta <= ValueS.VALUE_INFINITE);
             Debug.Assert(PvNode || (alpha == beta - 1));
             Debug.Assert(depth <= DepthS.DEPTH_ZERO);
@@ -1094,7 +1094,7 @@ namespace StockFish
             ss[ssPos].ply = ss[ssPos - 1].ply + 1;
 
             // Check for an instant draw or if the maximum ply has been reached
-            if (pos.is_draw() || ss[ssPos].ply > Types.MAX_PLY)
+            if (pos.Is_draw() || ss[ssPos].ply > Types.MAX_PLY)
                 return ss[ssPos].ply > Types.MAX_PLY && !InCheck ? Eval.evaluate(pos) : DrawValue[pos.side_to_move()];
 
             // Decide whether or not to include checks: this fixes also the type of
@@ -1176,7 +1176,7 @@ namespace StockFish
 
                 givesCheck = Types.Type_of_move(move) == MoveTypeS.NORMAL && 0==ci.dcCandidates
                   ? (ci.checkSq[Types.Type_of_piece(pos.piece_on(Types.From_sq(move)))] & BitBoard.SquareBB[Types.To_sq(move)])!=0
-                  : pos.gives_check(move, ci);
+                  : pos.Gives_check(move, ci);
 
                 // Futility pruning
                 if (!PvNode
@@ -1184,7 +1184,7 @@ namespace StockFish
                   && !givesCheck
                   && move != ttMove
                   && futilityBase > -ValueS.VALUE_KNOWN_WIN
-                  && !pos.advanced_pawn_push(move))
+                  && !pos.Advanced_pawn_push(move))
                 {
                     Debug.Assert(Types.Type_of_move(move) != MoveTypeS.ENPASSANT); // Due to !pos.advanced_pawn_push
 
@@ -1196,7 +1196,7 @@ namespace StockFish
                         continue;
                     }
 
-                    if (futilityBase < beta && pos.see(move) <= ValueS.VALUE_ZERO)
+                    if (futilityBase < beta && pos.See(move) <= ValueS.VALUE_ZERO)
                     {
                         bestValue = Math.Max(bestValue, futilityBase);
                         continue;
@@ -1206,15 +1206,15 @@ namespace StockFish
                 // Detect non-capture evasions that are candidates to be pruned
                 evasionPrunable = InCheck
                                && bestValue > ValueS.VALUE_MATED_IN_MAX_PLY
-                               && !pos.capture(move)
-                               && 0==pos.can_castle_color(pos.side_to_move());
+                               && !pos.Capture(move)
+                               && 0==pos.Can_castle_color(pos.side_to_move());
 
                 // Don't search moves with negative SEE values
                 if (!PvNode
                   && (!InCheck || evasionPrunable)
                   && move != ttMove
                   && Types.Type_of_move(move) != MoveTypeS.PROMOTION
-                  && pos.see_sign(move) < ValueS.VALUE_ZERO)
+                  && pos.See_sign(move) < ValueS.VALUE_ZERO)
                     continue;
 
                 // Check for legality just before making the move
@@ -1224,10 +1224,10 @@ namespace StockFish
                 ss[ssPos].currentMove = move;
 
                 // Make and search the move
-                pos.do_move(move, st, ci, givesCheck);
+                pos.Do_move(move, st, ci, givesCheck);
                 value = givesCheck ? -qsearch(pos, ss, ssPos+1, -beta, -alpha, depth - DepthS.ONE_PLY, NT,  true)
                                     : -qsearch(pos, ss, ssPos + 1, -beta, -alpha, depth - DepthS.ONE_PLY, NT, false);
-                pos.undo_move(move);
+                pos.Undo_move(move);
 
                 Debug.Assert(value > -ValueS.VALUE_INFINITE && value < ValueS.VALUE_INFINITE);
 
@@ -1382,7 +1382,7 @@ namespace StockFish
                 for (int j = 0; RootMoves[i].pval[j] != MoveS.MOVE_NONE; ++j)
                 {
                     s.Append(" ");
-                    s.Append(Notation.move_to_uci(RootMoves[i].pval[j], pos.is_chess960() != 0));
+                    s.Append(Notation.move_to_uci(RootMoves[i].pval[j], pos.Is_chess960() != 0));
                 }
             }
 
