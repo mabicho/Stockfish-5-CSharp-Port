@@ -1,4 +1,4 @@
-Stockfish-CSharp-Port
+Stockfish-5-CSharp-Port
 =====================
 
 Port of the Stockfish chess engine version 5.0 in the C# language. At this time, all functionality except logging is available. In addition, I had serious doubts about the implementation of the multi-core functionality, it works the most of the time, but sometimes it crashes.
